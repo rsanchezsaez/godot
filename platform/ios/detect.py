@@ -2,7 +2,7 @@ import os
 import sys
 from typing import TYPE_CHECKING
 
-from methods import detect_darwin_sdk_path, print_error, print_warning
+from methods import detect_darwin_sdk_path, detect_darwin_toolchain_path, print_error, print_warning
 from platform_methods import validate_arch
 
 if TYPE_CHECKING:
@@ -26,9 +26,10 @@ def get_opts():
     return [
         ("vulkan_sdk_path", "Path to the Vulkan SDK", ""),
         (
-            "IOS_TOOLCHAIN_PATH",
-            "Path to iOS toolchain",
-            "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain",
+            # Example: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain
+            "APPLE_TOOLCHAIN_PATH",
+            "Path to the Apple toolchain",
+            "",
         ),
         ("IOS_SDK_PATH", "Path to the iOS SDK", ""),
         BoolVariable("ios_simulator", "Build for iOS Simulator", False),
@@ -62,6 +63,7 @@ def configure(env: "SConsEnvironment"):
     # Validate arch.
     supported_arches = ["x86_64", "arm64"]
     validate_arch(env["arch"], get_name(), supported_arches)
+    detect_darwin_toolchain_path(env)
 
     ## LTO
 
@@ -82,9 +84,9 @@ def configure(env: "SConsEnvironment"):
     if "OSXCROSS_IOS" in os.environ:
         env["osxcross"] = True
 
-    env["ENV"]["PATH"] = env["IOS_TOOLCHAIN_PATH"] + "/Developer/usr/bin/:" + env["ENV"]["PATH"]
+    env["ENV"]["PATH"] = env["APPLE_TOOLCHAIN_PATH"] + "/Developer/usr/bin/:" + env["ENV"]["PATH"]
 
-    compiler_path = "$IOS_TOOLCHAIN_PATH/usr/bin/${ios_triple}"
+    compiler_path = "$APPLE_TOOLCHAIN_PATH/usr/bin/${ios_triple}"
 
     ccache_path = os.environ.get("CCACHE")
     if ccache_path is None:

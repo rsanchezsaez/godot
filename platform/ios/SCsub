@@ -89,9 +89,9 @@ env_ios.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
 def combine_libs(target=None, source=None, env=None):
     lib_path = target[0].srcnode().abspath
     if "osxcross" in env:
-        libtool = "$IOS_TOOLCHAIN_PATH/usr/bin/${ios_triple}libtool"
+        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/${ios_triple}libtool"
     else:
-        libtool = "$IOS_TOOLCHAIN_PATH/usr/bin/libtool"
+        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/libtool"
     env.Execute(
         libtool + ' -static -o "' + lib_path + '" ' + " ".join([('"' + lib.srcnode().abspath + '"') for lib in source])
     )
