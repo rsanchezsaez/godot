@@ -48,14 +48,14 @@
 #endif
 #endif
 
-class OS_IOS : public OS_Unix {
+class OS_AppleEmbedded : public OS_Unix {
 private:
 	static HashMap<String, void *> dynamic_symbol_lookup_table;
 	friend void register_dynamic_symbol(char *name, void *address);
 
 	AudioDriverCoreAudio audio_driver;
 
-	iOS *ios = nullptr;
+	AppleEmbedded *apple_embedded = nullptr;
 
 	JoypadApple *joypad_apple = nullptr;
 
@@ -84,10 +84,10 @@ private:
 	void deinitialize_modules();
 
 public:
-	static OS_IOS *get_singleton();
+	static OS_AppleEmbedded *get_singleton();
 
-	OS_IOS();
-	~OS_IOS();
+	OS_AppleEmbedded();
+	~OS_AppleEmbedded();
 
 	void initialize_modules();
 

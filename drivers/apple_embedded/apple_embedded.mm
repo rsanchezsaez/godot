@@ -37,14 +37,14 @@
 #import <UIKit/UIKit.h>
 #include <sys/sysctl.h>
 
-void iOS::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("get_rate_url", "app_id"), &iOS::get_rate_url);
-	ClassDB::bind_method(D_METHOD("supports_haptic_engine"), &iOS::supports_haptic_engine);
-	ClassDB::bind_method(D_METHOD("start_haptic_engine"), &iOS::start_haptic_engine);
-	ClassDB::bind_method(D_METHOD("stop_haptic_engine"), &iOS::stop_haptic_engine);
+void AppleEmbedded::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("get_rate_url", "app_id"), &AppleEmbedded::get_rate_url);
+	ClassDB::bind_method(D_METHOD("supports_haptic_engine"), &AppleEmbedded::supports_haptic_engine);
+	ClassDB::bind_method(D_METHOD("start_haptic_engine"), &AppleEmbedded::start_haptic_engine);
+	ClassDB::bind_method(D_METHOD("stop_haptic_engine"), &AppleEmbedded::stop_haptic_engine);
 }
 
-bool iOS::supports_haptic_engine() {
+bool AppleEmbedded::supports_haptic_engine() {
 	if (@available(iOS 13, *)) {
 		id<CHHapticDeviceCapability> capabilities = [CHHapticEngine capabilitiesForHardware];
 		return capabilities.supportsHaptics;
@@ -53,7 +53,7 @@ bool iOS::supports_haptic_engine() {
 	return false;
 }
 
-CHHapticEngine *iOS::get_haptic_engine_instance() API_AVAILABLE(ios(13)) {
+CHHapticEngine *AppleEmbedded::get_haptic_engine_instance() API_AVAILABLE(ios(13)) {
 	if (haptic_engine == nullptr) {
 		NSError *error = nullptr;
 		haptic_engine = [[CHHapticEngine alloc] initAndReturnError:&error];
@@ -69,7 +69,7 @@ CHHapticEngine *iOS::get_haptic_engine_instance() API_AVAILABLE(ios(13)) {
 	return haptic_engine;
 }
 
-void iOS::vibrate_haptic_engine(float p_duration_seconds, float p_amplitude) API_AVAILABLE(ios(13)) {
+void AppleEmbedded::vibrate_haptic_engine(float p_duration_seconds, float p_amplitude) API_AVAILABLE(ios(13)) {
 	if (@available(iOS 13, *)) { // We need the @available check every time to make the compiler happy...
 		if (supports_haptic_engine()) {
 			CHHapticEngine *cur_haptic_engine = get_haptic_engine_instance();
@@ -117,10 +117,10 @@ void iOS::vibrate_haptic_engine(float p_duration_seconds, float p_amplitude) API
 		}
 	}
 
-	NSLog(@"Haptic engine is not supported in this version of iOS");
+	NSLog(@"Haptic engine is not supported");
 }
 
-void iOS::start_haptic_engine() {
+void AppleEmbedded::start_haptic_engine() {
 	if (@available(iOS 13, *)) {
 		if (supports_haptic_engine()) {
 			CHHapticEngine *cur_haptic_engine = get_haptic_engine_instance();
@@ -136,10 +136,10 @@ void iOS::start_haptic_engine() {
 		}
 	}
 
-	NSLog(@"Haptic engine is not supported in this version of iOS");
+	NSLog(@"Haptic engine is not supported");
 }
 
-void iOS::stop_haptic_engine() {
+void AppleEmbedded::stop_haptic_engine() {
 	if (@available(iOS 13, *)) {
 		if (supports_haptic_engine()) {
 			CHHapticEngine *cur_haptic_engine = get_haptic_engine_instance();
@@ -155,10 +155,10 @@ void iOS::stop_haptic_engine() {
 		}
 	}
 
-	NSLog(@"Haptic engine is not supported in this version of iOS");
+	NSLog(@"Haptic engine is not supported");
 }
 
-void iOS::alert(const char *p_alert, const char *p_title) {
+void AppleEmbedded::alert(const char *p_alert, const char *p_title) {
 	NSString *title = [NSString stringWithUTF8String:p_title];
 	NSString *message = [NSString stringWithUTF8String:p_alert];
 
@@ -173,7 +173,7 @@ void iOS::alert(const char *p_alert, const char *p_title) {
 	[AppDelegate.viewController presentViewController:alert animated:YES completion:nil];
 }
 
-String iOS::get_model() const {
+String AppleEmbedded::get_model() const {
 	// [[UIDevice currentDevice] model] only returns "iPad" or "iPhone".
 	size_t size;
 	sysctlbyname("hw.machine", nullptr, &size, nullptr, 0);
@@ -188,7 +188,7 @@ String iOS::get_model() const {
 	return String::utf8(str != nullptr ? str : "");
 }
 
-String iOS::get_rate_url(int p_app_id) const {
+String AppleEmbedded::get_rate_url(int p_app_id) const {
 	String app_url_path = "itms-apps://itunes.apple.com/app/idAPP_ID";
 
 	String ret = app_url_path.replace("APP_ID", String::num_int64(p_app_id));
@@ -197,4 +197,4 @@ String iOS::get_rate_url(int p_app_id) const {
 	return ret;
 }
 
-iOS::iOS() {}
+AppleEmbedded::AppleEmbedded() {}

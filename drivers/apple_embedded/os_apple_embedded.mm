@@ -64,26 +64,26 @@
 // so we use this as a hack to ensure certain code is called before
 // everything else, but after all units are initialized.
 typedef void (*init_callback)();
-static init_callback *ios_init_callbacks = nullptr;
-static int ios_init_callbacks_count = 0;
-static int ios_init_callbacks_capacity = 0;
-HashMap<String, void *> OS_IOS::dynamic_symbol_lookup_table;
+static init_callback *apple_init_callbacks = nullptr;
+static int apple_init_callbacks_count = 0;
+static int apple_init_callbacks_capacity = 0;
+HashMap<String, void *> OS_AppleEmbedded::dynamic_symbol_lookup_table;
 
-void add_ios_init_callback(init_callback cb) {
-	if (ios_init_callbacks_count == ios_init_callbacks_capacity) {
-		void *new_ptr = realloc(ios_init_callbacks, sizeof(cb) * (ios_init_callbacks_capacity + 32));
+void add_apple_init_callback(init_callback cb) {
+	if (apple_init_callbacks_count == apple_init_callbacks_capacity) {
+		void *new_ptr = realloc(apple_init_callbacks, sizeof(cb) * (apple_init_callbacks_capacity + 32));
 		if (new_ptr) {
-			ios_init_callbacks = (init_callback *)(new_ptr);
-			ios_init_callbacks_capacity += 32;
+			apple_init_callbacks = (init_callback *)(new_ptr);
+			apple_init_callbacks_capacity += 32;
 		} else {
 			ERR_FAIL_MSG("Unable to allocate memory for extension callbacks.");
 		}
 	}
-	ios_init_callbacks[ios_init_callbacks_count++] = cb;
+	apple_init_callbacks[apple_init_callbacks_count++] = cb;
 }
 
 void register_dynamic_symbol(char *name, void *address) {
-	OS_IOS::dynamic_symbol_lookup_table[String(name)] = address;
+	OS_AppleEmbedded::dynamic_symbol_lookup_table[String(name)] = address;
 }
 
 Rect2 fit_keep_aspect_centered(const Vector2 &p_container, const Vector2 &p_rect) {
@@ -126,18 +126,18 @@ Rect2 fit_keep_aspect_covered(const Vector2 &p_container, const Vector2 &p_rect)
 	return result;
 }
 
-OS_IOS *OS_IOS::get_singleton() {
-	return (OS_IOS *)OS::get_singleton();
+OS_AppleEmbedded *OS_AppleEmbedded::get_singleton() {
+	return (OS_AppleEmbedded *)OS::get_singleton();
 }
 
-OS_IOS::OS_IOS() {
-	for (int i = 0; i < ios_init_callbacks_count; ++i) {
-		ios_init_callbacks[i]();
+OS_AppleEmbedded::OS_AppleEmbedded() {
+	for (int i = 0; i < apple_init_callbacks_count; ++i) {
+		apple_init_callbacks[i]();
 	}
-	free(ios_init_callbacks);
-	ios_init_callbacks = nullptr;
-	ios_init_callbacks_count = 0;
-	ios_init_callbacks_capacity = 0;
+	free(apple_init_callbacks);
+	apple_init_callbacks = nullptr;
+	apple_init_callbacks_count = 0;
+	apple_init_callbacks_capacity = 0;
 
 	main_loop = nullptr;
 
@@ -150,50 +150,50 @@ OS_IOS::OS_IOS() {
 	DisplayServerIOS::register_ios_driver();
 }
 
-OS_IOS::~OS_IOS() {}
+OS_AppleEmbedded::~OS_AppleEmbedded() {}
 
-void OS_IOS::alert(const String &p_alert, const String &p_title) {
+void OS_AppleEmbedded::alert(const String &p_alert, const String &p_title) {
 	const CharString utf8_alert = p_alert.utf8();
 	const CharString utf8_title = p_title.utf8();
-	iOS::alert(utf8_alert.get_data(), utf8_title.get_data());
+	AppleEmbedded::alert(utf8_alert.get_data(), utf8_title.get_data());
 }
 
-void OS_IOS::initialize_core() {
+void OS_AppleEmbedded::initialize_core() {
 	OS_Unix::initialize_core();
 }
 
-void OS_IOS::initialize() {
+void OS_AppleEmbedded::initialize() {
 	initialize_core();
 }
 
-void OS_IOS::initialize_joypads() {
+void OS_AppleEmbedded::initialize_joypads() {
 	joypad_apple = memnew(JoypadApple);
 }
 
-void OS_IOS::initialize_modules() {
-	ios = memnew(iOS);
-	Engine::get_singleton()->add_singleton(Engine::Singleton("iOS", ios));
+void OS_AppleEmbedded::initialize_modules() {
+	apple_embedded = memnew(AppleEmbedded);
+	Engine::get_singleton()->add_singleton(Engine::Singleton("AppleEmbedded", apple_embedded));
 }
 
-void OS_IOS::deinitialize_modules() {
+void OS_AppleEmbedded::deinitialize_modules() {
 	if (joypad_apple) {
 		memdelete(joypad_apple);
 	}
 
-	if (ios) {
-		memdelete(ios);
+	if (apple_embedded) {
+		memdelete(apple_embedded);
 	}
 }
 
-void OS_IOS::set_main_loop(MainLoop *p_main_loop) {
+void OS_AppleEmbedded::set_main_loop(MainLoop *p_main_loop) {
 	main_loop = p_main_loop;
 }
 
-MainLoop *OS_IOS::get_main_loop() const {
+MainLoop *OS_AppleEmbedded::get_main_loop() const {
 	return main_loop;
 }
 
-void OS_IOS::delete_main_loop() {
+void OS_AppleEmbedded::delete_main_loop() {
 	if (main_loop) {
 		main_loop->finalize();
 		memdelete(main_loop);
@@ -202,7 +202,7 @@ void OS_IOS::delete_main_loop() {
 	main_loop = nullptr;
 }
 
-bool OS_IOS::iterate() {
+bool OS_AppleEmbedded::iterate() {
 	if (!main_loop) {
 		return true;
 	}
@@ -216,13 +216,13 @@ bool OS_IOS::iterate() {
 	return Main::iteration();
 }
 
-void OS_IOS::start() {
+void OS_AppleEmbedded::start() {
 	if (Main::start() == EXIT_SUCCESS) {
 		main_loop->initialize();
 	}
 }
 
-void OS_IOS::finalize() {
+void OS_AppleEmbedded::finalize() {
 	deinitialize_modules();
 
 	// Already gets called
@@ -231,7 +231,7 @@ void OS_IOS::finalize() {
 
 // MARK: Dynamic Libraries
 
-_FORCE_INLINE_ String OS_IOS::get_framework_executable(const String &p_path) {
+_FORCE_INLINE_ String OS_AppleEmbedded::get_framework_executable(const String &p_path) {
 	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 
 	// Read framework bundle to get executable name.
@@ -253,7 +253,7 @@ _FORCE_INLINE_ String OS_IOS::get_framework_executable(const String &p_path) {
 	return p_path;
 }
 
-Error OS_IOS::open_dynamic_library(const String &p_path, void *&p_library_handle, GDExtensionData *p_data) {
+Error OS_AppleEmbedded::open_dynamic_library(const String &p_path, void *&p_library_handle, GDExtensionData *p_data) {
 	if (p_path.length() == 0) {
 		// Static xcframework.
 		p_library_handle = RTLD_SELF;
@@ -299,16 +299,16 @@ Error OS_IOS::open_dynamic_library(const String &p_path, void *&p_library_handle
 	return OK;
 }
 
-Error OS_IOS::close_dynamic_library(void *p_library_handle) {
+Error OS_AppleEmbedded::close_dynamic_library(void *p_library_handle) {
 	if (p_library_handle == RTLD_SELF) {
 		return OK;
 	}
 	return OS_Unix::close_dynamic_library(p_library_handle);
 }
 
-Error OS_IOS::get_dynamic_library_symbol_handle(void *p_library_handle, const String &p_name, void *&p_symbol_handle, bool p_optional) {
+Error OS_AppleEmbedded::get_dynamic_library_symbol_handle(void *p_library_handle, const String &p_name, void *&p_symbol_handle, bool p_optional) {
 	if (p_library_handle == RTLD_SELF) {
-		void **ptr = OS_IOS::dynamic_symbol_lookup_table.getptr(p_name);
+		void **ptr = OS_AppleEmbedded::dynamic_symbol_lookup_table.getptr(p_name);
 		if (ptr) {
 			p_symbol_handle = *ptr;
 			return OK;
@@ -317,21 +317,21 @@ Error OS_IOS::get_dynamic_library_symbol_handle(void *p_library_handle, const St
 	return OS_Unix::get_dynamic_library_symbol_handle(p_library_handle, p_name, p_symbol_handle, p_optional);
 }
 
-String OS_IOS::get_name() const {
-	return "iOS";
+String OS_AppleEmbedded::get_name() const {
+	return "AppleEmbedded";
 }
 
-String OS_IOS::get_distribution_name() const {
+String OS_AppleEmbedded::get_distribution_name() const {
 	return get_name();
 }
 
-String OS_IOS::get_version() const {
+String OS_AppleEmbedded::get_version() const {
 	NSOperatingSystemVersion ver = [NSProcessInfo processInfo].operatingSystemVersion;
 	return vformat("%d.%d.%d", (int64_t)ver.majorVersion, (int64_t)ver.minorVersion, (int64_t)ver.patchVersion);
 }
 
-String OS_IOS::get_model_name() const {
-	String model = ios->get_model();
+String OS_AppleEmbedded::get_model_name() const {
+	String model = apple_embedded->get_model();
 	if (model != "") {
 		return model;
 	}
@@ -339,7 +339,7 @@ String OS_IOS::get_model_name() const {
 	return OS_Unix::get_model_name();
 }
 
-Error OS_IOS::shell_open(const String &p_uri) {
+Error OS_AppleEmbedded::shell_open(const String &p_uri) {
 	NSString *urlPath = [[NSString alloc] initWithUTF8String:p_uri.utf8().get_data()];
 	NSURL *url = [NSURL URLWithString:urlPath];
 
@@ -354,7 +354,7 @@ Error OS_IOS::shell_open(const String &p_uri) {
 	return OK;
 }
 
-String OS_IOS::get_user_data_dir(const String &p_user_dir) const {
+String OS_AppleEmbedded::get_user_data_dir(const String &p_user_dir) const {
 	static String ret;
 	if (ret.is_empty()) {
 		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
@@ -365,7 +365,7 @@ String OS_IOS::get_user_data_dir(const String &p_user_dir) const {
 	return ret;
 }
 
-String OS_IOS::get_cache_path() const {
+String OS_AppleEmbedded::get_cache_path() const {
 	static String ret;
 	if (ret.is_empty()) {
 		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
@@ -376,7 +376,7 @@ String OS_IOS::get_cache_path() const {
 	return ret;
 }
 
-String OS_IOS::get_temp_path() const {
+String OS_AppleEmbedded::get_temp_path() const {
 	static String ret;
 	if (ret.is_empty()) {
 		NSURL *url = [NSURL fileURLWithPath:NSTemporaryDirectory()
@@ -389,7 +389,7 @@ String OS_IOS::get_temp_path() const {
 	return ret;
 }
 
-String OS_IOS::get_locale() const {
+String OS_AppleEmbedded::get_locale() const {
 	NSString *preferredLanguage = [NSLocale preferredLanguages].firstObject;
 
 	if (preferredLanguage) {
@@ -400,12 +400,12 @@ String OS_IOS::get_locale() const {
 	return String::utf8([localeIdentifier UTF8String]).replace_char('-', '_');
 }
 
-String OS_IOS::get_unique_id() const {
+String OS_AppleEmbedded::get_unique_id() const {
 	NSString *uuid = [UIDevice currentDevice].identifierForVendor.UUIDString;
 	return String::utf8([uuid UTF8String]);
 }
 
-String OS_IOS::get_processor_name() const {
+String OS_AppleEmbedded::get_processor_name() const {
 	char buffer[256];
 	size_t buffer_len = 256;
 	if (sysctlbyname("machdep.cpu.brand_string", &buffer, &buffer_len, nullptr, 0) == 0) {
@@ -414,7 +414,7 @@ String OS_IOS::get_processor_name() const {
 	ERR_FAIL_V_MSG("", String("Couldn't get the CPU model name. Returning an empty string."));
 }
 
-Vector<String> OS_IOS::get_system_fonts() const {
+Vector<String> OS_AppleEmbedded::get_system_fonts() const {
 	HashSet<String> font_names;
 	CFArrayRef fonts = CTFontManagerCopyAvailableFontFamilyNames();
 	if (fonts) {
@@ -435,7 +435,7 @@ Vector<String> OS_IOS::get_system_fonts() const {
 	return ret;
 }
 
-String OS_IOS::_get_default_fontname(const String &p_font_name) const {
+String OS_AppleEmbedded::_get_default_fontname(const String &p_font_name) const {
 	String font_name = p_font_name;
 	if (font_name.to_lower() == "sans-serif") {
 		font_name = "Helvetica";
@@ -451,7 +451,7 @@ String OS_IOS::_get_default_fontname(const String &p_font_name) const {
 	return font_name;
 }
 
-CGFloat OS_IOS::_weight_to_ct(int p_weight) const {
+CGFloat OS_AppleEmbedded::_weight_to_ct(int p_weight) const {
 	if (p_weight < 150) {
 		return -0.80;
 	} else if (p_weight < 250) {
@@ -475,7 +475,7 @@ CGFloat OS_IOS::_weight_to_ct(int p_weight) const {
 	}
 }
 
-CGFloat OS_IOS::_stretch_to_ct(int p_stretch) const {
+CGFloat OS_AppleEmbedded::_stretch_to_ct(int p_stretch) const {
 	if (p_stretch < 56) {
 		return -0.5;
 	} else if (p_stretch < 69) {
@@ -497,7 +497,7 @@ CGFloat OS_IOS::_stretch_to_ct(int p_stretch) const {
 	}
 }
 
-Vector<String> OS_IOS::get_system_font_path_for_text(const String &p_font_name, const String &p_text, const String &p_locale, const String &p_script, int p_weight, int p_stretch, bool p_italic) const {
+Vector<String> OS_AppleEmbedded::get_system_font_path_for_text(const String &p_font_name, const String &p_text, const String &p_locale, const String &p_script, int p_weight, int p_stretch, bool p_italic) const {
 	Vector<String> ret;
 	String font_name = _get_default_fontname(p_font_name);
 
@@ -567,7 +567,7 @@ Vector<String> OS_IOS::get_system_font_path_for_text(const String &p_font_name, 
 	return ret;
 }
 
-String OS_IOS::get_system_font_path(const String &p_font_name, int p_weight, int p_stretch, bool p_italic) const {
+String OS_AppleEmbedded::get_system_font_path(const String &p_font_name, int p_weight, int p_stretch, bool p_italic) const {
 	String ret;
 	String font_name = _get_default_fontname(p_font_name);
 
@@ -623,20 +623,20 @@ String OS_IOS::get_system_font_path(const String &p_font_name, int p_weight, int
 	return ret;
 }
 
-void OS_IOS::vibrate_handheld(int p_duration_ms, float p_amplitude) {
-	if (ios->supports_haptic_engine()) {
+void OS_AppleEmbedded::vibrate_handheld(int p_duration_ms, float p_amplitude) {
+	if (apple_embedded->supports_haptic_engine()) {
 		if (p_amplitude > 0.0) {
 			p_amplitude = CLAMP(p_amplitude, 0.0, 1.0);
 		}
 
-		ios->vibrate_haptic_engine((float)p_duration_ms / 1000.f, p_amplitude);
+		apple_embedded->vibrate_haptic_engine((float)p_duration_ms / 1000.f, p_amplitude);
 	} else {
 		// iOS <13 does not support duration for vibration
 		AudioServicesPlaySystemSound(kSystemSoundID_Vibrate);
 	}
 }
 
-bool OS_IOS::_check_internal_feature_support(const String &p_feature) {
+bool OS_AppleEmbedded::_check_internal_feature_support(const String &p_feature) {
 	if (p_feature == "system_fonts") {
 		return true;
 	}
@@ -647,7 +647,7 @@ bool OS_IOS::_check_internal_feature_support(const String &p_feature) {
 	return false;
 }
 
-void OS_IOS::on_focus_out() {
+void OS_AppleEmbedded::on_focus_out() {
 	if (is_focused) {
 		is_focused = false;
 
@@ -665,7 +665,7 @@ void OS_IOS::on_focus_out() {
 	}
 }
 
-void OS_IOS::on_focus_in() {
+void OS_AppleEmbedded::on_focus_in() {
 	if (!is_focused) {
 		is_focused = true;
 
@@ -683,7 +683,7 @@ void OS_IOS::on_focus_in() {
 	}
 }
 
-void OS_IOS::on_enter_background() {
+void OS_AppleEmbedded::on_enter_background() {
 	// Do not check for is_focused, because on_focus_out will always be fired first by applicationWillResignActive.
 
 	if (OS::get_singleton()->get_main_loop()) {
@@ -693,7 +693,7 @@ void OS_IOS::on_enter_background() {
 	on_focus_out();
 }
 
-void OS_IOS::on_exit_background() {
+void OS_AppleEmbedded::on_exit_background() {
 	if (!is_focused) {
 		on_focus_in();
 
@@ -703,7 +703,7 @@ void OS_IOS::on_exit_background() {
 	}
 }
 
-Rect2 OS_IOS::calculate_boot_screen_rect(const Size2 &p_window_size, const Size2 &p_imgrect_size) const {
+Rect2 OS_AppleEmbedded::calculate_boot_screen_rect(const Size2 &p_window_size, const Size2 &p_imgrect_size) const {
 	String scalemodestr = GLOBAL_GET("ios/launch_screen_image_mode");
 
 	if (scalemodestr == "scaleAspectFit") {

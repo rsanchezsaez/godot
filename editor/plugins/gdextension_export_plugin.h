@@ -117,7 +117,7 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 
 			if (p_features.has("ios") && (library_path.ends_with(".a") || library_path.ends_with(".xcframework"))) {
 				String additional_code = "extern void register_dynamic_symbol(char *name, void *address);\n"
-										 "extern void add_ios_init_callback(void (*cb)());\n"
+										 "extern void add_apple_init_callback(void (*cb)());\n"
 										 "\n"
 										 "extern \"C\" void $ENTRY();\n"
 										 "void $ENTRY_init() {\n"
@@ -125,7 +125,7 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 										 "}\n"
 										 "struct $ENTRY_struct {\n"
 										 "  $ENTRY_struct() {\n"
-										 "    add_ios_init_callback($ENTRY_init);\n"
+										 "    add_apple_init_callback($ENTRY_init);\n"
 										 "  }\n"
 										 "};\n"
 										 "$ENTRY_struct $ENTRY_struct_instance;\n\n";

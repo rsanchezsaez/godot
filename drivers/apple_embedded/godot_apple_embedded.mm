@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  godot.mm                                                              */
+/*  godot_apple_embedded.mm                                               */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -37,7 +37,7 @@
 #include <string.h>
 #include <unistd.h>
 
-static OS_IOS *os = nullptr;
+static OS_AppleEmbedded *os = nullptr;
 
 int add_path(int p_argc, char **p_args) {
 	NSString *str = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"godot_path"];
@@ -87,7 +87,7 @@ int ios_main(int argc, char **argv) {
 		chdir(path);
 	}
 
-	os = new OS_IOS();
+	os = new OS_AppleEmbedded();
 
 	// We must override main when testing is enabled
 	TEST_MAIN_OVERRIDE

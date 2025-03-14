@@ -135,10 +135,10 @@ static ViewController *mainViewController = nil;
 	if ([notification.name isEqualToString:AVAudioSessionInterruptionNotification]) {
 		if ([[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeBegan]]) {
 			NSLog(@"Audio interruption began");
-			OS_IOS::get_singleton()->on_focus_out();
+			OS_AppleEmbedded::get_singleton()->on_focus_out();
 		} else if ([[notification.userInfo valueForKey:AVAudioSessionInterruptionTypeKey] isEqualToNumber:[NSNumber numberWithInt:AVAudioSessionInterruptionTypeEnded]]) {
 			NSLog(@"Audio interruption ended");
-			OS_IOS::get_singleton()->on_focus_in();
+			OS_AppleEmbedded::get_singleton()->on_focus_in();
 		}
 	}
 }
@@ -164,19 +164,19 @@ static ViewController *mainViewController = nil;
 // notification panel by swiping from the upper part of the screen.
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-	OS_IOS::get_singleton()->on_focus_out();
+	OS_AppleEmbedded::get_singleton()->on_focus_out();
 }
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-	OS_IOS::get_singleton()->on_focus_in();
+	OS_AppleEmbedded::get_singleton()->on_focus_in();
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-	OS_IOS::get_singleton()->on_enter_background();
+	OS_AppleEmbedded::get_singleton()->on_enter_background();
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
-	OS_IOS::get_singleton()->on_exit_background();
+	OS_AppleEmbedded::get_singleton()->on_exit_background();
 }
 
 - (void)dealloc {

@@ -70,7 +70,7 @@
 
 	if (!self.hasStartedMain) {
 		self.hasStartedMain = YES;
-		OS_IOS::get_singleton()->start();
+		OS_AppleEmbedded::get_singleton()->start();
 		return YES;
 	}
 
@@ -109,11 +109,11 @@
 }
 
 - (void)renderOnView:(UIView *)view {
-	if (!OS_IOS::get_singleton()) {
+	if (!OS_AppleEmbedded::get_singleton()) {
 		return;
 	}
 
-	OS_IOS::get_singleton()->iterate();
+	OS_AppleEmbedded::get_singleton()->iterate();
 }
 
 @end

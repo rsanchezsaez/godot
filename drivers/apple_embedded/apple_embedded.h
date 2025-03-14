@@ -34,8 +34,8 @@
 
 #import <CoreHaptics/CoreHaptics.h>
 
-class iOS : public Object {
-	GDCLASS(iOS, Object);
+class AppleEmbedded : public Object {
+	GDCLASS(AppleEmbedded, Object);
 
 	static void _bind_methods();
 
@@ -55,5 +55,5 @@ public:
 	String get_model() const;
 	String get_rate_url(int p_app_id) const;
 
-	iOS();
+	AppleEmbedded();
 };
