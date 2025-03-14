@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  ios.mm                                                                */
+/*  apple_embedded.mm                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,9 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "ios.h"
+#import "apple_embedded.h"
 
-#import "app_delegate.h"
+#import "app_delegate_service.h"
 #import "view_controller.h"
 
 #import <CoreHaptics/CoreHaptics.h>

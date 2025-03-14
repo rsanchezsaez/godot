@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  display_server_ios.mm                                                 */
+/*  display_server.mm                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,16 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "display_server_ios.h"
+#import "display_server.h"
 
-#import "app_delegate.h"
+#import "app_delegate_service.h"
 #import "device_metrics.h"
 #import "godot_view.h"
-#import "ios.h"
-#import "key_mapping_ios.h"
+#import "apple_embedded.h"
+#import "key_mapping.h"
 #import "keyboard_input_view.h"
-#import "os_ios.h"
-#import "tts_ios.h"
+#import "os_apple_embedded.h"
+#import "tts.h"
 #import "view_controller.h"
 
 #include "core/config/project_settings.h"

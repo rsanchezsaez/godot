@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  ios_terminal_logger.h                                                 */
+/*  app_delegate_service.h                                                */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,13 +30,20 @@
 
 #pragma once
 
-#ifdef IOS_ENABLED
+#import <UIKit/UIKit.h>
 
-#include "core/io/logger.h"
+@class ViewController;
 
-class IOSTerminalLogger : public StdLogger {
-public:
-	virtual void log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify = false, ErrorType p_type = ERR_ERROR) override;
-};
+// FIXME: Add support for both OpenGL and Vulkan when OpenGL is implemented again,
+// so it can't be done with compilation time branching.
+//#if defined(GLES3_ENABLED)
+//@interface AppDelegate : NSObject <UIApplicationDelegate, GLViewDelegate> {
+//#endif
+//#if defined(VULKAN_ENABLED)
+@interface AppDelegate : NSObject <UIApplicationDelegate>
+//#endif
 
-#endif // IOS_ENABLED
+@property(strong, nonatomic) UIWindow *window;
+@property(strong, class, readonly, nonatomic) ViewController *viewController;
+
+@end

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  key_mapping_ios.mm                                                    */
+/*  key_mapping.mm                                                        */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "key_mapping_ios.h"
+#import "key_mapping.h"
 
 #include "core/templates/hash_map.h"
 

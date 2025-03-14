@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  view_controller.mm                                                    */
+/*  view_controller.mm                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,12 +30,12 @@
 
 #import "view_controller.h"
 
-#import "display_server_ios.h"
+#import "display_server.h"
 #import "godot_view.h"
 #import "godot_view_renderer.h"
-#import "key_mapping_ios.h"
+#import "key_mapping.h"
 #import "keyboard_input_view.h"
-#import "os_ios.h"
+#import "os_apple_embedded.h"
 
 #include "core/config/project_settings.h"
 

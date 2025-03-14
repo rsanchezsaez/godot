@@ -30,6 +30,8 @@ if env["xaudio2"]:
 # Shared Apple platform drivers
 if env["platform"] in ["macos", "ios"]:
     SConscript("apple/SCsub")
+if env["platform"] in ["ios"]:
+    SConscript("apple_embedded/SCsub")
 
 # Accessibility
 if env["accesskit"] and env["platform"] in ["macos", "windows", "linuxbsd"]:

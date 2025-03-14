@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  ios.h                                                                 */
+/*  key_mapping.h                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,30 +30,15 @@
 
 #pragma once
 
-#include "core/object/class_db.h"
+#include "core/os/keyboard.h"
 
-#import <CoreHaptics/CoreHaptics.h>
+#import <UIKit/UIKit.h>
 
-class iOS : public Object {
-	GDCLASS(iOS, Object);
-
-	static void _bind_methods();
-
-private:
-	CHHapticEngine *haptic_engine API_AVAILABLE(ios(13)) = nullptr;
-
-	CHHapticEngine *get_haptic_engine_instance() API_AVAILABLE(ios(13));
-	void start_haptic_engine();
-	void stop_haptic_engine();
+class KeyMappingIOS {
+	KeyMappingIOS() {}
 
 public:
-	static void alert(const char *p_alert, const char *p_title);
-
-	bool supports_haptic_engine();
-	void vibrate_haptic_engine(float p_duration_seconds, float p_amplitude);
-
-	String get_model() const;
-	String get_rate_url(int p_app_id) const;
-
-	iOS();
+	static void initialize();
+	static Key remap_key(CFIndex p_keycode);
+	static KeyLocation key_location(CFIndex p_keycode);
 };

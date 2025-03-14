@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  rendering_context_driver_vulkan_ios.mm                                */
+/*  terminal_logger.mm                                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,42 +28,47 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "rendering_context_driver_vulkan_ios.h"
+#import "terminal_logger.h"
 
-#ifdef VULKAN_ENABLED
+#ifdef IOS_ENABLED
 
-#ifdef USE_VOLK
-#include <volk.h>
-#else
-#include <vulkan/vulkan_metal.h>
-#endif
+#import <os/log.h>
 
-const char *RenderingContextDriverVulkanIOS::_get_platform_surface_extension() const {
-	return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
+void IOSTerminalLogger::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+	if (!should_log(true)) {
+		return;
+	}
+
+	const char *err_details;
+	if (p_rationale && p_rationale[0]) {
+		err_details = p_rationale;
+	} else {
+		err_details = p_code;
+	}
+
+	switch (p_type) {
+		case ERR_WARNING:
+			os_log_info(OS_LOG_DEFAULT,
+					"WARNING: %{public}s\nat: %{public}s (%{public}s:%i)",
+					err_details, p_function, p_file, p_line);
+			break;
+		case ERR_SCRIPT:
+			os_log_error(OS_LOG_DEFAULT,
+					"SCRIPT ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
+					err_details, p_function, p_file, p_line);
+			break;
+		case ERR_SHADER:
+			os_log_error(OS_LOG_DEFAULT,
+					"SHADER ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
+					err_details, p_function, p_file, p_line);
+			break;
+		case ERR_ERROR:
+		default:
+			os_log_error(OS_LOG_DEFAULT,
+					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
+					err_details, p_function, p_file, p_line);
+			break;
+	}
 }
 
-RenderingContextDriver::SurfaceID RenderingContextDriverVulkanIOS::surface_create(const void *p_platform_data) {
-	const WindowPlatformData *wpd = (const WindowPlatformData *)(p_platform_data);
-
-	VkMetalSurfaceCreateInfoEXT create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
-	create_info.pLayer = *wpd->layer_ptr;
-
-	VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
-	VkResult err = vkCreateMetalSurfaceEXT(instance_get(), &create_info, get_allocation_callbacks(VK_OBJECT_TYPE_SURFACE_KHR), &vk_surface);
-	ERR_FAIL_COND_V(err != VK_SUCCESS, SurfaceID());
-
-	Surface *surface = memnew(Surface);
-	surface->vk_surface = vk_surface;
-	return SurfaceID(surface);
-}
-
-RenderingContextDriverVulkanIOS::RenderingContextDriverVulkanIOS() {
-	// Does nothing.
-}
-
-RenderingContextDriverVulkanIOS::~RenderingContextDriverVulkanIOS() {
-	// Does nothing.
-}
-
-#endif // VULKAN_ENABLED
+#endif // IOS_ENABLED

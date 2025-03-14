@@ -30,8 +30,8 @@
 
 #import "keyboard_input_view.h"
 
-#import "display_server_ios.h"
-#import "os_ios.h"
+#import "display_server.h"
+#import "os_apple_embedded.h"
 
 #include "core/os/keyboard.h"
 

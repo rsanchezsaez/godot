@@ -31,7 +31,7 @@
 #import "godot_view.h"
 
 #import "display_layer.h"
-#import "display_server_ios.h"
+#import "display_server.h"
 #import "godot_view_renderer.h"
 
 #include "core/config/project_settings.h"

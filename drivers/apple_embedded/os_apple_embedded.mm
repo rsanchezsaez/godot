@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  os_ios.mm                                                             */
+/*  os_apple_embedded.mm                                                  */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,14 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "os_ios.h"
+#import "os_apple_embedded.h"
 
 #ifdef IOS_ENABLED
 
-#import "app_delegate.h"
-#import "display_server_ios.h"
+#import "app_delegate_service.h"
+#import "display_server.h"
 #import "godot_view.h"
-#import "ios_terminal_logger.h"
+#import "terminal_logger.h"
 #import "view_controller.h"
 
 #include "core/config/project_settings.h"

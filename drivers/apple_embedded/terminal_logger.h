@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  key_mapping_ios.h                                                     */
+/*  terminal_logger.h                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,15 +30,13 @@
 
 #pragma once
 
-#include "core/os/keyboard.h"
+#ifdef IOS_ENABLED
 
-#import <UIKit/UIKit.h>
+#include "core/io/logger.h"
 
-class KeyMappingIOS {
-	KeyMappingIOS() {}
-
+class IOSTerminalLogger : public StdLogger {
 public:
-	static void initialize();
-	static Key remap_key(CFIndex p_keycode);
-	static KeyLocation key_location(CFIndex p_keycode);
+	virtual void log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify = false, ErrorType p_type = ERR_ERROR) override;
 };
+
+#endif // IOS_ENABLED

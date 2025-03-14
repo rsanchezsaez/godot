@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  app_delegate.mm                                                       */
+/*  app_delegate_service.mm                                               */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,10 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "app_delegate.h"
+#import "app_delegate_service.h"
 
 #import "godot_view.h"
-#import "os_ios.h"
+#import "os_apple_embedded.h"
 #import "view_controller.h"
 
 #include "core/config/project_settings.h"

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  view_controller.h                                                     */
+/*  rendering_context_driver_vulkan.h                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,15 +30,26 @@
 
 #pragma once
 
-#import <UIKit/UIKit.h>
+#ifdef VULKAN_ENABLED
 
-@class GodotView;
-@class GodotNativeVideoView;
-@class GodotKeyboardInputView;
+#include "drivers/vulkan/rendering_context_driver_vulkan.h"
 
-@interface ViewController : UIViewController
+#import <QuartzCore/CAMetalLayer.h>
 
-@property(nonatomic, readonly, strong) GodotView *godotView;
-@property(nonatomic, readonly, strong) GodotKeyboardInputView *keyboardView;
+class RenderingContextDriverVulkanIOS : public RenderingContextDriverVulkan {
+private:
+	virtual const char *_get_platform_surface_extension() const override final;
 
-@end
+protected:
+	SurfaceID surface_create(const void *p_platform_data) override final;
+
+public:
+	struct WindowPlatformData {
+		CAMetalLayer *const *layer_ptr;
+	};
+
+	RenderingContextDriverVulkanIOS();
+	~RenderingContextDriverVulkanIOS();
+};
+
+#endif // VULKAN_ENABLED

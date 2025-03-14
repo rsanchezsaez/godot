@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  godot_view_renderer.mm                                                */
+/*  godot.mm                                                              */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,92 +28,93 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "godot_view_renderer.h"
+#import "os_apple_embedded.h"
 
-#import "display_server_ios.h"
-#import "os_ios.h"
-
-#include "core/config/project_settings.h"
-#include "core/os/keyboard.h"
+#include "core/string/ustring.h"
 #include "main/main.h"
-#include "servers/audio_server.h"
 
-#import <AudioToolbox/AudioServices.h>
-#import <CoreMotion/CoreMotion.h>
-#import <GameController/GameController.h>
-#import <QuartzCore/QuartzCore.h>
-#import <UIKit/UIKit.h>
+#include <stdio.h>
+#include <string.h>
+#include <unistd.h>
 
-@interface GodotViewRenderer ()
+static OS_IOS *os = nullptr;
 
-@property(assign, nonatomic) BOOL hasFinishedProjectDataSetup;
-@property(assign, nonatomic) BOOL hasStartedMain;
-@property(assign, nonatomic) BOOL hasFinishedSetup;
-
-@end
-
-@implementation GodotViewRenderer
-
-- (BOOL)setupView:(UIView *)view {
-	if (self.hasFinishedSetup) {
-		return NO;
+int add_path(int p_argc, char **p_args) {
+	NSString *str = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"godot_path"];
+	if (!str) {
+		return p_argc;
 	}
 
-	if (!OS::get_singleton()) {
-		exit(0);
-	}
+	p_args[p_argc++] = (char *)"--path";
+	p_args[p_argc++] = (char *)[str cStringUsingEncoding:NSUTF8StringEncoding];
+	p_args[p_argc] = nullptr;
 
-	if (!self.hasFinishedProjectDataSetup) {
-		[self setupProjectData];
-		return YES;
-	}
-
-	if (!self.hasStartedMain) {
-		self.hasStartedMain = YES;
-		OS_IOS::get_singleton()->start();
-		return YES;
-	}
-
-	self.hasFinishedSetup = YES;
-
-	return NO;
+	return p_argc;
 }
 
-- (void)setupProjectData {
-	self.hasFinishedProjectDataSetup = YES;
+int add_cmdline(int p_argc, char **p_args) {
+	NSArray *arr = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"godot_cmdline"];
+	if (!arr) {
+		return p_argc;
+	}
 
-	Main::setup2();
-
-	// this might be necessary before here
-	NSDictionary *dict = [[NSBundle mainBundle] infoDictionary];
-	for (NSString *key in dict) {
-		NSObject *value = [dict objectForKey:key];
-		String ukey = String::utf8([key UTF8String]);
-
-		// we need a NSObject to Variant conversor
-
-		if ([value isKindOfClass:[NSString class]]) {
-			NSString *str = (NSString *)value;
-			String uval = String::utf8([str UTF8String]);
-
-			ProjectSettings::get_singleton()->set("Info.plist/" + ukey, uval);
-
-		} else if ([value isKindOfClass:[NSNumber class]]) {
-			NSNumber *n = (NSNumber *)value;
-			double dval = [n doubleValue];
-
-			ProjectSettings::get_singleton()->set("Info.plist/" + ukey, dval);
+	for (NSUInteger i = 0; i < [arr count]; i++) {
+		NSString *str = [arr objectAtIndex:i];
+		if (!str) {
+			continue;
 		}
-		// do stuff
-	}
-}
-
-- (void)renderOnView:(UIView *)view {
-	if (!OS_IOS::get_singleton()) {
-		return;
+		p_args[p_argc++] = (char *)[str cStringUsingEncoding:NSUTF8StringEncoding];
 	}
 
-	OS_IOS::get_singleton()->iterate();
+	p_args[p_argc] = nullptr;
+
+	return p_argc;
 }
 
-@end
+int ios_main(int argc, char **argv) {
+	size_t len = strlen(argv[0]);
+
+	while (len--) {
+		if (argv[0][len] == '/') {
+			break;
+		}
+	}
+
+	if (len >= 0) {
+		char path[512];
+		memcpy(path, argv[0], len > sizeof(path) ? sizeof(path) : len);
+		path[len] = 0;
+		chdir(path);
+	}
+
+	os = new OS_IOS();
+
+	// We must override main when testing is enabled
+	TEST_MAIN_OVERRIDE
+
+	char *fargv[64];
+	for (int i = 0; i < argc; i++) {
+		fargv[i] = argv[i];
+	}
+	fargv[argc] = nullptr;
+	argc = add_path(argc, fargv);
+	argc = add_cmdline(argc, fargv);
+
+	Error err = Main::setup(fargv[0], argc - 1, &fargv[1], false);
+
+	if (err != OK) {
+		if (err == ERR_HELP) { // Returned by --help and --version, so success.
+			return EXIT_SUCCESS;
+		}
+		return EXIT_FAILURE;
+	}
+
+	os->initialize_modules();
+
+	return os->get_exit_code();
+}
+
+void ios_finish() {
+	Main::cleanup();
+	delete os;
+}

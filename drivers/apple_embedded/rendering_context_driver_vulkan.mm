@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  rendering_context_driver_vulkan_ios.h                                 */
+/*  rendering_context_driver_vulkan.mm                                    */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,28 +28,42 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#import "rendering_context_driver_vulkan.h"
 
 #ifdef VULKAN_ENABLED
 
-#include "drivers/vulkan/rendering_context_driver_vulkan.h"
+#ifdef USE_VOLK
+#include <volk.h>
+#else
+#include <vulkan/vulkan_metal.h>
+#endif
 
-#import <QuartzCore/CAMetalLayer.h>
+const char *RenderingContextDriverVulkanIOS::_get_platform_surface_extension() const {
+	return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
+}
 
-class RenderingContextDriverVulkanIOS : public RenderingContextDriverVulkan {
-private:
-	virtual const char *_get_platform_surface_extension() const override final;
+RenderingContextDriver::SurfaceID RenderingContextDriverVulkanIOS::surface_create(const void *p_platform_data) {
+	const WindowPlatformData *wpd = (const WindowPlatformData *)(p_platform_data);
 
-protected:
-	SurfaceID surface_create(const void *p_platform_data) override final;
+	VkMetalSurfaceCreateInfoEXT create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+	create_info.pLayer = *wpd->layer_ptr;
 
-public:
-	struct WindowPlatformData {
-		CAMetalLayer *const *layer_ptr;
-	};
+	VkSurfaceKHR vk_surface = VK_NULL_HANDLE;
+	VkResult err = vkCreateMetalSurfaceEXT(instance_get(), &create_info, get_allocation_callbacks(VK_OBJECT_TYPE_SURFACE_KHR), &vk_surface);
+	ERR_FAIL_COND_V(err != VK_SUCCESS, SurfaceID());
 
-	RenderingContextDriverVulkanIOS();
-	~RenderingContextDriverVulkanIOS();
-};
+	Surface *surface = memnew(Surface);
+	surface->vk_surface = vk_surface;
+	return SurfaceID(surface);
+}
+
+RenderingContextDriverVulkanIOS::RenderingContextDriverVulkanIOS() {
+	// Does nothing.
+}
+
+RenderingContextDriverVulkanIOS::~RenderingContextDriverVulkanIOS() {
+	// Does nothing.
+}
 
 #endif // VULKAN_ENABLED

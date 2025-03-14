@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  app_delegate.h                                                        */
+/*  godot_view_renderer.mm                                                */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,22 +28,92 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#import "godot_view_renderer.h"
 
+#import "display_server.h"
+#import "os_apple_embedded.h"
+
+#include "core/config/project_settings.h"
+#include "core/os/keyboard.h"
+#include "main/main.h"
+#include "servers/audio_server.h"
+
+#import <AudioToolbox/AudioServices.h>
+#import <CoreMotion/CoreMotion.h>
+#import <GameController/GameController.h>
+#import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
-@class ViewController;
+@interface GodotViewRenderer ()
 
-// FIXME: Add support for both OpenGL and Vulkan when OpenGL is implemented again,
-// so it can't be done with compilation time branching.
-//#if defined(GLES3_ENABLED)
-//@interface AppDelegate : NSObject <UIApplicationDelegate, GLViewDelegate> {
-//#endif
-//#if defined(VULKAN_ENABLED)
-@interface AppDelegate : NSObject <UIApplicationDelegate>
-//#endif
+@property(assign, nonatomic) BOOL hasFinishedProjectDataSetup;
+@property(assign, nonatomic) BOOL hasStartedMain;
+@property(assign, nonatomic) BOOL hasFinishedSetup;
 
-@property(strong, nonatomic) UIWindow *window;
-@property(strong, class, readonly, nonatomic) ViewController *viewController;
+@end
+
+@implementation GodotViewRenderer
+
+- (BOOL)setupView:(UIView *)view {
+	if (self.hasFinishedSetup) {
+		return NO;
+	}
+
+	if (!OS::get_singleton()) {
+		exit(0);
+	}
+
+	if (!self.hasFinishedProjectDataSetup) {
+		[self setupProjectData];
+		return YES;
+	}
+
+	if (!self.hasStartedMain) {
+		self.hasStartedMain = YES;
+		OS_IOS::get_singleton()->start();
+		return YES;
+	}
+
+	self.hasFinishedSetup = YES;
+
+	return NO;
+}
+
+- (void)setupProjectData {
+	self.hasFinishedProjectDataSetup = YES;
+
+	Main::setup2();
+
+	// this might be necessary before here
+	NSDictionary *dict = [[NSBundle mainBundle] infoDictionary];
+	for (NSString *key in dict) {
+		NSObject *value = [dict objectForKey:key];
+		String ukey = String::utf8([key UTF8String]);
+
+		// we need a NSObject to Variant conversor
+
+		if ([value isKindOfClass:[NSString class]]) {
+			NSString *str = (NSString *)value;
+			String uval = String::utf8([str UTF8String]);
+
+			ProjectSettings::get_singleton()->set("Info.plist/" + ukey, uval);
+
+		} else if ([value isKindOfClass:[NSNumber class]]) {
+			NSNumber *n = (NSNumber *)value;
+			double dval = [n doubleValue];
+
+			ProjectSettings::get_singleton()->set("Info.plist/" + ukey, dval);
+		}
+		// do stuff
+	}
+}
+
+- (void)renderOnView:(UIView *)view {
+	if (!OS_IOS::get_singleton()) {
+		return;
+	}
+
+	OS_IOS::get_singleton()->iterate();
+}
 
 @end

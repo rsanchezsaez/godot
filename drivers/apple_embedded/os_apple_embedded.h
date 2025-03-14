@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  os_ios.h                                                              */
+/*  os_apple_embedded.h                                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -32,7 +32,7 @@
 
 #ifdef IOS_ENABLED
 
-#import "ios.h"
+#import "apple_embedded.h"
 
 #import "drivers/apple/joypad_apple.h"
 #import "drivers/coreaudio/audio_driver_coreaudio.h"
@@ -44,7 +44,7 @@
 #include "servers/rendering/rendering_device.h"
 
 #if defined(VULKAN_ENABLED)
-#import "rendering_context_driver_vulkan_ios.h"
+#import "rendering_context_driver_vulkan.h"
 #endif
 #endif
 

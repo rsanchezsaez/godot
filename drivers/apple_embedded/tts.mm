@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  tts_ios.mm                                                            */
+/*  tts.mm                                                                */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "tts_ios.h"
+#import "tts.h"
 
 @implementation TTS_IOS
 

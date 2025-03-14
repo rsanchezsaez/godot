@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  tts_ios.h                                                             */
+/*  apple_embedded.h                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,31 +30,30 @@
 
 #pragma once
 
-#include "core/string/ustring.h"
-#include "core/templates/hash_map.h"
-#include "core/templates/list.h"
-#include "core/variant/array.h"
-#include "servers/display_server.h"
+#include "core/object/class_db.h"
 
-#if __has_include(<AVFAudio/AVSpeechSynthesis.h>)
-#import <AVFAudio/AVSpeechSynthesis.h>
-#else
-#import <AVFoundation/AVFoundation.h>
-#endif
+#import <CoreHaptics/CoreHaptics.h>
 
-@interface TTS_IOS : NSObject <AVSpeechSynthesizerDelegate> {
-	bool speaking;
-	HashMap<id, int> ids;
+class iOS : public Object {
+	GDCLASS(iOS, Object);
 
-	AVSpeechSynthesizer *av_synth;
-	List<DisplayServer::TTSUtterance> queue;
-}
+	static void _bind_methods();
 
-- (void)pauseSpeaking;
-- (void)resumeSpeaking;
-- (void)stopSpeaking;
-- (bool)isSpeaking;
-- (bool)isPaused;
-- (void)speak:(const String &)text voice:(const String &)voice volume:(int)volume pitch:(float)pitch rate:(float)rate utterance_id:(int)utterance_id interrupt:(bool)interrupt;
-- (Array)getVoices;
-@end
+private:
+	CHHapticEngine *haptic_engine API_AVAILABLE(ios(13)) = nullptr;
+
+	CHHapticEngine *get_haptic_engine_instance() API_AVAILABLE(ios(13));
+	void start_haptic_engine();
+	void stop_haptic_engine();
+
+public:
+	static void alert(const char *p_alert, const char *p_title);
+
+	bool supports_haptic_engine();
+	void vibrate_haptic_engine(float p_duration_seconds, float p_amplitude);
+
+	String get_model() const;
+	String get_rate_url(int p_app_id) const;
+
+	iOS();
+};
