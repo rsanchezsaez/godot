@@ -60,7 +60,10 @@ def generate_bundle(target, source, env):
 
 
 ios_lib = [
-    "main.m",
+    "main.mm",
+    "ios.mm",
+    "display_server.mm",
+    "os_ios.mm",
 ]
 
 env_ios = env.Clone()

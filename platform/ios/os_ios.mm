@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  main.m                                                                */
+/*  os_ios.mm                                                             */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,26 +28,24 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "drivers/apple_embedded/godot_app_delegate.h"
+#import "os_ios.h"
 
-#import <UIKit/UIKit.h>
-#include <stdio.h>
+#import "display_server.h"
 
-int gargc;
-char **gargv;
+#ifdef IOS_ENABLED
 
-int main(int argc, char *argv[]) {
-#if defined(VULKAN_ENABLED)
-	//MoltenVK - enable full component swizzling support
-	setenv("MVK_CONFIG_FULL_IMAGE_VIEW_SWIZZLE", "1", 1);
-#endif
-
-	gargc = argc;
-	gargv = argv;
-
-	@autoreleasepool {
-		NSString *className = NSStringFromClass([GDTApplicationDelegate class]);
-		UIApplicationMain(argc, argv, nil, className);
-	}
-	return 0;
+OS_IOS *OS_IOS::get_singleton() {
+	return (OS_IOS *)OS_AppleEmbedded::get_singleton();
 }
+
+OS_IOS::OS_IOS() : OS_AppleEmbedded() {
+	DisplayServerIOS::register_ios_driver();
+}
+
+OS_IOS::~OS_IOS() {}
+
+String OS_IOS::get_name() const {
+	return "iOS";
+}
+
+#endif // IOS_ENABLED

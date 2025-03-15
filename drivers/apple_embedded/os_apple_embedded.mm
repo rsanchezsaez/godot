@@ -146,8 +146,6 @@ OS_AppleEmbedded::OS_AppleEmbedded() {
 	_set_logger(memnew(CompositeLogger(loggers)));
 
 	AudioDriverManager::add_driver(&audio_driver);
-
-	DisplayServerAppleEmbedded::register_ios_driver();
 }
 
 OS_AppleEmbedded::~OS_AppleEmbedded() {}
@@ -315,10 +313,6 @@ Error OS_AppleEmbedded::get_dynamic_library_symbol_handle(void *p_library_handle
 		}
 	}
 	return OS_Unix::get_dynamic_library_symbol_handle(p_library_handle, p_name, p_symbol_handle, p_optional);
-}
-
-String OS_AppleEmbedded::get_name() const {
-	return "AppleEmbedded";
 }
 
 String OS_AppleEmbedded::get_distribution_name() const {

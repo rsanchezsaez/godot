@@ -195,10 +195,6 @@ DisplayServerAppleEmbedded::~DisplayServerAppleEmbedded() {
 #endif
 }
 
-DisplayServer *DisplayServerAppleEmbedded::create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
-	return memnew(DisplayServerAppleEmbedded(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
-}
-
 Vector<String> DisplayServerAppleEmbedded::get_rendering_drivers_func() {
 	Vector<String> drivers;
 
@@ -215,10 +211,6 @@ Vector<String> DisplayServerAppleEmbedded::get_rendering_drivers_func() {
 #endif
 
 	return drivers;
-}
-
-void DisplayServerAppleEmbedded::register_ios_driver() {
-	register_create_function("iOS", create_func, get_rendering_drivers_func);
 }
 
 // MARK: Events
