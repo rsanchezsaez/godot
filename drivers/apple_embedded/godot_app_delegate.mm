@@ -32,24 +32,20 @@
 
 #import "app_delegate_service.h"
 
-@interface GodotApplicationDelegate ()
+@implementation GDTApplicationDelegate
 
-@end
+static NSMutableArray<GDTAppDelegateServiceProtocol *> *services = nil;
 
-@implementation GodotApplicationDelegate
-
-static NSMutableArray<ApplicationDelegateService *> *services = nil;
-
-+ (NSArray<ApplicationDelegateService *> *)services {
++ (NSArray<GDTAppDelegateServiceProtocol *> *)services {
 	return services;
 }
 
 + (void)load {
 	services = [NSMutableArray new];
-	[services addObject:[AppDelegate new]];
+	[services addObject:[GDTAppDelegateService new]];
 }
 
-+ (void)addService:(ApplicationDelegateService *)service {
++ (void)addService:(GDTAppDelegateServiceProtocol *)service {
 	if (!services || !service) {
 		return;
 	}
@@ -63,7 +59,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (UIWindow *)window {
 	UIWindow *result = nil;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -83,7 +79,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application willFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey, id> *)launchOptions {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -99,7 +95,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary<UIApplicationLaunchOptionsKey, id> *)launchOptions {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -125,7 +121,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: Life-Cycle
 
 - (void)applicationDidBecomeActive:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -135,7 +131,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationWillResignActive:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -145,7 +141,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationDidEnterBackground:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -155,7 +151,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -165,7 +161,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -177,7 +173,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: Environment Changes
 
 - (void)applicationProtectedDataDidBecomeAvailable:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -187,7 +183,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationProtectedDataWillBecomeUnavailable:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -197,7 +193,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -207,7 +203,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)applicationSignificantTimeChange:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -221,7 +217,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application shouldSaveSecureApplicationState:(NSCoder *)coder API_AVAILABLE(ios(13.2)) {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -237,7 +233,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application shouldRestoreSecureApplicationState:(NSCoder *)coder API_AVAILABLE(ios(13.2)) {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -251,7 +247,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (UIViewController *)application:(UIApplication *)application viewControllerWithRestorationIdentifierPath:(NSArray<NSString *> *)identifierComponents coder:(NSCoder *)coder {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -267,7 +263,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)application:(UIApplication *)application willEncodeRestorableStateWithCoder:(NSCoder *)coder {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -277,7 +273,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)application:(UIApplication *)application didDecodeRestorableStateWithCoder:(NSCoder *)coder {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -289,7 +285,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: Download Data in Background
 
 - (void)application:(UIApplication *)application handleEventsForBackgroundURLSession:(NSString *)identifier completionHandler:(void (^)(void))completionHandler {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -309,7 +305,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application willContinueUserActivityWithType:(NSString *)userActivityType {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -325,7 +321,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity restorationHandler:(void (^)(NSArray<id<UIUserActivityRestoring>> *restorableObjects))restorationHandler {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -339,7 +335,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)application:(UIApplication *)application didUpdateUserActivity:(NSUserActivity *)userActivity {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -349,7 +345,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)application:(UIApplication *)application didFailToContinueUserActivityWithType:(NSString *)userActivityType error:(NSError *)error {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -359,7 +355,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 }
 
 - (void)application:(UIApplication *)application performActionForShortcutItem:(UIApplicationShortcutItem *)shortcutItem completionHandler:(void (^)(BOOL succeeded))completionHandler {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -371,7 +367,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: WatchKit
 
 - (void)application:(UIApplication *)application handleWatchKitExtensionRequest:(NSDictionary *)userInfo reply:(void (^)(NSDictionary *replyInfo))reply {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -383,7 +379,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: HealthKit
 
 - (void)applicationShouldRequestHealthAuthorization:(UIApplication *)application {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -395,7 +391,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: Opening an URL
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -413,7 +409,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 - (BOOL)application:(UIApplication *)application shouldAllowExtensionPointIdentifier:(UIApplicationExtensionPointIdentifier)extensionPointIdentifier {
 	BOOL result = NO;
 
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -429,7 +425,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: SiriKit
 
 - (id)application:(UIApplication *)application handlerForIntent:(INIntent *)intent API_AVAILABLE(ios(14.0)) {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}
@@ -447,7 +443,7 @@ static NSMutableArray<ApplicationDelegateService *> *services = nil;
 // MARK: CloudKit
 
 - (void)application:(UIApplication *)application userDidAcceptCloudKitShareWithMetadata:(CKShareMetadata *)cloudKitShareMetadata {
-	for (ApplicationDelegateService *service in services) {
+	for (GDTAppDelegateServiceProtocol *service in services) {
 		if (![service respondsToSelector:_cmd]) {
 			continue;
 		}

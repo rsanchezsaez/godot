@@ -34,7 +34,7 @@
 
 #include "core/io/logger.h"
 
-class IOSTerminalLogger : public StdLogger {
+class TerminalLoggerAppleEmbedded : public StdLogger {
 public:
 	virtual void log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify = false, ErrorType p_type = ERR_ERROR) override;
 };

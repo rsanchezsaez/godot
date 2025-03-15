@@ -40,7 +40,7 @@ struct HashMapHasherKeys {
 HashMap<CFIndex, Key, HashMapHasherKeys> keyusage_map;
 HashMap<CFIndex, KeyLocation, HashMapHasherKeys> location_map;
 
-void KeyMappingIOS::initialize() {
+void KeyMappingAppleEmbedded::initialize() {
 	if (@available(iOS 13.4, *)) {
 		keyusage_map[UIKeyboardHIDUsageKeyboardA] = Key::A;
 		keyusage_map[UIKeyboardHIDUsageKeyboardB] = Key::B;
@@ -185,7 +185,7 @@ void KeyMappingIOS::initialize() {
 	}
 }
 
-Key KeyMappingIOS::remap_key(CFIndex p_keycode) {
+Key KeyMappingAppleEmbedded::remap_key(CFIndex p_keycode) {
 	if (@available(iOS 13.4, *)) {
 		const Key *key = keyusage_map.getptr(p_keycode);
 		if (key) {
@@ -195,7 +195,7 @@ Key KeyMappingIOS::remap_key(CFIndex p_keycode) {
 	return Key::NONE;
 }
 
-KeyLocation KeyMappingIOS::key_location(CFIndex p_keycode) {
+KeyLocation KeyMappingAppleEmbedded::key_location(CFIndex p_keycode) {
 	if (@available(iOS 13.4, *)) {
 		const KeyLocation *location = location_map.getptr(p_keycode);
 		if (location) {

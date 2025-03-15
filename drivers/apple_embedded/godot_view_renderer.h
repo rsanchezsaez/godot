@@ -32,7 +32,7 @@
 
 #import <UIKit/UIKit.h>
 
-@protocol GodotViewRendererProtocol <NSObject>
+@protocol GDTViewRendererProtocol <NSObject>
 
 @property(assign, readonly, nonatomic) BOOL hasFinishedSetup;
 
@@ -41,6 +41,6 @@
 
 @end
 
-@interface GodotViewRenderer : NSObject <GodotViewRendererProtocol>
+@interface GDTViewRenderer : NSObject <GDTViewRendererProtocol>
 
 @end

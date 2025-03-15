@@ -42,7 +42,7 @@
 #import <AVFoundation/AVFoundation.h>
 #endif
 
-@interface TTS_IOS : NSObject <AVSpeechSynthesizerDelegate> {
+@interface GDTTTS : NSObject <AVSpeechSynthesizerDelegate> {
 	bool speaking;
 	HashMap<id, int> ids;
 

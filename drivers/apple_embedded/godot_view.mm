@@ -43,7 +43,7 @@
 static const int max_touches = 32;
 static const float earth_gravity = 9.80665;
 
-@interface GodotView () {
+@interface GDTView () {
 	UITouch *godot_touches[max_touches];
 }
 
@@ -56,34 +56,34 @@ static const float earth_gravity = 9.80665;
 // Only used if CADisplayLink is not
 @property(strong, nonatomic) NSTimer *animationTimer;
 
-@property(strong, nonatomic) CALayer<DisplayLayer> *renderingLayer;
+@property(strong, nonatomic) CALayer<GDTDisplayLayer> *renderingLayer;
 
 @property(strong, nonatomic) CMMotionManager *motionManager;
 
 @end
 
-@implementation GodotView
+@implementation GDTView
 
-- (CALayer<DisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
+- (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
 	if (self.renderingLayer) {
 		return self.renderingLayer;
 	}
 
-	CALayer<DisplayLayer> *layer;
+	CALayer<GDTDisplayLayer> *layer;
 
 	if ([driverName isEqualToString:@"vulkan"] || [driverName isEqualToString:@"metal"]) {
 #if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
 		if (@available(iOS 13, *)) {
-			layer = [GodotMetalLayer layer];
+			layer = [GDTMetalLayer layer];
 		} else {
 			return nil;
 		}
 #else
-		layer = [GodotMetalLayer layer];
+		layer = [GDTMetalLayer layer];
 #endif
 	} else if ([driverName isEqualToString:@"opengl3"]) {
 		GODOT_CLANG_WARNING_PUSH_AND_IGNORE("-Wdeprecated-declarations") // OpenGL is deprecated in iOS 12.0.
-		layer = [GodotOpenGLLayer layer];
+		layer = [GDTOpenGLLayer layer];
 		GODOT_CLANG_WARNING_POP
 	} else {
 		return nil;

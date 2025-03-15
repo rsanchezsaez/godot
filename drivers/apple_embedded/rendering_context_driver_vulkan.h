@@ -36,7 +36,7 @@
 
 #import <QuartzCore/CAMetalLayer.h>
 
-class RenderingContextDriverVulkanIOS : public RenderingContextDriverVulkan {
+class RenderingContextDriverVulkanAppleEmbedded : public RenderingContextDriverVulkan {
 private:
 	virtual const char *_get_platform_surface_extension() const override final;
 
@@ -48,8 +48,8 @@ public:
 		CAMetalLayer *const *layer_ptr;
 	};
 
-	RenderingContextDriverVulkanIOS();
-	~RenderingContextDriverVulkanIOS();
+	RenderingContextDriverVulkanAppleEmbedded();
+	~RenderingContextDriverVulkanAppleEmbedded();
 };
 
 #endif // VULKAN_ENABLED

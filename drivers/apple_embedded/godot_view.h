@@ -34,30 +34,30 @@
 
 class String;
 
-@class GodotView;
-@protocol DisplayLayer;
-@protocol GodotViewRendererProtocol;
+@class GDTView;
+@protocol GDTDisplayLayer;
+@protocol GDTViewRendererProtocol;
 
-@protocol GodotViewDelegate
+@protocol GDTViewDelegate
 
-- (BOOL)godotViewFinishedSetup:(GodotView *)view;
+- (BOOL)godotViewFinishedSetup:(GDTView *)view;
 
 @end
 
-@interface GodotView : UIView
+@interface GDTView : UIView
 
-@property(assign, nonatomic) id<GodotViewRendererProtocol> renderer;
-@property(assign, nonatomic) id<GodotViewDelegate> delegate;
+@property(assign, nonatomic) id<GDTViewRendererProtocol> renderer;
+@property(assign, nonatomic) id<GDTViewDelegate> delegate;
 
 @property(assign, readonly, nonatomic) BOOL isActive;
 
 @property(assign, nonatomic) BOOL useCADisplayLink;
-@property(strong, readonly, nonatomic) CALayer<DisplayLayer> *renderingLayer;
+@property(strong, readonly, nonatomic) CALayer<GDTDisplayLayer> *renderingLayer;
 @property(assign, readonly, nonatomic) BOOL canRender;
 
 @property(assign, nonatomic) NSTimeInterval renderingInterval;
 
-- (CALayer<DisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
+- (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
 - (void)stopRendering;
 - (void)startRendering;
 

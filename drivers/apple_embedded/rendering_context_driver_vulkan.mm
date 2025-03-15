@@ -38,11 +38,11 @@
 #include <vulkan/vulkan_metal.h>
 #endif
 
-const char *RenderingContextDriverVulkanIOS::_get_platform_surface_extension() const {
+const char *RenderingContextDriverVulkanAppleEmbedded::_get_platform_surface_extension() const {
 	return VK_EXT_METAL_SURFACE_EXTENSION_NAME;
 }
 
-RenderingContextDriver::SurfaceID RenderingContextDriverVulkanIOS::surface_create(const void *p_platform_data) {
+RenderingContextDriver::SurfaceID RenderingContextDriverVulkanAppleEmbedded::surface_create(const void *p_platform_data) {
 	const WindowPlatformData *wpd = (const WindowPlatformData *)(p_platform_data);
 
 	VkMetalSurfaceCreateInfoEXT create_info = {};
@@ -58,11 +58,11 @@ RenderingContextDriver::SurfaceID RenderingContextDriverVulkanIOS::surface_creat
 	return SurfaceID(surface);
 }
 
-RenderingContextDriverVulkanIOS::RenderingContextDriverVulkanIOS() {
+RenderingContextDriverVulkanAppleEmbedded::RenderingContextDriverVulkanAppleEmbedded() {
 	// Does nothing.
 }
 
-RenderingContextDriverVulkanIOS::~RenderingContextDriverVulkanIOS() {
+RenderingContextDriverVulkanAppleEmbedded::~RenderingContextDriverVulkanAppleEmbedded() {
 	// Does nothing.
 }
 

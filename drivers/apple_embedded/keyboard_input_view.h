@@ -32,7 +32,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface GodotKeyboardInputView : UITextView
+@interface GDTKeyboardInputView : UITextView
 
 - (BOOL)becomeFirstResponderWithString:(NSString *)existingString cursorStart:(NSInteger)start cursorEnd:(NSInteger)end;
 

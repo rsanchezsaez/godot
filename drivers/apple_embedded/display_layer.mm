@@ -46,7 +46,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
-@implementation GodotMetalLayer
+@implementation GDTMetalLayer
 
 - (void)initializeDisplayLayer {
 #if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
@@ -69,7 +69,7 @@
 
 @end
 
-@implementation GodotOpenGLLayer {
+@implementation GDTOpenGLLayer {
 	// The pixel dimensions of the backbuffer
 	GLint backingWidth;
 	GLint backingHeight;

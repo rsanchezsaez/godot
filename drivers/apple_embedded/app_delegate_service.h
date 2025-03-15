@@ -32,18 +32,18 @@
 
 #import <UIKit/UIKit.h>
 
-@class ViewController;
+@class GDTViewController;
 
 // FIXME: Add support for both OpenGL and Vulkan when OpenGL is implemented again,
 // so it can't be done with compilation time branching.
 //#if defined(GLES3_ENABLED)
-//@interface AppDelegate : NSObject <UIApplicationDelegate, GLViewDelegate> {
+//@interface GDTAppDelegateService : NSObject <UIApplicationDelegate, GLViewDelegate> {
 //#endif
 //#if defined(VULKAN_ENABLED)
-@interface AppDelegate : NSObject <UIApplicationDelegate>
+@interface GDTAppDelegateService : NSObject <UIApplicationDelegate>
 //#endif
 
 @property(strong, nonatomic) UIWindow *window;
-@property(strong, class, readonly, nonatomic) ViewController *viewController;
+@property(strong, class, readonly, nonatomic) GDTViewController *viewController;
 
 @end

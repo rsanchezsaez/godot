@@ -30,7 +30,7 @@
 
 #import "device_metrics.h"
 
-@implementation GodotDeviceMetrics
+@implementation GDTDeviceMetrics
 
 + (NSDictionary *)dpiList {
 	return @{

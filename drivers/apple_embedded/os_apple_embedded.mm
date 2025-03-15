@@ -142,7 +142,7 @@ OS_AppleEmbedded::OS_AppleEmbedded() {
 	main_loop = nullptr;
 
 	Vector<Logger *> loggers;
-	loggers.push_back(memnew(IOSTerminalLogger));
+	loggers.push_back(memnew(TerminalLoggerAppleEmbedded));
 	_set_logger(memnew(CompositeLogger(loggers)));
 
 	AudioDriverManager::add_driver(&audio_driver);
@@ -659,7 +659,7 @@ void OS_AppleEmbedded::on_focus_out() {
 			OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_OUT);
 		}
 
-		[AppDelegate.viewController.godotView stopRendering];
+		[GDTAppDelegateService.viewController.godotView stopRendering];
 
 		audio_driver.stop();
 	}
@@ -677,7 +677,7 @@ void OS_AppleEmbedded::on_focus_in() {
 			OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_IN);
 		}
 
-		[AppDelegate.viewController.godotView startRendering];
+		[GDTAppDelegateService.viewController.godotView startRendering];
 
 		audio_driver.start();
 	}

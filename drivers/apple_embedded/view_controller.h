@@ -32,13 +32,12 @@
 
 #import <UIKit/UIKit.h>
 
-@class GodotView;
-@class GodotNativeVideoView;
-@class GodotKeyboardInputView;
+@class GDTView;
+@class GDTKeyboardInputView;
 
-@interface ViewController : UIViewController
+@interface GDTViewController : UIViewController
 
-@property(nonatomic, readonly, strong) GodotView *godotView;
-@property(nonatomic, readonly, strong) GodotKeyboardInputView *keyboardView;
+@property(nonatomic, readonly, strong) GDTView *godotView;
+@property(nonatomic, readonly, strong) GDTKeyboardInputView *keyboardView;
 
 @end

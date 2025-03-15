@@ -170,7 +170,7 @@ void AppleEmbedded::alert(const char *p_alert, const char *p_title) {
 
 	[alert addAction:button];
 
-	[AppDelegate.viewController presentViewController:alert animated:YES completion:nil];
+	[GDTAppDelegateService.viewController presentViewController:alert animated:YES completion:nil];
 }
 
 String AppleEmbedded::get_model() const {

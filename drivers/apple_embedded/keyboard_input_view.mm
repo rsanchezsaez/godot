@@ -35,14 +35,14 @@
 
 #include "core/os/keyboard.h"
 
-@interface GodotKeyboardInputView () <UITextViewDelegate>
+@interface GDTKeyboardInputView () <UITextViewDelegate>
 
 @property(nonatomic, copy) NSString *previousText;
 @property(nonatomic, assign) NSRange previousSelectedRange;
 
 @end
 
-@implementation GodotKeyboardInputView
+@implementation GDTKeyboardInputView
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
 	self = [super initWithCoder:coder];

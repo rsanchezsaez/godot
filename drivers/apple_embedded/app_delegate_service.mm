@@ -46,10 +46,10 @@
 extern int gargc;
 extern char **gargv;
 
-extern int ios_main(int, char **);
-extern void ios_finish();
+extern int apple_embedded_main(int, char **);
+extern void apple_embedded_finish();
 
-@implementation AppDelegate
+@implementation GDTAppDelegateService
 
 enum {
 	SESSION_CATEGORY_AMBIENT,
@@ -60,9 +60,9 @@ enum {
 	SESSION_CATEGORY_SOLO_AMBIENT
 };
 
-static ViewController *mainViewController = nil;
+static GDTViewController *mainViewController = nil;
 
-+ (ViewController *)viewController {
++ (GDTViewController *)viewController {
 	return mainViewController;
 }
 
@@ -76,7 +76,7 @@ static ViewController *mainViewController = nil;
 	// Create a full-screen window
 	self.window = [[UIWindow alloc] initWithFrame:windowBounds];
 
-	int err = ios_main(gargc, gargv);
+	int err = apple_embedded_main(gargc, gargv);
 
 	if (err != 0) {
 		// bail, things did not go very well for us, should probably output a message on screen with our error code...
@@ -84,7 +84,7 @@ static ViewController *mainViewController = nil;
 		return NO;
 	}
 
-	ViewController *viewController = [[ViewController alloc] init];
+	GDTViewController *viewController = [[GDTViewController alloc] init];
 	viewController.godotView.useCADisplayLink = bool(GLOBAL_DEF("display.iOS/use_cadisplaylink", true)) ? YES : NO;
 	viewController.godotView.renderingInterval = 1.0 / kRenderingFrequency;
 
@@ -150,7 +150,7 @@ static ViewController *mainViewController = nil;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
-	ios_finish();
+	apple_embedded_finish();
 }
 
 // When application goes to background (e.g. user switches to another app or presses Home),

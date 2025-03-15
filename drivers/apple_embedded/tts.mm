@@ -30,7 +30,7 @@
 
 #import "tts.h"
 
-@implementation TTS_IOS
+@implementation GDTTTS
 
 - (id)init {
 	self = [super init];

@@ -32,12 +32,12 @@
 
 #import <UIKit/UIKit.h>
 
-typedef NSObject<UIApplicationDelegate> ApplicationDelegateService;
+typedef NSObject<UIApplicationDelegate> GDTAppDelegateServiceProtocol;
 
-@interface GodotApplicationDelegate : NSObject <UIApplicationDelegate>
+@interface GDTApplicationDelegate : NSObject <UIApplicationDelegate>
 
-@property(class, readonly, strong) NSArray<ApplicationDelegateService *> *services;
+@property(class, readonly, strong) NSArray<GDTAppDelegateServiceProtocol *> *services;
 
-+ (void)addService:(ApplicationDelegateService *)service;
++ (void)addService:(GDTAppDelegateServiceProtocol *)service;
 
 @end

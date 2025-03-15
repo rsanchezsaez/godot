@@ -44,7 +44,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
 
-@interface GodotViewRenderer ()
+@interface GDTViewRenderer ()
 
 @property(assign, nonatomic) BOOL hasFinishedProjectDataSetup;
 @property(assign, nonatomic) BOOL hasStartedMain;
@@ -52,7 +52,7 @@
 
 @end
 
-@implementation GodotViewRenderer
+@implementation GDTViewRenderer
 
 - (BOOL)setupView:(UIView *)view {
 	if (self.hasFinishedSetup) {

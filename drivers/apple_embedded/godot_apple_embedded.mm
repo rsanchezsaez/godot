@@ -71,7 +71,7 @@ int add_cmdline(int p_argc, char **p_args) {
 	return p_argc;
 }
 
-int ios_main(int argc, char **argv) {
+int apple_embedded_main(int argc, char **argv) {
 	size_t len = strlen(argv[0]);
 
 	while (len--) {
@@ -114,7 +114,7 @@ int ios_main(int argc, char **argv) {
 	return os->get_exit_code();
 }
 
-void ios_finish() {
+void apple_embedded_finish() {
 	Main::cleanup();
 	delete os;
 }

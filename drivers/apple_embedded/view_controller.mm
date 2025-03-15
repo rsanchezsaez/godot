@@ -42,19 +42,19 @@
 #import <AVFoundation/AVFoundation.h>
 #import <GameController/GameController.h>
 
-@interface ViewController () <GodotViewDelegate>
+@interface GDTViewController () <GDTViewDelegate>
 
-@property(strong, nonatomic) GodotViewRenderer *renderer;
-@property(strong, nonatomic) GodotKeyboardInputView *keyboardView;
+@property(strong, nonatomic) GDTViewRenderer *renderer;
+@property(strong, nonatomic) GDTKeyboardInputView *keyboardView;
 
 @property(strong, nonatomic) UIView *godotLoadingOverlay;
 
 @end
 
-@implementation ViewController
+@implementation GDTViewController
 
-- (GodotView *)godotView {
-	return (GodotView *)self.view;
+- (GDTView *)godotView {
+	return (GDTView *)self.view;
 }
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event {
@@ -67,7 +67,7 @@
 		for (UIPress *press in presses) {
 			String u32lbl = String::utf8([press.key.charactersIgnoringModifiers UTF8String]);
 			String u32text = String::utf8([press.key.characters UTF8String]);
-			Key key = KeyMappingIOS::remap_key(press.key.keyCode);
+			Key key = KeyMappingAppleEmbedded::remap_key(press.key.keyCode);
 
 			if (press.key.keyCode == 0 && u32text.is_empty() && u32lbl.is_empty()) {
 				continue;
@@ -78,7 +78,7 @@
 				us = u32lbl[0];
 			}
 
-			KeyLocation location = KeyMappingIOS::key_location(press.key.keyCode);
+			KeyLocation location = KeyMappingAppleEmbedded::key_location(press.key.keyCode);
 
 			if (!u32text.is_empty() && !u32text.begins_with("UIKey")) {
 				for (int i = 0; i < u32text.length(); i++) {
@@ -101,7 +101,7 @@
 	if (@available(iOS 13.4, *)) {
 		for (UIPress *press in presses) {
 			String u32lbl = String::utf8([press.key.charactersIgnoringModifiers UTF8String]);
-			Key key = KeyMappingIOS::remap_key(press.key.keyCode);
+			Key key = KeyMappingAppleEmbedded::remap_key(press.key.keyCode);
 
 			if (press.key.keyCode == 0 && u32lbl.is_empty()) {
 				continue;
@@ -112,7 +112,7 @@
 				us = u32lbl[0];
 			}
 
-			KeyLocation location = KeyMappingIOS::key_location(press.key.keyCode);
+			KeyLocation location = KeyMappingAppleEmbedded::key_location(press.key.keyCode);
 
 			DisplayServerIOS::get_singleton()->key(fix_keycode(us, key), 0, fix_key_label(us, key), key, press.key.modifierFlags, false, location);
 		}
@@ -120,8 +120,8 @@
 }
 
 - (void)loadView {
-	GodotView *view = [[GodotView alloc] init];
-	GodotViewRenderer *renderer = [[GodotViewRenderer alloc] init];
+	GDTView *view = [[GDTView alloc] init];
+	GDTViewRenderer *renderer = [[GDTViewRenderer alloc] init];
 
 	self.renderer = renderer;
 	self.view = view;
@@ -170,7 +170,7 @@
 
 - (void)observeKeyboard {
 	print_verbose("Setting up keyboard input view.");
-	self.keyboardView = [GodotKeyboardInputView new];
+	self.keyboardView = [GDTKeyboardInputView new];
 	[self.view addSubview:self.keyboardView];
 
 	print_verbose("Adding observer for keyboard show/hide.");
@@ -204,7 +204,7 @@
 	[self.view addSubview:self.godotLoadingOverlay];
 }
 
-- (BOOL)godotViewFinishedSetup:(GodotView *)view {
+- (BOOL)godotViewFinishedSetup:(GDTView *)view {
 	[self.godotLoadingOverlay removeFromSuperview];
 	self.godotLoadingOverlay = nil;
 

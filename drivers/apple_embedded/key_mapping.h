@@ -34,8 +34,8 @@
 
 #import <UIKit/UIKit.h>
 
-class KeyMappingIOS {
-	KeyMappingIOS() {}
+class KeyMappingAppleEmbedded {
+	KeyMappingAppleEmbedded() {}
 
 public:
 	static void initialize();
