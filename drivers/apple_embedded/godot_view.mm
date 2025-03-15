@@ -167,7 +167,7 @@ static const float earth_gravity = 9.80665;
 }
 
 - (void)system_theme_changed {
-	DisplayServerIOS *ds = (DisplayServerIOS *)DisplayServer::get_singleton();
+	DisplayServerAppleEmbedded *ds = (DisplayServerAppleEmbedded *)DisplayServer::get_singleton();
 	if (ds) {
 		ds->emit_system_theme_changed();
 	}
@@ -293,8 +293,8 @@ static const float earth_gravity = 9.80665;
 		self.renderingLayer.frame = self.bounds;
 		[self.renderingLayer layoutDisplayLayer];
 
-		if (DisplayServerIOS::get_singleton()) {
-			DisplayServerIOS::get_singleton()->resize_window(self.bounds.size);
+		if (DisplayServerAppleEmbedded::get_singleton()) {
+			DisplayServerAppleEmbedded::get_singleton()->resize_window(self.bounds.size);
 		}
 	}
 
@@ -357,7 +357,7 @@ static const float earth_gravity = 9.80665;
 		int tid = [self getTouchIDForTouch:touch];
 		ERR_FAIL_COND(tid == -1);
 		CGPoint touchPoint = [touch locationInView:self];
-		DisplayServerIOS::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, true, touch.tapCount > 1);
+		DisplayServerAppleEmbedded::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, true, touch.tapCount > 1);
 	}
 }
 
@@ -369,7 +369,7 @@ static const float earth_gravity = 9.80665;
 		CGPoint prev_point = [touch previousLocationInView:self];
 		CGFloat alt = [touch altitudeAngle];
 		CGVector azim = [touch azimuthUnitVectorInView:self];
-		DisplayServerIOS::get_singleton()->touch_drag(tid, prev_point.x * self.contentScaleFactor, prev_point.y * self.contentScaleFactor, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, [touch force] / [touch maximumPossibleForce], Vector2(azim.dx, azim.dy) * Math::cos(alt));
+		DisplayServerAppleEmbedded::get_singleton()->touch_drag(tid, prev_point.x * self.contentScaleFactor, prev_point.y * self.contentScaleFactor, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, [touch force] / [touch maximumPossibleForce], Vector2(azim.dx, azim.dy) * Math::cos(alt));
 	}
 }
 
@@ -379,7 +379,7 @@ static const float earth_gravity = 9.80665;
 		ERR_FAIL_COND(tid == -1);
 		[self removeTouch:touch];
 		CGPoint touchPoint = [touch locationInView:self];
-		DisplayServerIOS::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, false, false);
+		DisplayServerAppleEmbedded::get_singleton()->touch_press(tid, touchPoint.x * self.contentScaleFactor, touchPoint.y * self.contentScaleFactor, false, false);
 	}
 }
 
@@ -387,7 +387,7 @@ static const float earth_gravity = 9.80665;
 	for (UITouch *touch in touches) {
 		int tid = [self getTouchIDForTouch:touch];
 		ERR_FAIL_COND(tid == -1);
-		DisplayServerIOS::get_singleton()->touches_canceled(tid);
+		DisplayServerAppleEmbedded::get_singleton()->touches_canceled(tid);
 	}
 	[self clearTouches];
 }
@@ -454,28 +454,28 @@ static const float earth_gravity = 9.80665;
 
 	switch (interfaceOrientation) {
 		case UIInterfaceOrientationLandscapeLeft: {
-			DisplayServerIOS::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));
 		} break;
 		case UIInterfaceOrientationLandscapeRight: {
-			DisplayServerIOS::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
-			DisplayServerIOS::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
+			DisplayServerAppleEmbedded::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), Math::PI * 0.5));
 		} break;
 		case UIInterfaceOrientationPortraitUpsideDown: {
-			DisplayServerIOS::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), Math::PI));
-			DisplayServerIOS::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), Math::PI));
-			DisplayServerIOS::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), Math::PI));
-			DisplayServerIOS::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), Math::PI));
+			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), Math::PI));
+			DisplayServerAppleEmbedded::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z).rotated(Vector3(0, 0, 1), Math::PI));
+			DisplayServerAppleEmbedded::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z).rotated(Vector3(0, 0, 1), Math::PI));
+			DisplayServerAppleEmbedded::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z).rotated(Vector3(0, 0, 1), Math::PI));
 		} break;
 		default: { // assume portrait
-			DisplayServerIOS::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z));
-			DisplayServerIOS::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z));
-			DisplayServerIOS::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z));
-			DisplayServerIOS::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z));
+			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z));
+			DisplayServerAppleEmbedded::get_singleton()->update_accelerometer(Vector3(acceleration.x + gravity.x, acceleration.y + gravity.y, acceleration.z + gravity.z));
+			DisplayServerAppleEmbedded::get_singleton()->update_magnetometer(Vector3(magnetic.x, magnetic.y, magnetic.z));
+			DisplayServerAppleEmbedded::get_singleton()->update_gyroscope(Vector3(rotation.x, rotation.y, rotation.z));
 		} break;
 	}
 }

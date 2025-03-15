@@ -49,11 +49,11 @@
 
 static const float kDisplayServerIOSAcceleration = 1.f;
 
-DisplayServerIOS *DisplayServerIOS::get_singleton() {
-	return (DisplayServerIOS *)DisplayServer::get_singleton();
+DisplayServerAppleEmbedded *DisplayServerAppleEmbedded::get_singleton() {
+	return (DisplayServerAppleEmbedded *)DisplayServer::get_singleton();
 }
 
-DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
+DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
 	KeyMappingAppleEmbedded::initialize();
 
 	rendering_driver = p_rendering_driver;
@@ -174,7 +174,7 @@ DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode 
 	r_error = OK;
 }
 
-DisplayServerIOS::~DisplayServerIOS() {
+DisplayServerAppleEmbedded::~DisplayServerAppleEmbedded() {
 	if (native_menu) {
 		memdelete(native_menu);
 		native_menu = nullptr;
@@ -195,11 +195,11 @@ DisplayServerIOS::~DisplayServerIOS() {
 #endif
 }
 
-DisplayServer *DisplayServerIOS::create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
-	return memnew(DisplayServerIOS(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
+DisplayServer *DisplayServerAppleEmbedded::create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
+	return memnew(DisplayServerAppleEmbedded(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
 }
 
-Vector<String> DisplayServerIOS::get_rendering_drivers_func() {
+Vector<String> DisplayServerAppleEmbedded::get_rendering_drivers_func() {
 	Vector<String> drivers;
 
 #if defined(VULKAN_ENABLED)
@@ -217,52 +217,52 @@ Vector<String> DisplayServerIOS::get_rendering_drivers_func() {
 	return drivers;
 }
 
-void DisplayServerIOS::register_ios_driver() {
+void DisplayServerAppleEmbedded::register_ios_driver() {
 	register_create_function("iOS", create_func, get_rendering_drivers_func);
 }
 
 // MARK: Events
 
-void DisplayServerIOS::window_set_rect_changed_callback(const Callable &p_callable, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_rect_changed_callback(const Callable &p_callable, WindowID p_window) {
 	window_resize_callback = p_callable;
 }
 
-void DisplayServerIOS::window_set_window_event_callback(const Callable &p_callable, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_window_event_callback(const Callable &p_callable, WindowID p_window) {
 	window_event_callback = p_callable;
 }
-void DisplayServerIOS::window_set_input_event_callback(const Callable &p_callable, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_input_event_callback(const Callable &p_callable, WindowID p_window) {
 	input_event_callback = p_callable;
 }
 
-void DisplayServerIOS::window_set_input_text_callback(const Callable &p_callable, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_input_text_callback(const Callable &p_callable, WindowID p_window) {
 	input_text_callback = p_callable;
 }
 
-void DisplayServerIOS::window_set_drop_files_callback(const Callable &p_callable, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_drop_files_callback(const Callable &p_callable, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-void DisplayServerIOS::process_events() {
+void DisplayServerAppleEmbedded::process_events() {
 	Input::get_singleton()->flush_buffered_events();
 }
 
-void DisplayServerIOS::_dispatch_input_events(const Ref<InputEvent> &p_event) {
-	DisplayServerIOS::get_singleton()->send_input_event(p_event);
+void DisplayServerAppleEmbedded::_dispatch_input_events(const Ref<InputEvent> &p_event) {
+	DisplayServerAppleEmbedded::get_singleton()->send_input_event(p_event);
 }
 
-void DisplayServerIOS::send_input_event(const Ref<InputEvent> &p_event) const {
+void DisplayServerAppleEmbedded::send_input_event(const Ref<InputEvent> &p_event) const {
 	_window_callback(input_event_callback, p_event);
 }
 
-void DisplayServerIOS::send_input_text(const String &p_text) const {
+void DisplayServerAppleEmbedded::send_input_text(const String &p_text) const {
 	_window_callback(input_text_callback, p_text);
 }
 
-void DisplayServerIOS::send_window_event(DisplayServer::WindowEvent p_event) const {
+void DisplayServerAppleEmbedded::send_window_event(DisplayServer::WindowEvent p_event) const {
 	_window_callback(window_event_callback, int(p_event));
 }
 
-void DisplayServerIOS::_window_callback(const Callable &p_callable, const Variant &p_arg) const {
+void DisplayServerAppleEmbedded::_window_callback(const Callable &p_callable, const Variant &p_arg) const {
 	if (p_callable.is_valid()) {
 		p_callable.call(p_arg);
 	}
@@ -272,7 +272,7 @@ void DisplayServerIOS::_window_callback(const Callable &p_callable, const Varian
 
 // MARK: Touches
 
-void DisplayServerIOS::touch_press(int p_idx, int p_x, int p_y, bool p_pressed, bool p_double_click) {
+void DisplayServerAppleEmbedded::touch_press(int p_idx, int p_x, int p_y, bool p_pressed, bool p_double_click) {
 	Ref<InputEventScreenTouch> ev;
 	ev.instantiate();
 
@@ -283,7 +283,7 @@ void DisplayServerIOS::touch_press(int p_idx, int p_x, int p_y, bool p_pressed, 
 	perform_event(ev);
 }
 
-void DisplayServerIOS::touch_drag(int p_idx, int p_prev_x, int p_prev_y, int p_x, int p_y, float p_pressure, Vector2 p_tilt) {
+void DisplayServerAppleEmbedded::touch_drag(int p_idx, int p_prev_x, int p_prev_y, int p_x, int p_y, float p_pressure, Vector2 p_tilt) {
 	Ref<InputEventScreenDrag> ev;
 	ev.instantiate();
 	ev->set_index(p_idx);
@@ -295,17 +295,17 @@ void DisplayServerIOS::touch_drag(int p_idx, int p_prev_x, int p_prev_y, int p_x
 	perform_event(ev);
 }
 
-void DisplayServerIOS::perform_event(const Ref<InputEvent> &p_event) {
+void DisplayServerAppleEmbedded::perform_event(const Ref<InputEvent> &p_event) {
 	Input::get_singleton()->parse_input_event(p_event);
 }
 
-void DisplayServerIOS::touches_canceled(int p_idx) {
+void DisplayServerAppleEmbedded::touches_canceled(int p_idx) {
 	touch_press(p_idx, -1, -1, false, false);
 }
 
 // MARK: Keyboard
 
-void DisplayServerIOS::key(Key p_key, char32_t p_char, Key p_unshifted, Key p_physical, NSInteger p_modifier, bool p_pressed, KeyLocation p_location) {
+void DisplayServerAppleEmbedded::key(Key p_key, char32_t p_char, Key p_unshifted, Key p_physical, NSInteger p_modifier, bool p_pressed, KeyLocation p_location) {
 	Ref<InputEventKey> ev;
 	ev.instantiate();
 	ev->set_echo(false);
@@ -334,25 +334,25 @@ void DisplayServerIOS::key(Key p_key, char32_t p_char, Key p_unshifted, Key p_ph
 
 // MARK: Motion
 
-void DisplayServerIOS::update_gravity(const Vector3 &p_gravity) {
+void DisplayServerAppleEmbedded::update_gravity(const Vector3 &p_gravity) {
 	Input::get_singleton()->set_gravity(p_gravity);
 }
 
-void DisplayServerIOS::update_accelerometer(const Vector3 &p_accelerometer) {
+void DisplayServerAppleEmbedded::update_accelerometer(const Vector3 &p_accelerometer) {
 	Input::get_singleton()->set_accelerometer(p_accelerometer / kDisplayServerIOSAcceleration);
 }
 
-void DisplayServerIOS::update_magnetometer(const Vector3 &p_magnetometer) {
+void DisplayServerAppleEmbedded::update_magnetometer(const Vector3 &p_magnetometer) {
 	Input::get_singleton()->set_magnetometer(p_magnetometer);
 }
 
-void DisplayServerIOS::update_gyroscope(const Vector3 &p_gyroscope) {
+void DisplayServerAppleEmbedded::update_gyroscope(const Vector3 &p_gyroscope) {
 	Input::get_singleton()->set_gyroscope(p_gyroscope);
 }
 
 // MARK: -
 
-bool DisplayServerIOS::has_feature(Feature p_feature) const {
+bool DisplayServerAppleEmbedded::has_feature(Feature p_feature) const {
 	switch (p_feature) {
 #ifndef DISABLE_DEPRECATED
 		case FEATURE_GLOBAL_MENU: {
@@ -385,11 +385,11 @@ bool DisplayServerIOS::has_feature(Feature p_feature) const {
 	}
 }
 
-String DisplayServerIOS::get_name() const {
+String DisplayServerAppleEmbedded::get_name() const {
 	return "iOS";
 }
 
-void DisplayServerIOS::initialize_tts() const {
+void DisplayServerAppleEmbedded::initialize_tts() const {
 	const_cast<DisplayServerIOS *>(this)->tts = [[GDTTTS alloc] init];
 }
 
@@ -401,7 +401,7 @@ bool DisplayServerIOS::tts_is_speaking() const {
 	return [tts isSpeaking];
 }
 
-bool DisplayServerIOS::tts_is_paused() const {
+bool DisplayServerAppleEmbedded::tts_is_paused() const {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -409,7 +409,7 @@ bool DisplayServerIOS::tts_is_paused() const {
 	return [tts isPaused];
 }
 
-TypedArray<Dictionary> DisplayServerIOS::tts_get_voices() const {
+TypedArray<Dictionary> DisplayServerAppleEmbedded::tts_get_voices() const {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -417,7 +417,7 @@ TypedArray<Dictionary> DisplayServerIOS::tts_get_voices() const {
 	return [tts getVoices];
 }
 
-void DisplayServerIOS::tts_speak(const String &p_text, const String &p_voice, int p_volume, float p_pitch, float p_rate, int p_utterance_id, bool p_interrupt) {
+void DisplayServerAppleEmbedded::tts_speak(const String &p_text, const String &p_voice, int p_volume, float p_pitch, float p_rate, int p_utterance_id, bool p_interrupt) {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -425,7 +425,7 @@ void DisplayServerIOS::tts_speak(const String &p_text, const String &p_voice, in
 	[tts speak:p_text voice:p_voice volume:p_volume pitch:p_pitch rate:p_rate utterance_id:p_utterance_id interrupt:p_interrupt];
 }
 
-void DisplayServerIOS::tts_pause() {
+void DisplayServerAppleEmbedded::tts_pause() {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -433,7 +433,7 @@ void DisplayServerIOS::tts_pause() {
 	[tts pauseSpeaking];
 }
 
-void DisplayServerIOS::tts_resume() {
+void DisplayServerAppleEmbedded::tts_resume() {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -441,7 +441,7 @@ void DisplayServerIOS::tts_resume() {
 	[tts resumeSpeaking];
 }
 
-void DisplayServerIOS::tts_stop() {
+void DisplayServerAppleEmbedded::tts_stop() {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -449,7 +449,7 @@ void DisplayServerIOS::tts_stop() {
 	[tts stopSpeaking];
 }
 
-bool DisplayServerIOS::is_dark_mode_supported() const {
+bool DisplayServerAppleEmbedded::is_dark_mode_supported() const {
 	if (@available(iOS 13.0, *)) {
 		return true;
 	} else {
@@ -457,7 +457,7 @@ bool DisplayServerIOS::is_dark_mode_supported() const {
 	}
 }
 
-bool DisplayServerIOS::is_dark_mode() const {
+bool DisplayServerAppleEmbedded::is_dark_mode() const {
 	if (@available(iOS 13.0, *)) {
 		return [UITraitCollection currentTraitCollection].userInterfaceStyle == UIUserInterfaceStyleDark;
 	} else {
@@ -465,11 +465,11 @@ bool DisplayServerIOS::is_dark_mode() const {
 	}
 }
 
-void DisplayServerIOS::set_system_theme_change_callback(const Callable &p_callable) {
+void DisplayServerAppleEmbedded::set_system_theme_change_callback(const Callable &p_callable) {
 	system_theme_changed = p_callable;
 }
 
-void DisplayServerIOS::emit_system_theme_changed() {
+void DisplayServerAppleEmbedded::emit_system_theme_changed() {
 	if (system_theme_changed.is_valid()) {
 		Variant ret;
 		Callable::CallError ce;
@@ -480,7 +480,7 @@ void DisplayServerIOS::emit_system_theme_changed() {
 	}
 }
 
-Rect2i DisplayServerIOS::get_display_safe_area() const {
+Rect2i DisplayServerAppleEmbedded::get_display_safe_area() const {
 	UIEdgeInsets insets = UIEdgeInsetsZero;
 	UIView *view = GDTAppDelegateService.viewController.godotView;
 	if ([view respondsToSelector:@selector(safeAreaInsets)]) {
@@ -492,19 +492,19 @@ Rect2i DisplayServerIOS::get_display_safe_area() const {
 	return Rect2i(screen_get_position() + insets_position, screen_get_size() - insets_size);
 }
 
-int DisplayServerIOS::get_screen_count() const {
+int DisplayServerAppleEmbedded::get_screen_count() const {
 	return 1;
 }
 
-int DisplayServerIOS::get_primary_screen() const {
+int DisplayServerAppleEmbedded::get_primary_screen() const {
 	return 0;
 }
 
-Point2i DisplayServerIOS::screen_get_position(int p_screen) const {
+Point2i DisplayServerAppleEmbedded::screen_get_position(int p_screen) const {
 	return Size2i();
 }
 
-Size2i DisplayServerIOS::screen_get_size(int p_screen) const {
+Size2i DisplayServerAppleEmbedded::screen_get_size(int p_screen) const {
 	CALayer *layer = GDTAppDelegateService.viewController.godotView.renderingLayer;
 
 	if (!layer) {
@@ -514,11 +514,11 @@ Size2i DisplayServerIOS::screen_get_size(int p_screen) const {
 	return Size2i(layer.bounds.size.width, layer.bounds.size.height) * screen_get_scale(p_screen);
 }
 
-Rect2i DisplayServerIOS::screen_get_usable_rect(int p_screen) const {
+Rect2i DisplayServerAppleEmbedded::screen_get_usable_rect(int p_screen) const {
 	return Rect2i(screen_get_position(p_screen), screen_get_size(p_screen));
 }
 
-int DisplayServerIOS::screen_get_dpi(int p_screen) const {
+int DisplayServerAppleEmbedded::screen_get_dpi(int p_screen) const {
 	struct utsname systemInfo;
 	uname(&systemInfo);
 
@@ -555,7 +555,7 @@ int DisplayServerIOS::screen_get_dpi(int p_screen) const {
 	}
 }
 
-float DisplayServerIOS::screen_get_refresh_rate(int p_screen) const {
+float DisplayServerAppleEmbedded::screen_get_refresh_rate(int p_screen) const {
 	float fps = [UIScreen mainScreen].maximumFramesPerSecond;
 	if ([NSProcessInfo processInfo].lowPowerModeEnabled) {
 		fps = 60;
@@ -563,21 +563,21 @@ float DisplayServerIOS::screen_get_refresh_rate(int p_screen) const {
 	return fps;
 }
 
-float DisplayServerIOS::screen_get_scale(int p_screen) const {
+float DisplayServerAppleEmbedded::screen_get_scale(int p_screen) const {
 	return [UIScreen mainScreen].scale;
 }
 
-Vector<DisplayServer::WindowID> DisplayServerIOS::get_window_list() const {
+Vector<DisplayServer::WindowID> DisplayServerAppleEmbedded::get_window_list() const {
 	Vector<DisplayServer::WindowID> list;
 	list.push_back(MAIN_WINDOW_ID);
 	return list;
 }
 
-DisplayServer::WindowID DisplayServerIOS::get_window_at_screen_position(const Point2i &p_position) const {
+DisplayServer::WindowID DisplayServerAppleEmbedded::get_window_at_screen_position(const Point2i &p_position) const {
 	return MAIN_WINDOW_ID;
 }
 
-int64_t DisplayServerIOS::window_get_native_handle(HandleType p_handle_type, WindowID p_window) const {
+int64_t DisplayServerAppleEmbedded::window_get_native_handle(HandleType p_handle_type, WindowID p_window) const {
 	ERR_FAIL_COND_V(p_window != MAIN_WINDOW_ID, 0);
 	switch (p_handle_type) {
 		case DISPLAY_HANDLE: {
@@ -595,108 +595,108 @@ int64_t DisplayServerIOS::window_get_native_handle(HandleType p_handle_type, Win
 	}
 }
 
-void DisplayServerIOS::window_attach_instance_id(ObjectID p_instance, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_attach_instance_id(ObjectID p_instance, WindowID p_window) {
 	window_attached_instance_id = p_instance;
 }
 
-ObjectID DisplayServerIOS::window_get_attached_instance_id(WindowID p_window) const {
+ObjectID DisplayServerAppleEmbedded::window_get_attached_instance_id(WindowID p_window) const {
 	return window_attached_instance_id;
 }
 
-void DisplayServerIOS::window_set_title(const String &p_title, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_title(const String &p_title, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-int DisplayServerIOS::window_get_current_screen(WindowID p_window) const {
+int DisplayServerAppleEmbedded::window_get_current_screen(WindowID p_window) const {
 	return SCREEN_OF_MAIN_WINDOW;
 }
 
-void DisplayServerIOS::window_set_current_screen(int p_screen, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_current_screen(int p_screen, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-Point2i DisplayServerIOS::window_get_position(WindowID p_window) const {
+Point2i DisplayServerAppleEmbedded::window_get_position(WindowID p_window) const {
 	return Point2i();
 }
 
-Point2i DisplayServerIOS::window_get_position_with_decorations(WindowID p_window) const {
+Point2i DisplayServerAppleEmbedded::window_get_position_with_decorations(WindowID p_window) const {
 	return Point2i();
 }
 
-void DisplayServerIOS::window_set_position(const Point2i &p_position, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_position(const Point2i &p_position, WindowID p_window) {
 	// Probably not supported for single window iOS app
 }
 
-void DisplayServerIOS::window_set_transient(WindowID p_window, WindowID p_parent) {
+void DisplayServerAppleEmbedded::window_set_transient(WindowID p_window, WindowID p_parent) {
 	// Probably not supported for iOS
 }
 
-void DisplayServerIOS::window_set_max_size(const Size2i p_size, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_max_size(const Size2i p_size, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-Size2i DisplayServerIOS::window_get_max_size(WindowID p_window) const {
+Size2i DisplayServerAppleEmbedded::window_get_max_size(WindowID p_window) const {
 	return Size2i();
 }
 
-void DisplayServerIOS::window_set_min_size(const Size2i p_size, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_min_size(const Size2i p_size, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-Size2i DisplayServerIOS::window_get_min_size(WindowID p_window) const {
+Size2i DisplayServerAppleEmbedded::window_get_min_size(WindowID p_window) const {
 	return Size2i();
 }
 
-void DisplayServerIOS::window_set_size(const Size2i p_size, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_size(const Size2i p_size, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-Size2i DisplayServerIOS::window_get_size(WindowID p_window) const {
+Size2i DisplayServerAppleEmbedded::window_get_size(WindowID p_window) const {
 	CGRect screenBounds = [UIScreen mainScreen].bounds;
 	return Size2i(screenBounds.size.width, screenBounds.size.height) * screen_get_max_scale();
 }
 
-Size2i DisplayServerIOS::window_get_size_with_decorations(WindowID p_window) const {
+Size2i DisplayServerAppleEmbedded::window_get_size_with_decorations(WindowID p_window) const {
 	return window_get_size(p_window);
 }
 
-void DisplayServerIOS::window_set_mode(WindowMode p_mode, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_mode(WindowMode p_mode, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-DisplayServer::WindowMode DisplayServerIOS::window_get_mode(WindowID p_window) const {
+DisplayServer::WindowMode DisplayServerAppleEmbedded::window_get_mode(WindowID p_window) const {
 	return WindowMode::WINDOW_MODE_FULLSCREEN;
 }
 
-bool DisplayServerIOS::window_is_maximize_allowed(WindowID p_window) const {
+bool DisplayServerAppleEmbedded::window_is_maximize_allowed(WindowID p_window) const {
 	return false;
 }
 
-void DisplayServerIOS::window_set_flag(WindowFlags p_flag, bool p_enabled, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_flag(WindowFlags p_flag, bool p_enabled, WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-bool DisplayServerIOS::window_get_flag(WindowFlags p_flag, WindowID p_window) const {
+bool DisplayServerAppleEmbedded::window_get_flag(WindowFlags p_flag, WindowID p_window) const {
 	return false;
 }
 
-void DisplayServerIOS::window_request_attention(WindowID p_window) {
+void DisplayServerAppleEmbedded::window_request_attention(WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-void DisplayServerIOS::window_move_to_foreground(WindowID p_window) {
+void DisplayServerAppleEmbedded::window_move_to_foreground(WindowID p_window) {
 	// Probably not supported for iOS
 }
 
-bool DisplayServerIOS::window_is_focused(WindowID p_window) const {
+bool DisplayServerAppleEmbedded::window_is_focused(WindowID p_window) const {
 	return true;
 }
 
-float DisplayServerIOS::screen_get_max_scale() const {
+float DisplayServerAppleEmbedded::screen_get_max_scale() const {
 	return screen_get_scale(SCREEN_OF_MAIN_WINDOW);
 }
 
-void DisplayServerIOS::screen_set_orientation(DisplayServer::ScreenOrientation p_orientation, int p_screen) {
+void DisplayServerAppleEmbedded::screen_set_orientation(DisplayServer::ScreenOrientation p_orientation, int p_screen) {
 	screen_orientation = p_orientation;
 	if (@available(iOS 16.0, *)) {
 		[GDTAppDelegateService.viewController setNeedsUpdateOfSupportedInterfaceOrientations];
@@ -705,19 +705,19 @@ void DisplayServerIOS::screen_set_orientation(DisplayServer::ScreenOrientation p
 	}
 }
 
-DisplayServer::ScreenOrientation DisplayServerIOS::screen_get_orientation(int p_screen) const {
+DisplayServer::ScreenOrientation DisplayServerAppleEmbedded::screen_get_orientation(int p_screen) const {
 	return screen_orientation;
 }
 
-bool DisplayServerIOS::window_can_draw(WindowID p_window) const {
+bool DisplayServerAppleEmbedded::window_can_draw(WindowID p_window) const {
 	return true;
 }
 
-bool DisplayServerIOS::can_any_window_draw() const {
+bool DisplayServerAppleEmbedded::can_any_window_draw() const {
 	return true;
 }
 
-bool DisplayServerIOS::is_touchscreen_available() const {
+bool DisplayServerAppleEmbedded::is_touchscreen_available() const {
 	return true;
 }
 
@@ -731,7 +731,7 @@ _FORCE_INLINE_ int _convert_utf32_offset_to_utf16(const String &p_existing_text,
 	return limit;
 }
 
-void DisplayServerIOS::virtual_keyboard_show(const String &p_existing_text, const Rect2 &p_screen_rect, VirtualKeyboardType p_type, int p_max_length, int p_cursor_start, int p_cursor_end) {
+void DisplayServerAppleEmbedded::virtual_keyboard_show(const String &p_existing_text, const Rect2 &p_screen_rect, VirtualKeyboardType p_type, int p_max_length, int p_cursor_start, int p_cursor_end) {
 	NSString *existingString = [[NSString alloc] initWithUTF8String:p_existing_text.utf8().get_data()];
 
 	GDTAppDelegateService.viewController.keyboardView.keyboardType = UIKeyboardTypeDefault;
@@ -773,23 +773,23 @@ void DisplayServerIOS::virtual_keyboard_show(const String &p_existing_text, cons
 								 cursorEnd:_convert_utf32_offset_to_utf16(p_existing_text, p_cursor_end)];
 }
 
-bool DisplayServerIOS::is_keyboard_active() const {
+bool DisplayServerAppleEmbedded::is_keyboard_active() const {
 	return [GDTAppDelegateService.viewController.keyboardView isFirstResponder];
 }
 
-void DisplayServerIOS::virtual_keyboard_hide() {
+void DisplayServerAppleEmbedded::virtual_keyboard_hide() {
 	[GDTAppDelegateService.viewController.keyboardView resignFirstResponder];
 }
 
-void DisplayServerIOS::virtual_keyboard_set_height(int height) {
+void DisplayServerAppleEmbedded::virtual_keyboard_set_height(int height) {
 	virtual_keyboard_height = height * screen_get_max_scale();
 }
 
-int DisplayServerIOS::virtual_keyboard_get_height() const {
+int DisplayServerAppleEmbedded::virtual_keyboard_get_height() const {
 	return virtual_keyboard_height;
 }
 
-bool DisplayServerIOS::has_hardware_keyboard() const {
+bool DisplayServerAppleEmbedded::has_hardware_keyboard() const {
 	if (@available(iOS 14.0, *)) {
 		return [GCKeyboard coalescedKeyboard];
 	} else {
@@ -797,25 +797,25 @@ bool DisplayServerIOS::has_hardware_keyboard() const {
 	}
 }
 
-void DisplayServerIOS::clipboard_set(const String &p_text) {
+void DisplayServerAppleEmbedded::clipboard_set(const String &p_text) {
 	[UIPasteboard generalPasteboard].string = [NSString stringWithUTF8String:p_text.utf8().get_data()];
 }
 
-String DisplayServerIOS::clipboard_get() const {
+String DisplayServerAppleEmbedded::clipboard_get() const {
 	NSString *text = [UIPasteboard generalPasteboard].string;
 
 	return String::utf8([text UTF8String]);
 }
 
-void DisplayServerIOS::screen_set_keep_on(bool p_enable) {
+void DisplayServerAppleEmbedded::screen_set_keep_on(bool p_enable) {
 	[UIApplication sharedApplication].idleTimerDisabled = p_enable;
 }
 
-bool DisplayServerIOS::screen_is_kept_on() const {
+bool DisplayServerAppleEmbedded::screen_is_kept_on() const {
 	return [UIApplication sharedApplication].idleTimerDisabled;
 }
 
-void DisplayServerIOS::resize_window(CGSize viewSize) {
+void DisplayServerAppleEmbedded::resize_window(CGSize viewSize) {
 	Size2i size = Size2i(viewSize.width, viewSize.height) * screen_get_max_scale();
 
 #if defined(RD_ENABLED)
@@ -828,7 +828,7 @@ void DisplayServerIOS::resize_window(CGSize viewSize) {
 	_window_callback(window_resize_callback, resize_rect);
 }
 
-void DisplayServerIOS::window_set_vsync_mode(DisplayServer::VSyncMode p_vsync_mode, WindowID p_window) {
+void DisplayServerAppleEmbedded::window_set_vsync_mode(DisplayServer::VSyncMode p_vsync_mode, WindowID p_window) {
 	_THREAD_SAFE_METHOD_
 #if defined(RD_ENABLED)
 	if (rendering_context) {
@@ -837,7 +837,7 @@ void DisplayServerIOS::window_set_vsync_mode(DisplayServer::VSyncMode p_vsync_mo
 #endif
 }
 
-DisplayServer::VSyncMode DisplayServerIOS::window_get_vsync_mode(WindowID p_window) const {
+DisplayServer::VSyncMode DisplayServerAppleEmbedded::window_get_vsync_mode(WindowID p_window) const {
 	_THREAD_SAFE_METHOD_
 #if defined(RD_ENABLED)
 	if (rendering_context) {

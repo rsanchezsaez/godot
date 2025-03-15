@@ -147,7 +147,7 @@ OS_AppleEmbedded::OS_AppleEmbedded() {
 
 	AudioDriverManager::add_driver(&audio_driver);
 
-	DisplayServerIOS::register_ios_driver();
+	DisplayServerAppleEmbedded::register_ios_driver();
 }
 
 OS_AppleEmbedded::~OS_AppleEmbedded() {}
@@ -651,8 +651,8 @@ void OS_AppleEmbedded::on_focus_out() {
 	if (is_focused) {
 		is_focused = false;
 
-		if (DisplayServerIOS::get_singleton()) {
-			DisplayServerIOS::get_singleton()->send_window_event(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
+		if (DisplayServerAppleEmbedded::get_singleton()) {
+			DisplayServerAppleEmbedded::get_singleton()->send_window_event(DisplayServer::WINDOW_EVENT_FOCUS_OUT);
 		}
 
 		if (OS::get_singleton()->get_main_loop()) {
@@ -669,8 +669,8 @@ void OS_AppleEmbedded::on_focus_in() {
 	if (!is_focused) {
 		is_focused = true;
 
-		if (DisplayServerIOS::get_singleton()) {
-			DisplayServerIOS::get_singleton()->send_window_event(DisplayServer::WINDOW_EVENT_FOCUS_IN);
+		if (DisplayServerAppleEmbedded::get_singleton()) {
+			DisplayServerAppleEmbedded::get_singleton()->send_window_event(DisplayServer::WINDOW_EVENT_FOCUS_IN);
 		}
 
 		if (OS::get_singleton()->get_main_loop()) {
