@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  godot_view.mm                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,60 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#include "godot_view.h"
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+#include "display_layer.h"
+#include "core/error/error_macros.h"
+
+@interface GDTViewIOS()
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-property-synthesis"
+@property(strong, nonatomic) CALayer<GDTDisplayLayer> *renderingLayer;
+#pragma clang diagnostic pop
+
+@end
+
+@implementation GDTViewIOS
+
+- (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
+	if (self.renderingLayer) {
+		return self.renderingLayer;
+	}
+
+	CALayer<GDTDisplayLayer> *layer;
+
+	if ([driverName isEqualToString:@"vulkan"] || [driverName isEqualToString:@"metal"]) {
+#if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
+		if (@available(iOS 13, *)) {
+			layer = [GDTMetalLayer layer];
+		} else {
+			return nil;
+		}
+#else
+		layer = [GDTMetalLayer layer];
+#endif
+	} else if ([driverName isEqualToString:@"opengl3"]) {
+		GODOT_CLANG_WARNING_PUSH_AND_IGNORE("-Wdeprecated-declarations") // OpenGL is deprecated in iOS 12.0.
+		layer = [GDTOpenGLLayer layer];
+		GODOT_CLANG_WARNING_POP
+	} else {
+		return nil;
+	}
+
+	layer.frame = self.bounds;
+	layer.contentsScale = self.contentScaleFactor;
+
+	[self.layer addSublayer:layer];
+	self.renderingLayer = layer;
+
+	[layer initializeDisplayLayer];
+
+	return self.renderingLayer;
+}
+
+@end
+
+GDTView *GDTViewCreate() {
+	return [GDTViewIOS new];
+}

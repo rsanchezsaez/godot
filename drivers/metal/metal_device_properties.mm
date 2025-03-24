@@ -63,7 +63,6 @@
 #define MTLGPUFamilyApple9 (MTLGPUFamily)1009
 #endif
 
-API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0))
 MTLGPUFamily &operator--(MTLGPUFamily &p_family) {
 	p_family = static_cast<MTLGPUFamily>(static_cast<int>(p_family) - 1);
 	if (p_family < MTLGPUFamilyApple1) {
@@ -126,9 +125,13 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 
 	if (@available(macOS 13.0, iOS 16.0, tvOS 16.0, *)) {
 		features.metal_fx_spatial = [MTLFXSpatialScalerDescriptor supportsDevice:p_device];
+#if !defined(VISIONOS_ENABLED)
 		features.metal_fx_temporal = [MTLFXTemporalScalerDescriptor supportsDevice:p_device];
+#else
+		features.metal_fx_temporal = false;
+#endif
 	}
-
+	
 	MTLCompileOptions *opts = [MTLCompileOptions new];
 	features.mslVersionEnum = opts.languageVersion; // By default, Metal uses the most recent language version.
 
@@ -324,6 +327,7 @@ void MetalDeviceProperties::init_limits(id<MTLDevice> p_device) {
 
 	limits.maxDrawIndexedIndexValue = std::numeric_limits<uint32_t>::max() - 1;
 
+#if !defined(VISIONOS_ENABLED)
 	if (@available(macOS 14.0, iOS 17.0, tvOS 17.0, *)) {
 		limits.temporalScalerInputContentMinScale = (double)[MTLFXTemporalScalerDescriptor supportedInputContentMinScaleForDevice:p_device];
 		limits.temporalScalerInputContentMaxScale = (double)[MTLFXTemporalScalerDescriptor supportedInputContentMaxScaleForDevice:p_device];
@@ -332,6 +336,11 @@ void MetalDeviceProperties::init_limits(id<MTLDevice> p_device) {
 		limits.temporalScalerInputContentMinScale = 1.0;
 		limits.temporalScalerInputContentMaxScale = 3.0;
 	}
+#else
+	// Defaults taken from macOS 14+
+	limits.temporalScalerInputContentMinScale = 1.0;
+	limits.temporalScalerInputContentMaxScale = 3.0;
+#endif
 }
 
 MetalDeviceProperties::MetalDeviceProperties(id<MTLDevice> p_device) {

@@ -34,7 +34,7 @@
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"
 
-String PluginConfigIOS::resolve_local_dependency_path(String plugin_config_dir, String dependency_path) {
+String PluginConfigVisionOS::resolve_local_dependency_path(String plugin_config_dir, String dependency_path) {
 	String absolute_path;
 
 	if (dependency_path.is_empty()) {
@@ -51,7 +51,7 @@ String PluginConfigIOS::resolve_local_dependency_path(String plugin_config_dir, 
 	return absolute_path.replace(res_path, "res://");
 }
 
-String PluginConfigIOS::resolve_system_dependency_path(String dependency_path) {
+String PluginConfigVisionOS::resolve_system_dependency_path(String dependency_path) {
 	String absolute_path;
 
 	if (dependency_path.is_empty()) {
@@ -67,7 +67,7 @@ String PluginConfigIOS::resolve_system_dependency_path(String dependency_path) {
 	return system_path.path_join(dependency_path);
 }
 
-Vector<String> PluginConfigIOS::resolve_local_dependencies(String plugin_config_dir, Vector<String> p_paths) {
+Vector<String> PluginConfigVisionOS::resolve_local_dependencies(String plugin_config_dir, Vector<String> p_paths) {
 	Vector<String> paths;
 
 	for (int i = 0; i < p_paths.size(); i++) {
@@ -83,7 +83,7 @@ Vector<String> PluginConfigIOS::resolve_local_dependencies(String plugin_config_
 	return paths;
 }
 
-Vector<String> PluginConfigIOS::resolve_system_dependencies(Vector<String> p_paths) {
+Vector<String> PluginConfigVisionOS::resolve_system_dependencies(Vector<String> p_paths) {
 	Vector<String> paths;
 
 	for (int i = 0; i < p_paths.size(); i++) {
@@ -99,7 +99,7 @@ Vector<String> PluginConfigIOS::resolve_system_dependencies(Vector<String> p_pat
 	return paths;
 }
 
-bool PluginConfigIOS::validate_plugin(PluginConfigIOS &plugin_config) {
+bool PluginConfigVisionOS::validate_plugin(PluginConfigVisionOS &plugin_config) {
 	bool valid_name = !plugin_config.name.is_empty();
 	bool valid_binary_name = !plugin_config.binary.is_empty();
 	bool valid_initialize = !plugin_config.initialization_method.is_empty();
@@ -134,7 +134,7 @@ bool PluginConfigIOS::validate_plugin(PluginConfigIOS &plugin_config) {
 	return plugin_config.valid_config;
 }
 
-String PluginConfigIOS::get_plugin_main_binary(PluginConfigIOS &plugin_config, bool p_debug) {
+String PluginConfigVisionOS::get_plugin_main_binary(PluginConfigVisionOS &plugin_config, bool p_debug) {
 	if (!plugin_config.supports_targets) {
 		return plugin_config.binary;
 	}
@@ -147,7 +147,7 @@ String PluginConfigIOS::get_plugin_main_binary(PluginConfigIOS &plugin_config, b
 	return plugin_binary_dir.path_join(plugin_file);
 }
 
-uint64_t PluginConfigIOS::get_plugin_modification_time(const PluginConfigIOS &plugin_config, const String &config_path) {
+uint64_t PluginConfigVisionOS::get_plugin_modification_time(const PluginConfigVisionOS &plugin_config, const String &config_path) {
 	uint64_t last_updated = FileAccess::get_modified_time(config_path);
 
 	if (!plugin_config.supports_targets) {
@@ -166,8 +166,8 @@ uint64_t PluginConfigIOS::get_plugin_modification_time(const PluginConfigIOS &pl
 	return last_updated;
 }
 
-PluginConfigIOS PluginConfigIOS::load_plugin_config(Ref<ConfigFile> config_file, const String &path) {
-	PluginConfigIOS plugin_config = {};
+PluginConfigVisionOS PluginConfigVisionOS::load_plugin_config(Ref<ConfigFile> config_file, const String &path) {
+	PluginConfigVisionOS plugin_config = {};
 
 	if (config_file.is_null()) {
 		return plugin_config;
@@ -183,19 +183,19 @@ PluginConfigIOS PluginConfigIOS::load_plugin_config(Ref<ConfigFile> config_file,
 
 	String config_base_dir = path.get_base_dir();
 
-	plugin_config.name = config_file->get_value(PluginConfigIOS::CONFIG_SECTION, PluginConfigIOS::CONFIG_NAME_KEY, String());
-	plugin_config.use_swift_runtime = config_file->get_value(PluginConfigIOS::CONFIG_SECTION, PluginConfigIOS::CONFIG_USE_SWIFT_KEY, false);
-	plugin_config.initialization_method = config_file->get_value(PluginConfigIOS::CONFIG_SECTION, PluginConfigIOS::CONFIG_INITIALIZE_KEY, String());
-	plugin_config.deinitialization_method = config_file->get_value(PluginConfigIOS::CONFIG_SECTION, PluginConfigIOS::CONFIG_DEINITIALIZE_KEY, String());
+	plugin_config.name = config_file->get_value(PluginConfigVisionOS::CONFIG_SECTION, PluginConfigVisionOS::CONFIG_NAME_KEY, String());
+	plugin_config.use_swift_runtime = config_file->get_value(PluginConfigVisionOS::CONFIG_SECTION, PluginConfigVisionOS::CONFIG_USE_SWIFT_KEY, false);
+	plugin_config.initialization_method = config_file->get_value(PluginConfigVisionOS::CONFIG_SECTION, PluginConfigVisionOS::CONFIG_INITIALIZE_KEY, String());
+	plugin_config.deinitialization_method = config_file->get_value(PluginConfigVisionOS::CONFIG_SECTION, PluginConfigVisionOS::CONFIG_DEINITIALIZE_KEY, String());
 
-	String binary_path = config_file->get_value(PluginConfigIOS::CONFIG_SECTION, PluginConfigIOS::CONFIG_BINARY_KEY, String());
+	String binary_path = config_file->get_value(PluginConfigVisionOS::CONFIG_SECTION, PluginConfigVisionOS::CONFIG_BINARY_KEY, String());
 	plugin_config.binary = resolve_local_dependency_path(config_base_dir, binary_path);
 
-	if (config_file->has_section(PluginConfigIOS::DEPENDENCIES_SECTION)) {
-		Vector<String> linked_dependencies = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_LINKED_KEY, Vector<String>());
-		Vector<String> embedded_dependencies = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_EMBEDDED_KEY, Vector<String>());
-		Vector<String> system_dependencies = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_SYSTEM_KEY, Vector<String>());
-		Vector<String> files = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_FILES_KEY, Vector<String>());
+	if (config_file->has_section(PluginConfigVisionOS::DEPENDENCIES_SECTION)) {
+		Vector<String> linked_dependencies = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_LINKED_KEY, Vector<String>());
+		Vector<String> embedded_dependencies = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_EMBEDDED_KEY, Vector<String>());
+		Vector<String> system_dependencies = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_SYSTEM_KEY, Vector<String>());
+		Vector<String> files = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_FILES_KEY, Vector<String>());
 
 		plugin_config.linked_dependencies = resolve_local_dependencies(config_base_dir, linked_dependencies);
 		plugin_config.embedded_dependencies = resolve_local_dependencies(config_base_dir, embedded_dependencies);
@@ -203,78 +203,78 @@ PluginConfigIOS PluginConfigIOS::load_plugin_config(Ref<ConfigFile> config_file,
 
 		plugin_config.files_to_copy = resolve_local_dependencies(config_base_dir, files);
 
-		plugin_config.capabilities = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_CAPABILITIES_KEY, Vector<String>());
+		plugin_config.capabilities = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_CAPABILITIES_KEY, Vector<String>());
 
-		plugin_config.linker_flags = config_file->get_value(PluginConfigIOS::DEPENDENCIES_SECTION, PluginConfigIOS::DEPENDENCIES_LINKER_FLAGS, Vector<String>());
+		plugin_config.linker_flags = config_file->get_value(PluginConfigVisionOS::DEPENDENCIES_SECTION, PluginConfigVisionOS::DEPENDENCIES_LINKER_FLAGS, Vector<String>());
 	}
 
-	if (config_file->has_section(PluginConfigIOS::PLIST_SECTION)) {
+	if (config_file->has_section(PluginConfigVisionOS::PLIST_SECTION)) {
 		List<String> keys;
-		config_file->get_section_keys(PluginConfigIOS::PLIST_SECTION, &keys);
+		config_file->get_section_keys(PluginConfigVisionOS::PLIST_SECTION, &keys);
 
 		for (const String &key : keys) {
 			Vector<String> key_components = key.split(":");
 
 			String key_value = "";
-			PluginConfigIOS::PlistItemType key_type = PluginConfigIOS::PlistItemType::UNKNOWN;
+			PluginConfigVisionOS::PlistItemType key_type = PluginConfigVisionOS::PlistItemType::UNKNOWN;
 
 			if (key_components.size() == 1) {
 				key_value = key_components[0];
-				key_type = PluginConfigIOS::PlistItemType::STRING;
+				key_type = PluginConfigVisionOS::PlistItemType::STRING;
 			} else if (key_components.size() == 2) {
 				key_value = key_components[0];
 
 				if (key_components[1].to_lower() == "string") {
-					key_type = PluginConfigIOS::PlistItemType::STRING;
+					key_type = PluginConfigVisionOS::PlistItemType::STRING;
 				} else if (key_components[1].to_lower() == "integer") {
-					key_type = PluginConfigIOS::PlistItemType::INTEGER;
+					key_type = PluginConfigVisionOS::PlistItemType::INTEGER;
 				} else if (key_components[1].to_lower() == "boolean") {
-					key_type = PluginConfigIOS::PlistItemType::BOOLEAN;
+					key_type = PluginConfigVisionOS::PlistItemType::BOOLEAN;
 				} else if (key_components[1].to_lower() == "raw") {
-					key_type = PluginConfigIOS::PlistItemType::RAW;
+					key_type = PluginConfigVisionOS::PlistItemType::RAW;
 				} else if (key_components[1].to_lower() == "string_input") {
-					key_type = PluginConfigIOS::PlistItemType::STRING_INPUT;
+					key_type = PluginConfigVisionOS::PlistItemType::STRING_INPUT;
 				}
 			}
 
-			if (key_value.is_empty() || key_type == PluginConfigIOS::PlistItemType::UNKNOWN) {
+			if (key_value.is_empty() || key_type == PluginConfigVisionOS::PlistItemType::UNKNOWN) {
 				continue;
 			}
 
 			String value;
 
 			switch (key_type) {
-				case PluginConfigIOS::PlistItemType::STRING: {
-					String raw_value = config_file->get_value(PluginConfigIOS::PLIST_SECTION, key, String());
+				case PluginConfigVisionOS::PlistItemType::STRING: {
+					String raw_value = config_file->get_value(PluginConfigVisionOS::PLIST_SECTION, key, String());
 					value = "<string>" + raw_value + "</string>";
 				} break;
-				case PluginConfigIOS::PlistItemType::INTEGER: {
-					int raw_value = config_file->get_value(PluginConfigIOS::PLIST_SECTION, key, 0);
+				case PluginConfigVisionOS::PlistItemType::INTEGER: {
+					int raw_value = config_file->get_value(PluginConfigVisionOS::PLIST_SECTION, key, 0);
 					Dictionary value_dictionary;
 					String value_format = "<integer>$value</integer>";
 					value_dictionary["value"] = raw_value;
 					value = value_format.format(value_dictionary, "$_");
 				} break;
-				case PluginConfigIOS::PlistItemType::BOOLEAN:
-					if (config_file->get_value(PluginConfigIOS::PLIST_SECTION, key, false)) {
+				case PluginConfigVisionOS::PlistItemType::BOOLEAN:
+					if (config_file->get_value(PluginConfigVisionOS::PLIST_SECTION, key, false)) {
 						value = "<true/>";
 					} else {
 						value = "<false/>";
 					}
 					break;
-				case PluginConfigIOS::PlistItemType::RAW: {
-					String raw_value = config_file->get_value(PluginConfigIOS::PLIST_SECTION, key, String());
+				case PluginConfigVisionOS::PlistItemType::RAW: {
+					String raw_value = config_file->get_value(PluginConfigVisionOS::PLIST_SECTION, key, String());
 					value = raw_value;
 				} break;
-				case PluginConfigIOS::PlistItemType::STRING_INPUT: {
-					String raw_value = config_file->get_value(PluginConfigIOS::PLIST_SECTION, key, String());
+				case PluginConfigVisionOS::PlistItemType::STRING_INPUT: {
+					String raw_value = config_file->get_value(PluginConfigVisionOS::PLIST_SECTION, key, String());
 					value = raw_value;
 				} break;
 				default:
 					continue;
 			}
 
-			plugin_config.plist[key_value] = PluginConfigIOS::PlistItem{ key_type, value };
+			plugin_config.plist[key_value] = PluginConfigVisionOS::PlistItem{ key_type, value };
 		}
 	}
 

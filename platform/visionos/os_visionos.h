@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  os_ios.mm                                                             */
+/*  os_visions.h                                                          */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,24 +28,20 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "os_ios.h"
+#pragma once
 
-#import "display_server.h"
+#ifdef VISIONOS_ENABLED
 
-#ifdef IOS_ENABLED
+#import "drivers/apple_embedded/os_apple_embedded.h"
 
-OS_IOS *OS_IOS::get_singleton() {
-	return (OS_IOS *)OS_AppleEmbedded::get_singleton();
-}
+class OS_VisionOS : public OS_AppleEmbedded {
+public:
+	static OS_VisionOS *get_singleton();
 
-OS_IOS::OS_IOS() : OS_AppleEmbedded() {
-	DisplayServerIOS::register_ios_driver();
-}
+	OS_VisionOS();
+	~OS_VisionOS();
 
-OS_IOS::~OS_IOS() {}
+	virtual String get_name() const override;
+};
 
-String OS_IOS::get_name() const {
-	return "iOS";
-}
-
-#endif // IOS_ENABLED
+#endif // VISIONOS_ENABLED

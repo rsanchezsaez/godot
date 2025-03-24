@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  platform_gl.h                                                         */
+/*  platform_thread.h                                                     */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,8 +30,4 @@
 
 #pragma once
 
-#ifndef GLES_API_ENABLED
-#define GLES_API_ENABLED // Allow using GLES.
-#endif
-
-#include <ES3/gl.h>
+#include "drivers/apple/thread_apple.h"

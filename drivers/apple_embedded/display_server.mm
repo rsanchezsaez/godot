@@ -31,7 +31,6 @@
 #import "display_server.h"
 
 #import "app_delegate_service.h"
-#import "device_metrics.h"
 #import "godot_view.h"
 #import "apple_embedded.h"
 #import "key_mapping.h"
@@ -42,8 +41,6 @@
 
 #include "core/config/project_settings.h"
 #include "core/io/file_access_pack.h"
-
-#import <sys/utsname.h>
 
 #import <GameController/GameController.h>
 
@@ -377,15 +374,11 @@ bool DisplayServerAppleEmbedded::has_feature(Feature p_feature) const {
 	}
 }
 
-String DisplayServerAppleEmbedded::get_name() const {
-	return "iOS";
-}
-
 void DisplayServerAppleEmbedded::initialize_tts() const {
-	const_cast<DisplayServerIOS *>(this)->tts = [[GDTTTS alloc] init];
+	const_cast<DisplayServerAppleEmbedded *>(this)->tts = [[GDTTTS alloc] init];
 }
 
-bool DisplayServerIOS::tts_is_speaking() const {
+bool DisplayServerAppleEmbedded::tts_is_speaking() const {
 	if (unlikely(!tts)) {
 		initialize_tts();
 	}
@@ -510,55 +503,6 @@ Rect2i DisplayServerAppleEmbedded::screen_get_usable_rect(int p_screen) const {
 	return Rect2i(screen_get_position(p_screen), screen_get_size(p_screen));
 }
 
-int DisplayServerAppleEmbedded::screen_get_dpi(int p_screen) const {
-	struct utsname systemInfo;
-	uname(&systemInfo);
-
-	NSString *string = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
-
-	NSDictionary *iOSModelToDPI = [GDTDeviceMetrics dpiList];
-
-	for (NSArray *keyArray in iOSModelToDPI) {
-		if ([keyArray containsObject:string]) {
-			NSNumber *value = iOSModelToDPI[keyArray];
-			return [value intValue];
-		}
-	}
-
-	// If device wasn't found in dictionary
-	// make a best guess from device metrics.
-	CGFloat scale = [UIScreen mainScreen].scale;
-
-	UIUserInterfaceIdiom idiom = [UIDevice currentDevice].userInterfaceIdiom;
-
-	switch (idiom) {
-		case UIUserInterfaceIdiomPad:
-			return scale == 2 ? 264 : 132;
-		case UIUserInterfaceIdiomPhone: {
-			if (scale == 3) {
-				CGFloat nativeScale = [UIScreen mainScreen].nativeScale;
-				return nativeScale == 3 ? 458 : 401;
-			}
-
-			return 326;
-		}
-		default:
-			return 72;
-	}
-}
-
-float DisplayServerAppleEmbedded::screen_get_refresh_rate(int p_screen) const {
-	float fps = [UIScreen mainScreen].maximumFramesPerSecond;
-	if ([NSProcessInfo processInfo].lowPowerModeEnabled) {
-		fps = 60;
-	}
-	return fps;
-}
-
-float DisplayServerAppleEmbedded::screen_get_scale(int p_screen) const {
-	return [UIScreen mainScreen].scale;
-}
-
 Vector<DisplayServer::WindowID> DisplayServerAppleEmbedded::get_window_list() const {
 	Vector<DisplayServer::WindowID> list;
 	list.push_back(MAIN_WINDOW_ID);
@@ -644,8 +588,9 @@ void DisplayServerAppleEmbedded::window_set_size(const Size2i p_size, WindowID p
 }
 
 Size2i DisplayServerAppleEmbedded::window_get_size(WindowID p_window) const {
-	CGRect screenBounds = [UIScreen mainScreen].bounds;
-	return Size2i(screenBounds.size.width, screenBounds.size.height) * screen_get_max_scale();
+	id<UIApplicationDelegate> appDelegate = [[UIApplication sharedApplication] delegate];
+	CGRect windowBounds = appDelegate.window.bounds;
+	return Size2i(windowBounds.size.width, windowBounds.size.height) * screen_get_max_scale();
 }
 
 Size2i DisplayServerAppleEmbedded::window_get_size_with_decorations(WindowID p_window) const {

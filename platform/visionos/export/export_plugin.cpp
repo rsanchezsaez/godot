@@ -49,7 +49,7 @@
 #include "modules/modules_enabled.gen.h" // For mono.
 #include "modules/svg/image_loader_svg.h"
 
-void EditorExportPlatformIOS::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const {
+void EditorExportPlatformVisionOS::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const {
 	// Vulkan and OpenGL ES 3.0 both mandate ETC2 support.
 	r_features->push_back("etc2");
 	r_features->push_back("astc");
@@ -60,7 +60,7 @@ void EditorExportPlatformIOS::get_preset_features(const Ref<EditorExportPreset> 
 	}
 }
 
-Vector<EditorExportPlatformIOS::ExportArchitecture> EditorExportPlatformIOS::_get_supported_architectures() const {
+Vector<EditorExportPlatformVisionOS::ExportArchitecture> EditorExportPlatformVisionOS::_get_supported_architectures() const {
 	Vector<ExportArchitecture> archs;
 	archs.push_back(ExportArchitecture("arm64", true));
 	return archs;
@@ -101,10 +101,10 @@ static const IconInfo icon_infos[] = {
 	// Home Screen on iPad, iPad mini
 	{ PNAME("icons/ipad_152x152"), "universal", "Icon-152", "152", "2x", "76x76", false },
 
-	{ PNAME("icons/ios_128x128"), "universal", "Icon-128", "128", "2x", "64x64", false },
-	{ PNAME("icons/ios_192x192"), "universal", "Icon-192", "192", "3x", "64x64", false },
+	{ PNAME("icons/visionos_128x128"), "universal", "Icon-128", "128", "2x", "64x64", false },
+	{ PNAME("icons/visionos_192x192"), "universal", "Icon-192", "192", "3x", "64x64", false },
 
-	{ PNAME("icons/ios_136x136"), "universal", "Icon-136", "136", "2x", "68x68", false },
+	{ PNAME("icons/visionos_136x136"), "universal", "Icon-136", "136", "2x", "68x68", false },
 
 	// App Store
 	{ PNAME("icons/app_store_1024x1024"), "universal", "Icon-1024", "1024", "1x", "1024x1024", true },
@@ -211,7 +211,7 @@ static const String storyboard_image_scale_mode[] = {
 	"scaleToFill"
 };
 
-String EditorExportPlatformIOS::get_export_option_warning(const EditorExportPreset *p_preset, const StringName &p_name) const {
+String EditorExportPlatformVisionOS::get_export_option_warning(const EditorExportPreset *p_preset, const StringName &p_name) const {
 	if (p_preset) {
 		if (p_name == "application/app_store_team_id") {
 			String team_id = p_preset->get("application/app_store_team_id");
@@ -244,17 +244,17 @@ String EditorExportPlatformIOS::get_export_option_warning(const EditorExportPres
 	return String();
 }
 
-void EditorExportPlatformIOS::_notification(int p_what) {
+void EditorExportPlatformVisionOS::_notification(int p_what) {
 #ifdef MACOS_ENABLED
 	if (p_what == NOTIFICATION_POSTINITIALIZE) {
 		if (EditorExport::get_singleton()) {
-			EditorExport::get_singleton()->connect_presets_runnable_updated(callable_mp(this, &EditorExportPlatformIOS::_update_preset_status));
+			EditorExport::get_singleton()->connect_presets_runnable_updated(callable_mp(this, &EditorExportPlatformVisionOS::_update_preset_status));
 		}
 	}
 #endif
 }
 
-bool EditorExportPlatformIOS::get_export_option_visibility(const EditorExportPreset *p_preset, const String &p_option) const {
+bool EditorExportPlatformVisionOS::get_export_option_visibility(const EditorExportPreset *p_preset, const String &p_option) const {
 	// Hide unsupported .NET embedding option.
 	if (p_option == "dotnet/embed_build_outputs") {
 		return false;
@@ -279,7 +279,7 @@ bool EditorExportPlatformIOS::get_export_option_visibility(const EditorExportPre
 	return true;
 }
 
-void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) const {
+void EditorExportPlatformVisionOS::get_export_options(List<ExportOption> *r_options) const {
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/debug", PROPERTY_HINT_GLOBAL_FILE, "*.zip"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/release", PROPERTY_HINT_GLOBAL_FILE, "*.zip"), ""));
 
@@ -306,7 +306,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/short_version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
 
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_ios_version"), "14.0"));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_visionos_version"), "1.0"));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/additional_plist_content", PROPERTY_HINT_MULTILINE_TEXT), ""));
 
@@ -315,7 +315,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/export_project_only"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/delete_old_export_files_unconditionally"), false));
 
-	Vector<PluginConfigIOS> found_plugins = get_plugins();
+	Vector<PluginConfigVisionOS> found_plugins = get_plugins();
 	for (int i = 0; i < found_plugins.size(); i++) {
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, vformat("%s/%s", PNAME("plugins"), found_plugins[i].name)), false));
 	}
@@ -324,11 +324,11 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 
 	for (int i = 0; i < found_plugins.size(); i++) {
 		// Editable plugin plist values
-		PluginConfigIOS plugin = found_plugins[i];
+		PluginConfigVisionOS plugin = found_plugins[i];
 
-		for (const KeyValue<String, PluginConfigIOS::PlistItem> &E : plugin.plist) {
+		for (const KeyValue<String, PluginConfigVisionOS::PlistItem> &E : plugin.plist) {
 			switch (E.value.type) {
-				case PluginConfigIOS::PlistItemType::STRING_INPUT: {
+				case PluginConfigVisionOS::PlistItemType::STRING_INPUT: {
 					String preset_name = "plugins_plist/" + E.key;
 					if (!plist_keys.has(preset_name)) {
 						r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, preset_name), E.value.value));
@@ -415,7 +415,7 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::COLOR, "storyboard/custom_bg_color"), Color()));
 }
 
-HashMap<String, Variant> EditorExportPlatformIOS::get_custom_project_settings(const Ref<EditorExportPreset> &p_preset) const {
+HashMap<String, Variant> EditorExportPlatformVisionOS::get_custom_project_settings(const Ref<EditorExportPreset> &p_preset) const {
 	HashMap<String, Variant> settings;
 
 	int image_scale_mode = p_preset->get("storyboard/image_scale_mode");
@@ -432,27 +432,26 @@ HashMap<String, Variant> EditorExportPlatformIOS::get_custom_project_settings(co
 			value = storyboard_image_scale_mode[image_scale_mode - 1];
 		}
 	}
-	settings["ios/launch_screen_image_mode"] = value;
+	settings["visionos/launch_screen_image_mode"] = value;
 	return settings;
 }
 
-void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
+void EditorExportPlatformVisionOS::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const VisionOSConfigData &p_config, bool p_debug) {
 	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : p_preset->get("application/code_sign_identity_debug");
 	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : p_preset->get("application/code_sign_identity_release");
-	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
-	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
+	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
+	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
 
-	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_IOS_PROFILE_SPECIFIER_DEBUG).operator String();
+	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG).operator String();
 	bool valid_dbg_specifier = !provisioning_profile_specifier_dbg.is_empty();
 	dbg_manual |= valid_dbg_specifier;
 
-	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_IOS_PROFILE_SPECIFIER_RELEASE).operator String();
+	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE).operator String();
 	bool valid_rel_specifier = !provisioning_profile_specifier_rel.is_empty();
 	rel_manual |= valid_rel_specifier;
 
-	String str;
+	String str = String::utf8((const char *)pfile.ptr(), pfile.size());
 	String strnew;
-	str.parse_utf8((const char *)pfile.ptr(), pfile.size());
 	Vector<String> lines = str.split("\n");
 	for (int i = 0; i < lines.size(); i++) {
 		if (lines[i].contains("$binary")) {
@@ -474,7 +473,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 		} else if (lines[i].contains("$version")) {
 			strnew += lines[i].replace("$version", p_preset->get_version("application/version")) + "\n";
 		} else if (lines[i].contains("$min_version")) {
-			strnew += lines[i].replace("$min_version", p_preset->get("application/min_ios_version")) + "\n";
+			strnew += lines[i].replace("$min_version", p_preset->get("application/min_visionos_version")) + "\n";
 		} else if (lines[i].contains("$signature")) {
 			strnew += lines[i].replace("$signature", p_preset->get("application/signature")) + "\n";
 		} else if (lines[i].contains("$team_id")) {
@@ -492,9 +491,9 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			String specifier = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 			strnew += lines[i].replace("$provisioning_profile_specifier", specifier) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_release")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE)) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_debug")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG)) + "\n";
 		} else if (lines[i].contains("$code_sign_style_debug")) {
 			if (dbg_manual) {
 				strnew += lines[i].replace("$code_sign_style_debug", "Manual") + "\n";
@@ -508,7 +507,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 				strnew += lines[i].replace("$code_sign_style_release", "Automatic") + "\n";
 			}
 		} else if (lines[i].contains("$provisioning_profile_uuid")) {
-			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE);
+			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE);
 			if (uuid.is_empty()) {
 				Variant variant = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 				bool valid = p_debug ? valid_dbg_specifier : valid_rel_specifier;
@@ -880,20 +879,20 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 	}
 }
 
-String EditorExportPlatformIOS::_get_additional_plist_content() {
+String EditorExportPlatformVisionOS::_get_additional_plist_content() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_ios_plist_content();
+		result += export_plugins[i]->get_apple_platform_plist_content();
 	}
 	return result;
 }
 
-String EditorExportPlatformIOS::_get_linker_flags() {
+String EditorExportPlatformVisionOS::_get_linker_flags() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		String flags = export_plugins[i]->get_ios_linker_flags();
+		String flags = export_plugins[i]->get_apple_platform_linker_flags();
 		if (flags.length() == 0) {
 			continue;
 		}
@@ -906,16 +905,16 @@ String EditorExportPlatformIOS::_get_linker_flags() {
 	return result.replace("\"", "\\\"");
 }
 
-String EditorExportPlatformIOS::_get_cpp_code() {
+String EditorExportPlatformVisionOS::_get_cpp_code() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_ios_cpp_code();
+		result += export_plugins[i]->get_apple_platform_cpp_code();
 	}
 	return result;
 }
 
-void EditorExportPlatformIOS::_blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot) {
+void EditorExportPlatformVisionOS::_blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot) {
 	ERR_FAIL_COND(p_dst.is_null());
 	ERR_FAIL_COND(p_src.is_null());
 
@@ -948,7 +947,7 @@ void EditorExportPlatformIOS::_blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p
 	}
 }
 
-Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) {
+Error EditorExportPlatformVisionOS::_export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) {
 	String json_description = "{\"images\":[";
 	String sizes;
 
@@ -1071,7 +1070,7 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 				json_description += String("}],");
 			}
 			json_description += String("\"idiom\":") + "\"" + info.idiom + "\",";
-			json_description += String("\"platform\":\"ios\",");
+			json_description += String("\"platform\":\"visionos\",");
 			json_description += String("\"size\":") + "\"" + info.unscaled_size + "\",";
 			if (String(info.scale) != "1x") {
 				json_description += String("\"scale\":") + "\"" + info.scale + "\",";
@@ -1103,7 +1102,7 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 	return OK;
 }
 
-Error EditorExportPlatformIOS::_export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) {
+Error EditorExportPlatformVisionOS::_export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) {
 	const String custom_launch_image_2x = p_preset->get("storyboard/custom_image@2x");
 	const String custom_launch_image_3x = p_preset->get("storyboard/custom_image@3x");
 
@@ -1147,7 +1146,7 @@ Error EditorExportPlatformIOS::_export_loading_screen_file(const Ref<EditorExpor
 		// Using same image for both @2x and @3x
 		// because Godot's own boot logo uses single image for all resolutions.
 		// Also not using @1x image, because devices using this image variant
-		// are not supported by iOS 9, which is minimal target.
+		// are not supported by visionOS 9, which is minimal target.
 		const String splash_png_path_2x = p_dest_dir.path_join("splash@2x.png");
 		const String splash_png_path_3x = p_dest_dir.path_join("splash@3x.png");
 
@@ -1163,7 +1162,7 @@ Error EditorExportPlatformIOS::_export_loading_screen_file(const Ref<EditorExpor
 	return OK;
 }
 
-Error EditorExportPlatformIOS::_walk_dir_recursive(Ref<DirAccess> &p_da, FileHandler p_handler, void *p_userdata) {
+Error EditorExportPlatformVisionOS::_walk_dir_recursive(Ref<DirAccess> &p_da, FileHandler p_handler, void *p_userdata) {
 	Vector<String> dirs;
 	String current_dir = p_da->get_current_dir();
 	p_da->list_dir_begin();
@@ -1206,7 +1205,7 @@ struct CodesignData {
 	}
 };
 
-Error EditorExportPlatformIOS::_codesign(String p_file, void *p_userdata) {
+Error EditorExportPlatformVisionOS::_codesign(String p_file, void *p_userdata) {
 	if (p_file.ends_with(".dylib")) {
 		CodesignData *data = static_cast<CodesignData *>(p_userdata);
 		print_line(String("Signing ") + p_file);
@@ -1278,7 +1277,7 @@ struct ExportLibsData {
 	String dest_dir;
 };
 
-void EditorExportPlatformIOS::_check_xcframework_content(const String &p_path, int &r_total_libs, int &r_static_libs, int &r_dylibs, int &r_frameworks) const {
+void EditorExportPlatformVisionOS::_check_xcframework_content(const String &p_path, int &r_total_libs, int &r_static_libs, int &r_dylibs, int &r_frameworks) const {
 	Ref<PList> plist;
 	plist.instantiate();
 	plist->load_file(p_path.path_join("Info.plist"));
@@ -1320,7 +1319,7 @@ void EditorExportPlatformIOS::_check_xcframework_content(const String &p_path, i
 	}
 }
 
-Error EditorExportPlatformIOS::_convert_to_framework(const String &p_source, const String &p_destination, const String &p_id) const {
+Error EditorExportPlatformVisionOS::_convert_to_framework(const String &p_source, const String &p_destination, const String &p_id) const {
 	print_line("Converting to .framework", p_source, " -> ", p_destination);
 
 	Ref<DirAccess> da = DirAccess::create_for_path(p_source);
@@ -1460,7 +1459,7 @@ Error EditorExportPlatformIOS::_convert_to_framework(const String &p_source, con
 	return OK;
 }
 
-void EditorExportPlatformIOS::_add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets) {
+void EditorExportPlatformVisionOS::_add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<VisionOSExportAsset> &p_additional_assets) {
 	// that is just a random number, we just need Godot IDs not to clash with
 	// existing IDs in the project.
 	PbxId current_id = { 0x58938401, 0, 0 };
@@ -1481,7 +1480,7 @@ void EditorExportPlatformIOS::_add_assets_to_project(const String &p_out_dir, co
 		String ref_id = (++current_id).str();
 		String framework_id = "";
 
-		const IOSExportAsset &asset = p_additional_assets[i];
+		const VisionOSExportAsset &asset = p_additional_assets[i];
 
 		String type;
 		if (asset.exported_path.ends_with(".framework")) {
@@ -1553,7 +1552,7 @@ void EditorExportPlatformIOS::_add_assets_to_project(const String &p_out_dir, co
 	}
 }
 
-Error EditorExportPlatformIOS::_copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets) {
+Error EditorExportPlatformVisionOS::_copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<VisionOSExportAsset> &r_exported_assets) {
 	String binary_name = p_out_dir.get_file().get_basename();
 
 	Ref<DirAccess> da = DirAccess::create_for_path(p_asset);
@@ -1576,7 +1575,7 @@ Error EditorExportPlatformIOS::_copy_asset(const Ref<EditorExportPreset> &p_pres
 	ERR_FAIL_COND_V_MSG(filesystem_da.is_null(), ERR_CANT_CREATE, "Cannot create DirAccess for path '" + p_out_dir + "'.");
 
 	if (p_is_framework && asset.ends_with(".dylib")) {
-		// For iOS we need to turn .dylib into .framework
+		// For visionOS we need to turn .dylib into .framework
 		// to be able to send application to AppStore
 		asset_path = String("dylibs").path_join(base_dir);
 
@@ -1600,7 +1599,7 @@ Error EditorExportPlatformIOS::_copy_asset(const Ref<EditorExportPreset> &p_pres
 			return err;
 		}
 	} else if (p_is_framework && asset.ends_with(".xcframework")) {
-		// For iOS we need to turn .dylib inside .xcframework
+		// For visionOS we need to turn .dylib inside .xcframework
 		// into .framework to be able to send application to AppStore
 
 		int total_libs = 0;
@@ -1700,13 +1699,13 @@ Error EditorExportPlatformIOS::_copy_asset(const Ref<EditorExportPreset> &p_pres
 	if (asset_path.ends_with("/")) {
 		asset_path = asset_path.left(asset_path.length() - 1);
 	}
-	IOSExportAsset exported_asset = { binary_name.path_join(asset_path), p_is_framework, p_should_embed };
+	VisionOSExportAsset exported_asset = { binary_name.path_join(asset_path), p_is_framework, p_should_embed };
 	r_exported_assets.push_back(exported_asset);
 
 	return OK;
 }
 
-Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets) {
+Error EditorExportPlatformVisionOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<VisionOSExportAsset> &r_exported_assets) {
 	for (int f_idx = 0; f_idx < p_assets.size(); ++f_idx) {
 		const String &asset = p_assets[f_idx];
 		if (asset.begins_with("res://")) {
@@ -1717,7 +1716,7 @@ Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportP
 			ERR_FAIL_COND_V(err != OK, err);
 		} else {
 			// either SDK-builtin or already a part of the export template
-			IOSExportAsset exported_asset = { asset, p_is_framework, p_should_embed };
+			VisionOSExportAsset exported_asset = { asset, p_is_framework, p_should_embed };
 			r_exported_assets.push_back(exported_asset);
 		}
 	}
@@ -1725,26 +1724,26 @@ Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportP
 	return OK;
 }
 
-Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets) {
+Error EditorExportPlatformVisionOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<VisionOSExportAsset> &r_exported_assets) {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> linked_frameworks = export_plugins[i]->get_ios_frameworks();
+		Vector<String> linked_frameworks = export_plugins[i]->get_apple_platform_frameworks();
 		Error err = _export_additional_assets(p_preset, p_out_dir, linked_frameworks, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> embedded_frameworks = export_plugins[i]->get_ios_embedded_frameworks();
+		Vector<String> embedded_frameworks = export_plugins[i]->get_apple_platform_embedded_frameworks();
 		err = _export_additional_assets(p_preset, p_out_dir, embedded_frameworks, true, true, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> project_static_libs = export_plugins[i]->get_ios_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			project_static_libs.write[j] = project_static_libs[j].get_file(); // Only the file name as it's copied to the project
 		}
 		err = _export_additional_assets(p_preset, p_out_dir, project_static_libs, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> ios_bundle_files = export_plugins[i]->get_ios_bundle_files();
-		err = _export_additional_assets(p_preset, p_out_dir, ios_bundle_files, false, false, r_exported_assets);
+		Vector<String> visionos_bundle_files = export_plugins[i]->get_apple_platform_bundle_files();
+		err = _export_additional_assets(p_preset, p_out_dir, visionos_bundle_files, false, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 	}
 
@@ -1758,7 +1757,7 @@ Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportP
 	return OK;
 }
 
-Vector<String> EditorExportPlatformIOS::_get_preset_architectures(const Ref<EditorExportPreset> &p_preset) const {
+Vector<String> EditorExportPlatformVisionOS::_get_preset_architectures(const Ref<EditorExportPreset> &p_preset) const {
 	Vector<ExportArchitecture> all_archs = _get_supported_architectures();
 	Vector<String> enabled_archs;
 	for (int i = 0; i < all_archs.size(); ++i) {
@@ -1770,7 +1769,7 @@ Vector<String> EditorExportPlatformIOS::_get_preset_architectures(const Ref<Edit
 	return enabled_archs;
 }
 
-Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset> &p_preset, IOSConfigData &p_config_data, const String &dest_dir, Vector<IOSExportAsset> &r_exported_assets, bool p_debug) {
+Error EditorExportPlatformVisionOS::_export_visionos_plugins(const Ref<EditorExportPreset> &p_preset, VisionOSConfigData &p_config_data, const String &dest_dir, Vector<VisionOSExportAsset> &r_exported_assets, bool p_debug) {
 	String plugin_definition_cpp_code;
 	String plugin_initialization_cpp_code;
 	String plugin_deinitialization_cpp_code;
@@ -1779,7 +1778,7 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 	Vector<String> plugin_embedded_dependencies;
 	Vector<String> plugin_files;
 
-	Vector<PluginConfigIOS> enabled_plugins = get_enabled_plugins(p_preset);
+	Vector<PluginConfigVisionOS> enabled_plugins = get_enabled_plugins(p_preset);
 
 	Vector<String> added_linked_dependenciy_names;
 	Vector<String> added_embedded_dependenciy_names;
@@ -1790,10 +1789,10 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 	Error err;
 
 	for (int i = 0; i < enabled_plugins.size(); i++) {
-		PluginConfigIOS plugin = enabled_plugins[i];
+		PluginConfigVisionOS plugin = enabled_plugins[i];
 
 		// Export plugin binary.
-		String plugin_main_binary = PluginConfigIOS::get_plugin_main_binary(plugin, p_debug);
+		String plugin_main_binary = PluginConfigVisionOS::get_plugin_main_binary(plugin, p_debug);
 		String plugin_binary_result_file = plugin.binary.get_file();
 		// We shouldn't embed .xcframework that contains static libraries.
 		// Static libraries are not embedded anyway.
@@ -1862,14 +1861,14 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 		// Plist
 		// Using hash map container to remove duplicates
 
-		for (const KeyValue<String, PluginConfigIOS::PlistItem> &E : plugin.plist) {
+		for (const KeyValue<String, PluginConfigVisionOS::PlistItem> &E : plugin.plist) {
 			String key = E.key;
-			const PluginConfigIOS::PlistItem &item = E.value;
+			const PluginConfigVisionOS::PlistItem &item = E.value;
 
 			String value;
 
 			switch (item.type) {
-				case PluginConfigIOS::PlistItemType::STRING_INPUT: {
+				case PluginConfigVisionOS::PlistItemType::STRING_INPUT: {
 					String preset_name = "plugins_plist/" + key;
 					String input_value = p_preset->get(preset_name);
 					value = "<string>" + input_value + "</string>";
@@ -1942,15 +1941,15 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 		plugin_format["deinitialization"] = plugin_deinitialization_cpp_code;
 
 		String plugin_cpp_code = "\n// Godot Plugins\n"
-								 "void godot_ios_plugins_initialize();\n"
-								 "void godot_ios_plugins_deinitialize();\n"
+								 "void godot_visionos_plugins_initialize();\n"
+								 "void godot_visionos_plugins_deinitialize();\n"
 								 "// Exported Plugins\n\n"
 								 "$definition"
 								 "// Use Plugins\n"
-								 "void godot_ios_plugins_initialize() {\n"
+								 "void godot_visionos_plugins_initialize() {\n"
 								 "$initialization"
 								 "}\n\n"
-								 "void godot_ios_plugins_deinitialize() {\n"
+								 "void godot_visionos_plugins_deinitialize() {\n"
 								 "$deinitialization"
 								 "}\n";
 
@@ -1980,11 +1979,11 @@ Error EditorExportPlatformIOS::_export_ios_plugins(const Ref<EditorExportPreset>
 	return OK;
 }
 
-Error EditorExportPlatformIOS::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags) {
+Error EditorExportPlatformVisionOS::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags) {
 	return _export_project_helper(p_preset, p_debug, p_path, p_flags, false);
 }
 
-Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_oneclick) {
+Error EditorExportPlatformVisionOS::_export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_oneclick) {
 	ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
 
 	const String dest_dir = p_path.get_base_dir() + "/";
@@ -2001,7 +2000,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		export_project_only = false; // Skip for one-click deploy.
 	}
 
-	EditorProgress ep("export", export_project_only ? TTR("Exporting for iOS (Project Files Only)") : TTR("Exporting for iOS"), export_project_only ? 2 : 5, true);
+	EditorProgress ep("export", export_project_only ? TTR("Exporting for visionOS (Project Files Only)") : TTR("Exporting for visionOS"), export_project_only ? 2 : 5, true);
 
 	String team_id = p_preset->get("application/app_store_team_id");
 	ERR_FAIL_COND_V_MSG(team_id.length() == 0, ERR_CANT_OPEN, "App Store Team ID not specified - cannot configure the project.");
@@ -2015,7 +2014,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 
 	if (src_pkg_name.is_empty()) {
 		String err;
-		src_pkg_name = find_export_template("ios.zip", &err);
+		src_pkg_name = find_export_template("visionos.zip", &err);
 		if (src_pkg_name.is_empty()) {
 			add_message(EXPORT_MESSAGE_ERROR, TTR("Prepare Templates"), TTR("Export template not found."));
 			return ERR_FILE_NOT_FOUND;
@@ -2116,7 +2115,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		return ERR_SKIP;
 	}
 
-	String library_to_use = "libgodot.ios." + String(p_debug ? "debug" : "release") + ".xcframework";
+	String library_to_use = "libgodot.visionos." + String(p_debug ? "debug" : "release") + ".xcframework";
 
 	print_line("Static framework: " + library_to_use);
 	String pkg_name;
@@ -2128,19 +2127,19 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 
 	bool found_library = false;
 
-	const String project_file = "godot_ios.xcodeproj/project.pbxproj";
+	const String project_file = "godot_visionos.xcodeproj/project.pbxproj";
 	HashSet<String> files_to_parse;
-	files_to_parse.insert("godot_ios/godot_ios-Info.plist");
+	files_to_parse.insert("godot_visionos/godot_visionos-Info.plist");
 	files_to_parse.insert(project_file);
-	files_to_parse.insert("godot_ios/export_options.plist");
-	files_to_parse.insert("godot_ios/dummy.cpp");
-	files_to_parse.insert("godot_ios.xcodeproj/project.xcworkspace/contents.xcworkspacedata");
-	files_to_parse.insert("godot_ios.xcodeproj/xcshareddata/xcschemes/godot_ios.xcscheme");
-	files_to_parse.insert("godot_ios/godot_ios.entitlements");
-	files_to_parse.insert("godot_ios/Launch Screen.storyboard");
+	files_to_parse.insert("godot_visionos/export_options.plist");
+	files_to_parse.insert("godot_visionos/dummy.cpp");
+	files_to_parse.insert("godot_visionos.xcodeproj/project.xcworkspace/contents.xcworkspacedata");
+	files_to_parse.insert("godot_visionos.xcodeproj/xcshareddata/xcschemes/godot_visionos.xcscheme");
+	files_to_parse.insert("godot_visionos/godot_visionos.entitlements");
+	files_to_parse.insert("godot_visionos/Launch Screen.storyboard");
 	files_to_parse.insert("PrivacyInfo.xcprivacy");
 
-	IOSConfigData config_data = {
+	VisionOSConfigData config_data = {
 		pkg_name,
 		binary_name,
 		_get_additional_plist_content(),
@@ -2157,7 +2156,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 
 	config_data.plist_content += p_preset->get("application/additional_plist_content").operator String() + "\n";
 
-	Vector<IOSExportAsset> assets;
+	Vector<VisionOSExportAsset> assets;
 
 	Ref<DirAccess> tmp_app_path = DirAccess::create_for_path(dest_dir);
 	if (tmp_app_path.is_null()) {
@@ -2174,12 +2173,12 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		return ERR_CANT_OPEN;
 	}
 
-	err = _export_ios_plugins(p_preset, config_data, binary_dir, assets, p_debug);
+	err = _export_visionos_plugins(p_preset, config_data, binary_dir, assets, p_debug);
 	if (err != OK) {
-		// TODO: Improve error reporting by using `add_message` throughout all methods called via `_export_ios_plugins`.
+		// TODO: Improve error reporting by using `add_message` throughout all methods called via `_export_visionos_plugins`.
 		// For now a generic top level message would be fine, but we're ought to use proper reporting here instead of
 		// just fail macros and non-descriptive error return values.
-		add_message(EXPORT_MESSAGE_ERROR, TTR("iOS Plugins"), vformat(TTR("Failed to export iOS plugins with code %d. Please check the output log."), err));
+		add_message(EXPORT_MESSAGE_ERROR, TTR("visionOS Plugins"), vformat(TTR("Failed to export visionOS plugins with code %d. Please check the output log."), err));
 		return err;
 	}
 
@@ -2214,7 +2213,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 
 		if (files_to_parse.has(file)) {
 			_fix_config_file(p_preset, data, config_data, p_debug);
-		} else if (file.begins_with("libgodot.ios")) {
+		} else if (file.begins_with("libgodot.visionos")) {
 			if (!file.begins_with(library_to_use) || file.ends_with(String("/empty"))) {
 				ret = unzGoToNextFile(src_pkg_zip);
 				continue; //ignore!
@@ -2233,7 +2232,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 		///@TODO need to parse logo files
 
 		if (data.size() > 0) {
-			file = file.replace("godot_ios", binary_name);
+			file = file.replace("godot_visionos", binary_name);
 
 			print_line("ADDING: " + file + " size: " + itos(data.size()));
 
@@ -2335,7 +2334,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 	// Copy project static libs to the project
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> project_static_libs = export_plugins[i]->get_ios_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			const String &static_lib_path = project_static_libs[j];
 			String dest_lib_file_path = dest_dir + static_lib_path.get_file();
@@ -2431,7 +2430,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 	archive_args.push_back("-configuration");
 	archive_args.push_back(p_debug ? "Debug" : "Release");
 	archive_args.push_back("-destination");
-	archive_args.push_back("generic/platform=iOS");
+	archive_args.push_back("generic/platform=visionOS");
 	archive_args.push_back("archive");
 	archive_args.push_back("-allowProvisioningUpdates");
 	archive_args.push_back("-archivePath");
@@ -2485,10 +2484,10 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 	return OK;
 }
 
-bool EditorExportPlatformIOS::has_valid_export_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates, bool p_debug) const {
+bool EditorExportPlatformVisionOS::has_valid_export_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates, bool p_debug) const {
 #if defined(MODULE_MONO_ENABLED) && !defined(MACOS_ENABLED)
 	// TODO: Remove this restriction when we don't rely on macOS tools to package up the native libraries anymore.
-	r_error += TTR("Exporting to iOS when using C#/.NET is experimental and requires macOS.") + "\n";
+	r_error += TTR("Exporting to visionOS when using C#/.NET is experimental and requires macOS.") + "\n";
 	return false;
 #else
 
@@ -2496,12 +2495,12 @@ bool EditorExportPlatformIOS::has_valid_export_configuration(const Ref<EditorExp
 	bool valid = false;
 
 #if defined(MODULE_MONO_ENABLED)
-	// iOS export is still a work in progress, keep a message as a warning.
-	err += TTR("Exporting to iOS when using C#/.NET is experimental.") + "\n";
+	// visionOS export is still a work in progress, keep a message as a warning.
+	err += TTR("Exporting to visionOS when using C#/.NET is experimental.") + "\n";
 #endif
 	// Look for export templates (first official, and if defined custom templates).
 
-	bool dvalid = exists_export_template("ios.zip", &err);
+	bool dvalid = exists_export_template("visionos.zip", &err);
 	bool rvalid = dvalid; // Both in the same ZIP.
 
 	if (p_preset->get("custom_template/debug") != "") {
@@ -2540,15 +2539,6 @@ bool EditorExportPlatformIOS::has_valid_export_configuration(const Ref<EditorExp
 		}
 	}
 
-	String rendering_method = GLOBAL_GET("rendering/renderer/rendering_method.mobile");
-	String rendering_driver = GLOBAL_GET("rendering/rendering_device/driver.ios");
-	if ((rendering_method == "forward_plus" || rendering_method == "mobile") && rendering_driver == "metal") {
-		float version = p_preset->get("application/min_ios_version").operator String().to_float();
-		if (version < 14.0) {
-			err += TTR("Metal renderer require iOS 14+.") + "\n";
-		}
-	}
-
 	if (!err.is_empty()) {
 		r_error = err;
 	}
@@ -2557,7 +2547,7 @@ bool EditorExportPlatformIOS::has_valid_export_configuration(const Ref<EditorExp
 #endif // !(MODULE_MONO_ENABLED && !MACOS_ENABLED)
 }
 
-bool EditorExportPlatformIOS::has_valid_project_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error) const {
+bool EditorExportPlatformVisionOS::has_valid_project_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error) const {
 	String err;
 	bool valid = true;
 
@@ -2588,16 +2578,16 @@ bool EditorExportPlatformIOS::has_valid_project_configuration(const Ref<EditorEx
 	return valid;
 }
 
-int EditorExportPlatformIOS::get_options_count() const {
+int EditorExportPlatformVisionOS::get_options_count() const {
 	MutexLock lock(device_lock);
 	return devices.size();
 }
 
-String EditorExportPlatformIOS::get_options_tooltip() const {
+String EditorExportPlatformVisionOS::get_options_tooltip() const {
 	return TTR("Select device from the list");
 }
 
-Ref<ImageTexture> EditorExportPlatformIOS::get_option_icon(int p_index) const {
+Ref<ImageTexture> EditorExportPlatformVisionOS::get_option_icon(int p_index) const {
 	MutexLock lock(device_lock);
 
 	Ref<ImageTexture> icon;
@@ -2614,19 +2604,19 @@ Ref<ImageTexture> EditorExportPlatformIOS::get_option_icon(int p_index) const {
 	return icon;
 }
 
-String EditorExportPlatformIOS::get_option_label(int p_index) const {
+String EditorExportPlatformVisionOS::get_option_label(int p_index) const {
 	ERR_FAIL_INDEX_V(p_index, devices.size(), "");
 	MutexLock lock(device_lock);
 	return devices[p_index].name;
 }
 
-String EditorExportPlatformIOS::get_option_tooltip(int p_index) const {
+String EditorExportPlatformVisionOS::get_option_tooltip(int p_index) const {
 	ERR_FAIL_INDEX_V(p_index, devices.size(), "");
 	MutexLock lock(device_lock);
 	return "UUID: " + devices[p_index].id;
 }
 
-bool EditorExportPlatformIOS::is_package_name_valid(const String &p_package, String *r_error) const {
+bool EditorExportPlatformVisionOS::is_package_name_valid(const String &p_package, String *r_error) const {
 	String pname = p_package;
 
 	if (pname.length() == 0) {
@@ -2650,7 +2640,7 @@ bool EditorExportPlatformIOS::is_package_name_valid(const String &p_package, Str
 }
 
 #ifdef MACOS_ENABLED
-bool EditorExportPlatformIOS::_check_xcode_install() {
+bool EditorExportPlatformVisionOS::_check_xcode_install() {
 	static bool xcode_found = false;
 	if (!xcode_found) {
 		Vector<String> mdfind_paths;
@@ -2672,15 +2662,15 @@ bool EditorExportPlatformIOS::_check_xcode_install() {
 	return xcode_found;
 }
 
-void EditorExportPlatformIOS::_check_for_changes_poll_thread(void *ud) {
-	EditorExportPlatformIOS *ea = static_cast<EditorExportPlatformIOS *>(ud);
+void EditorExportPlatformVisionOS::_check_for_changes_poll_thread(void *ud) {
+	EditorExportPlatformVisionOS *ea = static_cast<EditorExportPlatformVisionOS *>(ud);
 
 	while (!ea->quit_request.is_set()) {
 		// Nothing to do if we already know the plugins have changed.
 		if (!ea->plugins_changed.is_set()) {
 			MutexLock lock(ea->plugins_lock);
 
-			Vector<PluginConfigIOS> loaded_plugins = get_plugins();
+			Vector<PluginConfigVisionOS> loaded_plugins = get_plugins();
 
 			if (ea->plugins.size() != loaded_plugins.size()) {
 				ea->plugins_changed.set();
@@ -2697,8 +2687,8 @@ void EditorExportPlatformIOS::_check_for_changes_poll_thread(void *ud) {
 		// Check for devices updates.
 		Vector<Device> ldevices;
 
-		// Enum real devices (via ios_deploy, pre Xcode 15).
-		String idepl = EDITOR_GET("export/ios/ios_deploy");
+		// Enum real devices (via visionos_deploy, pre Xcode 15).
+		String idepl = EDITOR_GET("export/visionos/visionos_deploy");
 		if (ea->has_runnable_preset.is_set() && !idepl.is_empty()) {
 			String devices;
 			List<String> args;
@@ -2725,9 +2715,9 @@ void EditorExportPlatformIOS::_check_for_changes_poll_thread(void *ud) {
 							Dictionary device_info = device_event["Device"];
 							Device nd;
 							nd.id = device_info["DeviceIdentifier"];
-							nd.name = device_info["DeviceName"].operator String() + " (ios_deploy, " + ((device_event["Interface"] == "WIFI") ? "network" : "wired") + ")";
+							nd.name = device_info["DeviceName"].operator String() + " (visionos_deploy, " + ((device_event["Interface"] == "WIFI") ? "network" : "wired") + ")";
 							nd.wifi = device_event["Interface"] == "WIFI";
-							nd.use_ios_deploy = true;
+							nd.use_visionos_deploy = true;
 							ldevices.push_back(nd);
 						}
 					}
@@ -2806,7 +2796,7 @@ void EditorExportPlatformIOS::_check_for_changes_poll_thread(void *ud) {
 	}
 }
 
-void EditorExportPlatformIOS::_update_preset_status() {
+void EditorExportPlatformVisionOS::_update_preset_status() {
 	const int preset_count = EditorExport::get_singleton()->get_export_preset_count();
 	bool has_runnable = false;
 
@@ -2827,7 +2817,7 @@ void EditorExportPlatformIOS::_update_preset_status() {
 }
 #endif
 
-Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int p_device, BitField<EditorExportPlatform::DebugFlags> p_debug_flags) {
+Error EditorExportPlatformVisionOS::run(const Ref<EditorExportPreset> &p_preset, int p_device, BitField<EditorExportPlatform::DebugFlags> p_debug_flags) {
 #ifdef MACOS_ENABLED
 	ERR_FAIL_INDEX_V(p_device, devices.size(), ERR_INVALID_PARAMETER);
 
@@ -2918,8 +2908,8 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 		cmd_args_list.push_back("--debug-navigation");
 	}
 
-	if (dev.use_ios_deploy) {
-		// Deploy and run on real device (via ios-deploy).
+	if (dev.use_visionos_deploy) {
+		// Deploy and run on real device (via visionos-deploy).
 		if (ep.step("Installing and running on device...", 4)) {
 			CLEANUP_AND_RETURN(ERR_SKIP);
 		} else {
@@ -2940,19 +2930,19 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 				args.push_back(app_args);
 			}
 
-			String idepl = EDITOR_GET("export/ios/ios_deploy");
+			String idepl = EDITOR_GET("export/visionos/visionos_deploy");
 			if (idepl.is_empty()) {
-				idepl = "ios-deploy";
+				idepl = "visionos-deploy";
 			}
 			String log;
 			int ec;
 			err = OS::get_singleton()->execute(idepl, args, &log, &ec, true);
 			if (err != OK) {
-				add_message(EXPORT_MESSAGE_WARNING, TTR("Run"), TTR("Could not start ios-deploy executable."));
+				add_message(EXPORT_MESSAGE_WARNING, TTR("Run"), TTR("Could not start visionos-deploy executable."));
 				CLEANUP_AND_RETURN(err);
 			}
 			if (ec != 0) {
-				print_line("ios-deploy:\n" + log);
+				print_line("visionos-deploy:\n" + log);
 				add_message(EXPORT_MESSAGE_ERROR, TTR("Run"), TTR("Installation/running failed, see editor log for details."));
 				CLEANUP_AND_RETURN(ERR_UNCONFIGURED);
 			}
@@ -3023,15 +3013,15 @@ Error EditorExportPlatformIOS::run(const Ref<EditorExportPreset> &p_preset, int 
 #endif
 }
 
-EditorExportPlatformIOS::EditorExportPlatformIOS() {
+EditorExportPlatformVisionOS::EditorExportPlatformVisionOS() {
 	if (EditorNode::get_singleton()) {
 		Ref<Image> img = memnew(Image);
 		const bool upsample = !Math::is_equal_approx(Math::round(EDSCALE), EDSCALE);
 
-		ImageLoaderSVG::create_image_from_string(img, _ios_logo_svg, EDSCALE, upsample, false);
+		ImageLoaderSVG::create_image_from_string(img, _visionos_logo_svg, EDSCALE, upsample, false);
 		logo = ImageTexture::create_from_image(img);
 
-		ImageLoaderSVG::create_image_from_string(img, _ios_run_icon_svg, EDSCALE, upsample, false);
+		ImageLoaderSVG::create_image_from_string(img, _visionos_run_icon_svg, EDSCALE, upsample, false);
 		run_icon = ImageTexture::create_from_image(img);
 
 		plugins_changed.set();
@@ -3043,7 +3033,7 @@ EditorExportPlatformIOS::EditorExportPlatformIOS() {
 	}
 }
 
-EditorExportPlatformIOS::~EditorExportPlatformIOS() {
+EditorExportPlatformVisionOS::~EditorExportPlatformVisionOS() {
 #ifdef MACOS_ENABLED
 	quit_request.set();
 	if (check_for_changes_thread.is_started()) {

@@ -51,7 +51,7 @@ The `plist` section are optional.
 - **key**: key and value that would be added in Info.plist file.
  */
 
-struct PluginConfigIOS {
+struct PluginConfigVisionOS {
 	inline static const char *PLUGIN_CONFIG_EXT = ".gdip";
 
 	inline static const char *CONFIG_SECTION = "config";
@@ -122,11 +122,11 @@ struct PluginConfigIOS {
 
 	static Vector<String> resolve_system_dependencies(Vector<String> p_paths);
 
-	static bool validate_plugin(PluginConfigIOS &plugin_config);
+	static bool validate_plugin(PluginConfigVisionOS &plugin_config);
 
-	static String get_plugin_main_binary(PluginConfigIOS &plugin_config, bool p_debug);
+	static String get_plugin_main_binary(PluginConfigVisionOS &plugin_config, bool p_debug);
 
-	static uint64_t get_plugin_modification_time(const PluginConfigIOS &plugin_config, const String &config_path);
+	static uint64_t get_plugin_modification_time(const PluginConfigVisionOS &plugin_config, const String &config_path);
 
-	static PluginConfigIOS load_plugin_config(Ref<ConfigFile> config_file, const String &path);
+	static PluginConfigVisionOS load_plugin_config(Ref<ConfigFile> config_file, const String &path);
 };

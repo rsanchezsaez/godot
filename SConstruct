@@ -630,7 +630,7 @@ if env["scu_build"]:
 # are actually handled to change compile options, etc.
 detect.configure(env)
 
-if env.get("ios_simulator") == True:
+if env.get("ios_simulator") == True or env.get("visionos_simulator") == True:
     platform_string = env["platform"] + " (simulator)"
 else:
     platform_string = env["platform"]

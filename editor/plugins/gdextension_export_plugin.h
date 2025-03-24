@@ -130,10 +130,10 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 										 "};\n"
 										 "$ENTRY_struct $ENTRY_struct_instance;\n\n";
 				additional_code = additional_code.replace("$ENTRY", entry_symbol);
-				add_ios_cpp_code(additional_code);
+				add_apple_platform_cpp_code(additional_code);
 
 				String linker_flags = "-Wl,-U,_" + entry_symbol;
-				add_ios_linker_flags(linker_flags);
+				add_apple_platform_linker_flags(linker_flags);
 			}
 
 			// Update found library info.

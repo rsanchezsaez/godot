@@ -51,13 +51,13 @@
 
 // Optional environment variables for defining confidential information. If any
 // of these is set, they will override the values set in the credentials file.
-const String ENV_IOS_PROFILE_UUID_DEBUG = "GODOT_IOS_PROVISIONING_PROFILE_UUID_DEBUG";
-const String ENV_IOS_PROFILE_UUID_RELEASE = "GODOT_IOS_PROVISIONING_PROFILE_UUID_RELEASE";
-const String ENV_IOS_PROFILE_SPECIFIER_DEBUG = "GODOT_IOS_PROFILE_SPECIFIER_DEBUG";
-const String ENV_IOS_PROFILE_SPECIFIER_RELEASE = "GODOT_IOS_PROFILE_SPECIFIER_RELEASE";
+const String ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG = "GODOT_APPLE_EMBEDDED_PROVISIONING_PROFILE_UUID_DEBUG";
+const String ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE = "GODOT_APPLE_EMBEDDED_PROVISIONING_PROFILE_UUID_RELEASE";
+const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG";
+const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE";
 
-class EditorExportPlatformIOS : public EditorExportPlatform {
-	GDCLASS(EditorExportPlatformIOS, EditorExportPlatform);
+class EditorExportPlatformVisionOS : public EditorExportPlatform {
+	GDCLASS(EditorExportPlatformVisionOS, EditorExportPlatform);
 
 	Ref<ImageTexture> logo;
 	Ref<ImageTexture> run_icon;
@@ -70,14 +70,14 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 		String id;
 		String name;
 		bool wifi = false;
-		bool use_ios_deploy = false;
+		bool use_visionos_deploy = false;
 	};
 
 	Vector<Device> devices;
 	Mutex device_lock;
 
 	Mutex plugins_lock;
-	mutable Vector<PluginConfigIOS> plugins;
+	mutable Vector<PluginConfigVisionOS> plugins;
 #ifdef MACOS_ENABLED
 	Thread check_for_changes_thread;
 	SafeFlag quit_request;
@@ -93,7 +93,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	static Error _codesign(String p_file, void *p_userdata);
 	void _blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot);
 
-	struct IOSConfigData {
+	struct VisionOSConfigData {
 		String pkg_name;
 		String binary_name;
 		String plist_content;
@@ -119,7 +119,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 		}
 	};
 
-	struct IOSExportAsset {
+	struct VisionOSExportAsset {
 		String exported_path;
 		bool is_framework = false; // framework is anything linked to the binary, otherwise it's a resource
 		bool should_embed = false;
@@ -128,7 +128,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	String _get_additional_plist_content();
 	String _get_linker_flags();
 	String _get_cpp_code();
-	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
+	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const VisionOSConfigData &p_config, bool p_debug);
 	Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir);
 	Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir);
 
@@ -138,11 +138,11 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	void _check_xcframework_content(const String &p_path, int &r_total_libs, int &r_static_libs, int &r_dylibs, int &r_frameworks) const;
 	Error _convert_to_framework(const String &p_source, const String &p_destination, const String &p_id) const;
 
-	void _add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets);
-	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
-	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
-	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets);
-	Error _export_ios_plugins(const Ref<EditorExportPreset> &p_preset, IOSConfigData &p_config_data, const String &dest_dir, Vector<IOSExportAsset> &r_exported_assets, bool p_debug);
+	void _add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<VisionOSExportAsset> &p_additional_assets);
+	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<VisionOSExportAsset> &r_exported_assets);
+	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<VisionOSExportAsset> &r_exported_assets);
+	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<VisionOSExportAsset> &r_exported_assets);
+	Error _export_visionos_plugins(const Ref<EditorExportPreset> &p_preset, VisionOSConfigData &p_config_data, const String &dest_dir, Vector<VisionOSExportAsset> &r_exported_assets, bool p_debug);
 
 	Error _export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_oneclick);
 
@@ -157,8 +157,8 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual String get_name() const override { return "iOS"; }
-	virtual String get_os_name() const override { return "iOS"; }
+	virtual String get_name() const override { return "visionOS"; }
+	virtual String get_os_name() const override { return "visionOS"; }
 	virtual Ref<Texture2D> get_logo() const override { return logo; }
 	virtual Ref<Texture2D> get_run_icon() const override { return run_icon; }
 
@@ -209,14 +209,14 @@ public:
 
 	virtual void get_platform_features(List<String> *r_features) const override {
 		r_features->push_back("mobile");
-		r_features->push_back("ios");
+		r_features->push_back("visionos");
 	}
 
 	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, HashSet<String> &p_features) override {
 	}
 
-	EditorExportPlatformIOS();
-	~EditorExportPlatformIOS();
+	EditorExportPlatformVisionOS();
+	~EditorExportPlatformVisionOS();
 
 	/// List the gdip files in the directory specified by the p_path parameter.
 	static Vector<String> list_plugin_config_files(const String &p_path, bool p_check_directories) {
@@ -249,7 +249,7 @@ public:
 					continue;
 				}
 
-				if (file.ends_with(PluginConfigIOS::PLUGIN_CONFIG_EXT)) {
+				if (file.ends_with(PluginConfigVisionOS::PLUGIN_CONFIG_EXT)) {
 					dir_files.push_back(file);
 				}
 			}
@@ -259,10 +259,10 @@ public:
 		return dir_files;
 	}
 
-	static Vector<PluginConfigIOS> get_plugins() {
-		Vector<PluginConfigIOS> loaded_plugins;
+	static Vector<PluginConfigVisionOS> get_plugins() {
+		Vector<PluginConfigVisionOS> loaded_plugins;
 
-		String plugins_dir = ProjectSettings::get_singleton()->get_resource_path().path_join("ios/plugins");
+		String plugins_dir = ProjectSettings::get_singleton()->get_resource_path().path_join("visionos/plugins");
 
 		if (DirAccess::exists(plugins_dir)) {
 			Vector<String> plugins_filenames = list_plugin_config_files(plugins_dir, true);
@@ -270,7 +270,7 @@ public:
 			if (!plugins_filenames.is_empty()) {
 				Ref<ConfigFile> config_file = memnew(ConfigFile);
 				for (int i = 0; i < plugins_filenames.size(); i++) {
-					PluginConfigIOS config = PluginConfigIOS::load_plugin_config(config_file, plugins_dir.path_join(plugins_filenames[i]));
+					PluginConfigVisionOS config = PluginConfigVisionOS::load_plugin_config(config_file, plugins_dir.path_join(plugins_filenames[i]));
 					if (config.valid_config) {
 						loaded_plugins.push_back(config);
 					} else {
@@ -283,11 +283,11 @@ public:
 		return loaded_plugins;
 	}
 
-	static Vector<PluginConfigIOS> get_enabled_plugins(const Ref<EditorExportPreset> &p_presets) {
-		Vector<PluginConfigIOS> enabled_plugins;
-		Vector<PluginConfigIOS> all_plugins = get_plugins();
+	static Vector<PluginConfigVisionOS> get_enabled_plugins(const Ref<EditorExportPreset> &p_presets) {
+		Vector<PluginConfigVisionOS> enabled_plugins;
+		Vector<PluginConfigVisionOS> all_plugins = get_plugins();
 		for (int i = 0; i < all_plugins.size(); i++) {
-			PluginConfigIOS plugin = all_plugins[i];
+			PluginConfigVisionOS plugin = all_plugins[i];
 			bool enabled = p_presets->get("plugins/" + plugin.name);
 			if (enabled) {
 				enabled_plugins.push_back(plugin);

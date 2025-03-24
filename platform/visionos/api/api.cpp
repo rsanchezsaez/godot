@@ -30,19 +30,19 @@
 
 #include "api.h"
 
-#if defined(IOS_ENABLED)
+#if defined(VISIONOS_ENABLED)
 
-void register_ios_api() {
-	godot_ios_plugins_initialize();
+void register_visionos_api() {
+	godot_visionos_plugins_initialize();
 }
 
-void unregister_ios_api() {
-	godot_ios_plugins_deinitialize();
+void unregister_visionos_api() {
+	godot_visionos_plugins_deinitialize();
 }
 
 #else
 
-void register_ios_api() {}
-void unregister_ios_api() {}
+void register_visionos_api() {}
+void unregister_visionos_api() {}
 
-#endif // IOS_ENABLED
+#endif // VISIONOS_ENABLED

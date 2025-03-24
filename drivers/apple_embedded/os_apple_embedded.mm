@@ -30,7 +30,7 @@
 
 #import "os_apple_embedded.h"
 
-#ifdef IOS_ENABLED
+#ifdef APPLE_EMBEDDED_ENABLED
 
 #import "app_delegate_service.h"
 #import "display_server.h"
@@ -714,4 +714,4 @@ Rect2 OS_AppleEmbedded::calculate_boot_screen_rect(const Size2 &p_window_size, c
 	}
 }
 
-#endif // IOS_ENABLED
+#endif // APPLE_EMBEDDED_ENABLED

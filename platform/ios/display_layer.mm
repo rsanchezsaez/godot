@@ -31,7 +31,7 @@
 #import "display_layer.h"
 
 #import "display_server.h"
-#import "os_apple_embedded.h"
+#import "os_ios.h"
 
 #include "core/config/project_settings.h"
 #include "core/os/keyboard.h"

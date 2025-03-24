@@ -64,40 +64,9 @@ static const float earth_gravity = 9.80665;
 
 @implementation GDTView
 
+// Implemented in subclasses
 - (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
-	if (self.renderingLayer) {
-		return self.renderingLayer;
-	}
-
-	CALayer<GDTDisplayLayer> *layer;
-
-	if ([driverName isEqualToString:@"vulkan"] || [driverName isEqualToString:@"metal"]) {
-#if defined(TARGET_OS_SIMULATOR) && TARGET_OS_SIMULATOR
-		if (@available(iOS 13, *)) {
-			layer = [GDTMetalLayer layer];
-		} else {
-			return nil;
-		}
-#else
-		layer = [GDTMetalLayer layer];
-#endif
-	} else if ([driverName isEqualToString:@"opengl3"]) {
-		GODOT_CLANG_WARNING_PUSH_AND_IGNORE("-Wdeprecated-declarations") // OpenGL is deprecated in iOS 12.0.
-		layer = [GDTOpenGLLayer layer];
-		GODOT_CLANG_WARNING_POP
-	} else {
-		return nil;
-	}
-
-	layer.frame = self.bounds;
-	layer.contentsScale = self.contentScaleFactor;
-
-	[self.layer addSublayer:layer];
-	self.renderingLayer = layer;
-
-	[layer initializeDisplayLayer];
-
-	return self.renderingLayer;
+	return nil;
 }
 
 - (instancetype)initWithCoder:(NSCoder *)coder {
@@ -148,8 +117,10 @@ static const float earth_gravity = 9.80665;
 }
 
 - (void)godot_commonInit {
+#if !defined(VISIONOS_ENABLED)
 	self.contentScaleFactor = [UIScreen mainScreen].scale;
-
+#endif
+	
 	[self initTouches];
 
 	self.multipleTouchEnabled = YES;
@@ -440,6 +411,7 @@ static const float earth_gravity = 9.80665;
 
 	UIInterfaceOrientation interfaceOrientation = UIInterfaceOrientationUnknown;
 
+#if !defined(VISIONOS_ENABLED)
 #if __IPHONE_OS_VERSION_MAX_ALLOWED < 140000
 	interfaceOrientation = [[UIApplication sharedApplication] statusBarOrientation];
 #else
@@ -451,7 +423,10 @@ static const float earth_gravity = 9.80665;
 #endif
 	}
 #endif
-
+#else
+	interfaceOrientation = [UIApplication sharedApplication].delegate.window.windowScene.interfaceOrientation;
+#endif
+	
 	switch (interfaceOrientation) {
 		case UIInterfaceOrientationLandscapeLeft: {
 			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));

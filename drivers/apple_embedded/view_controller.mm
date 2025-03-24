@@ -120,7 +120,7 @@
 }
 
 - (void)loadView {
-	GDTView *view = [[GDTView alloc] init];
+	GDTView *view = GDTViewCreate();
 	GDTViewRenderer *renderer = [[GDTViewRenderer alloc] init];
 
 	self.renderer = renderer;

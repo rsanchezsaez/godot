@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  display_layer.mm                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,20 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#import "display_layer.h"
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+@implementation GDTMetalLayer
+
+- (void)initializeDisplayLayer {
+}
+
+- (void)layoutDisplayLayer {
+}
+
+- (void)startRenderDisplayLayer {
+}
+
+- (void)stopRenderDisplayLayer {
+}
+
+@end

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  display_layer.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,5 +30,7 @@
 
 #pragma once
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+#include "drivers/apple_embedded/display_layer.h"
+
+@interface GDTMetalLayer : CAMetalLayer <GDTDisplayLayer>
+@end

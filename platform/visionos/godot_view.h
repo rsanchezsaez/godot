@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  apple_embedded.mm                                                     */
+/*  godot_view.mm                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,9 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "ios.h"
+#include "drivers/apple_embedded/godot_view.h"
 
-void iOS::_bind_methods() {
-}
+@interface GDTViewVisionOS : GDTView
 
-iOS::iOS() : AppleEmbedded() {}
+@end

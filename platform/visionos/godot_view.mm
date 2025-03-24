@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  godot_view.mm                                                         */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,41 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#include "godot_view.h"
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+#include "display_layer.h"
+
+@interface GDTViewVisionOS()
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wobjc-property-synthesis"
+@property(strong, nonatomic) CALayer<GDTDisplayLayer> *renderingLayer;
+#pragma clang diagnostic pop
+
+@end
+
+@implementation GDTViewVisionOS
+
+- (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
+	if (self.renderingLayer) {
+		return self.renderingLayer;
+	}
+
+	CALayer<GDTDisplayLayer> *layer = [GDTMetalLayer layer];
+
+	layer.frame = self.bounds;
+	layer.contentsScale = self.contentScaleFactor;
+
+	[self.layer addSublayer:layer];
+	self.renderingLayer = layer;
+
+	[layer initializeDisplayLayer];
+
+	return self.renderingLayer;
+}
+
+@end
+
+GDTView *GDTViewCreate() {
+	return [GDTViewVisionOS new];
+}

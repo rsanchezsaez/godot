@@ -30,26 +30,38 @@
 
 #import "display_server.h"
 
-DisplayServerIOS *DisplayServerIOS::get_singleton() {
-	return (DisplayServerIOS *)DisplayServerAppleEmbedded::get_singleton();
+DisplayServerVisionOS *DisplayServerVisionOS::get_singleton() {
+	return (DisplayServerVisionOS *)DisplayServerAppleEmbedded::get_singleton();
 }
 
-DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) :
+DisplayServerVisionOS::DisplayServerVisionOS(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) :
 DisplayServerAppleEmbedded(p_rendering_driver, p_mode, p_vsync_mode, p_flags,p_position, p_resolution, p_screen, p_context, p_parent_window, r_error) {
-	r_error = OK;
 }
 
-DisplayServerIOS::~DisplayServerIOS() {
+DisplayServerVisionOS::~DisplayServerVisionOS() {
 }
 
-DisplayServer *DisplayServerIOS::create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
-	return memnew(DisplayServerIOS(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
+DisplayServer *DisplayServerVisionOS::create_func(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) {
+	return memnew(DisplayServerVisionOS(p_rendering_driver, p_mode, p_vsync_mode, p_flags, p_position, p_resolution, p_screen, p_context, p_parent_window, r_error));
 }
 
-void DisplayServerIOS::register_ios_driver() {
-	register_create_function("iOS", create_func, get_rendering_drivers_func);
+void DisplayServerVisionOS::register_visionos_driver() {
+	register_create_function("visionOS", create_func, get_rendering_drivers_func);
 }
 
-String DisplayServerIOS::get_name() const {
-	return "iOS";
+String DisplayServerVisionOS::get_name() const {
+	return "visionOS";
+}
+
+int DisplayServerVisionOS::screen_get_dpi(int p_screen) const {
+	// TODO(rss): Compute this properly
+	return 72;
+}
+
+float DisplayServerVisionOS::screen_get_refresh_rate(int p_screen) const {
+	return 90;
+}
+
+float DisplayServerVisionOS::screen_get_scale(int p_screen) const {
+	return 1;
 }

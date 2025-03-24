@@ -30,10 +30,10 @@
 
 #pragma once
 
-#if defined(IOS_ENABLED)
-extern void godot_ios_plugins_initialize();
-extern void godot_ios_plugins_deinitialize();
+#if defined(VISIONOS_ENABLED)
+extern void godot_visionos_plugins_initialize();
+extern void godot_visionos_plugins_deinitialize();
 #endif
 
-void register_ios_api();
-void unregister_ios_api();
+void register_visionos_api();
+void unregister_visionos_api();

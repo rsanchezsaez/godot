@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  visionos.h                                                            */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -30,5 +30,12 @@
 
 #pragma once
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+#include "drivers/apple_embedded/apple_embedded.h"
+
+class visionOS : public AppleEmbedded {
+	GDCLASS(visionOS, AppleEmbedded);
+
+	static void _bind_methods();
+
+	visionOS();
+};

@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  visionos.mm                                                           */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#import "visionos.h"
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+void visionOS::_bind_methods() {
+}
+
+visionOS::visionOS() : AppleEmbedded() {}

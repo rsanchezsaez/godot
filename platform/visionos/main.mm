@@ -28,7 +28,7 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#import "os_ios.h"
+#import "os_visionos.h"
 
 #import "drivers/apple_embedded/godot_app_delegate.h"
 #import "drivers/apple_embedded/main_utilities.h"
@@ -40,7 +40,7 @@
 int gargc;
 char **gargv;
 
-static OS_IOS *os = nullptr;
+static OS_VisionOS *os = nullptr;
 
 int main(int argc, char *argv[]) {
 #if defined(VULKAN_ENABLED)
@@ -61,7 +61,7 @@ int main(int argc, char *argv[]) {
 int apple_embedded_main(int argc, char **argv) {
 	change_to_launch_dir(argv);
 
-	os = new OS_IOS();
+	os = new OS_VisionOS();
 
 	// We must override main when testing is enabled
 	TEST_MAIN_OVERRIDE

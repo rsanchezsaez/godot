@@ -439,14 +439,14 @@ HashMap<String, Variant> EditorExportPlatformIOS::get_custom_project_settings(co
 void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug) {
 	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : p_preset->get("application/code_sign_identity_debug");
 	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : p_preset->get("application/code_sign_identity_release");
-	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
-	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
+	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
+	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
 
-	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_IOS_PROFILE_SPECIFIER_DEBUG).operator String();
+	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG).operator String();
 	bool valid_dbg_specifier = !provisioning_profile_specifier_dbg.is_empty();
 	dbg_manual |= valid_dbg_specifier;
 
-	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_IOS_PROFILE_SPECIFIER_RELEASE).operator String();
+	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE).operator String();
 	bool valid_rel_specifier = !provisioning_profile_specifier_rel.is_empty();
 	rel_manual |= valid_rel_specifier;
 
@@ -491,9 +491,9 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			String specifier = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 			strnew += lines[i].replace("$provisioning_profile_specifier", specifier) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_release")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE)) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_debug")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG)) + "\n";
 		} else if (lines[i].contains("$code_sign_style_debug")) {
 			if (dbg_manual) {
 				strnew += lines[i].replace("$code_sign_style_debug", "Manual") + "\n";
@@ -507,7 +507,7 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 				strnew += lines[i].replace("$code_sign_style_release", "Automatic") + "\n";
 			}
 		} else if (lines[i].contains("$provisioning_profile_uuid")) {
-			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_IOS_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_IOS_PROFILE_UUID_RELEASE);
+			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE);
 			if (uuid.is_empty()) {
 				Variant variant = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 				bool valid = p_debug ? valid_dbg_specifier : valid_rel_specifier;
@@ -883,7 +883,7 @@ String EditorExportPlatformIOS::_get_additional_plist_content() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_ios_plist_content();
+		result += export_plugins[i]->get_apple_platform_plist_content();
 	}
 	return result;
 }
@@ -892,7 +892,7 @@ String EditorExportPlatformIOS::_get_linker_flags() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		String flags = export_plugins[i]->get_ios_linker_flags();
+		String flags = export_plugins[i]->get_apple_platform_linker_flags();
 		if (flags.length() == 0) {
 			continue;
 		}
@@ -909,7 +909,7 @@ String EditorExportPlatformIOS::_get_cpp_code() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_ios_cpp_code();
+		result += export_plugins[i]->get_apple_platform_cpp_code();
 	}
 	return result;
 }
@@ -1727,22 +1727,22 @@ Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportP
 Error EditorExportPlatformIOS::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets) {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> linked_frameworks = export_plugins[i]->get_ios_frameworks();
+		Vector<String> linked_frameworks = export_plugins[i]->get_apple_platform_frameworks();
 		Error err = _export_additional_assets(p_preset, p_out_dir, linked_frameworks, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> embedded_frameworks = export_plugins[i]->get_ios_embedded_frameworks();
+		Vector<String> embedded_frameworks = export_plugins[i]->get_apple_platform_embedded_frameworks();
 		err = _export_additional_assets(p_preset, p_out_dir, embedded_frameworks, true, true, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> project_static_libs = export_plugins[i]->get_ios_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			project_static_libs.write[j] = project_static_libs[j].get_file(); // Only the file name as it's copied to the project
 		}
 		err = _export_additional_assets(p_preset, p_out_dir, project_static_libs, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> ios_bundle_files = export_plugins[i]->get_ios_bundle_files();
+		Vector<String> ios_bundle_files = export_plugins[i]->get_apple_platform_bundle_files();
 		err = _export_additional_assets(p_preset, p_out_dir, ios_bundle_files, false, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 	}
@@ -2332,7 +2332,7 @@ Error EditorExportPlatformIOS::_export_project_helper(const Ref<EditorExportPres
 	// Copy project static libs to the project
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> project_static_libs = export_plugins[i]->get_ios_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			const String &static_lib_path = project_static_libs[j];
 			String dest_lib_file_path = dest_dir + static_lib_path.get_file();

@@ -34,18 +34,18 @@
 
 #include "editor/export/editor_export.h"
 
-void register_ios_exporter_types() {
-	GDREGISTER_VIRTUAL_CLASS(EditorExportPlatformIOS);
+void register_visionos_exporter_types() {
+	GDREGISTER_VIRTUAL_CLASS(EditorExportPlatformVisionOS);
 }
 
-void register_ios_exporter() {
+void register_visionos_exporter() {
 	// TODO: Move to editor_settings.cpp
 #ifdef MACOS_ENABLED
-	EDITOR_DEF("export/ios/ios_deploy", "");
-	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/ios/ios_deploy", PROPERTY_HINT_GLOBAL_FILE, "*"));
+	EDITOR_DEF("export/visionos/visionos_deploy", "");
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/visionos/visionos_deploy", PROPERTY_HINT_GLOBAL_FILE, "*"));
 #endif
 
-	Ref<EditorExportPlatformIOS> platform;
+	Ref<EditorExportPlatformVisionOS> platform;
 	platform.instantiate();
 
 	EditorExport::get_singleton()->add_export_platform(platform);

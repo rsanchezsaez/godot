@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.h                                                              */
+/*  os_visionos.mm                                                        */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,7 +28,24 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#pragma once
+#import "os_visionos.h"
 
-void register_visionos_exporter_types();
-void register_visionos_exporter();
+#import "display_server.h"
+
+#ifdef VISIONOS_ENABLED
+
+OS_VisionOS *OS_VisionOS::get_singleton() {
+	return (OS_VisionOS *)OS_AppleEmbedded::get_singleton();
+}
+
+OS_VisionOS::OS_VisionOS() : OS_AppleEmbedded() {
+	DisplayServerVisionOS::register_visionos_driver();
+}
+
+OS_VisionOS::~OS_VisionOS() {}
+
+String OS_VisionOS::get_name() const {
+	return "visionOS";
+}
+
+#endif // VISIONOS_ENABLED

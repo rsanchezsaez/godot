@@ -30,7 +30,7 @@
 
 #import "terminal_logger.h"
 
-#ifdef IOS_ENABLED
+#ifdef APPLE_EMBEDDED_ENABLED
 
 #import <os/log.h>
 
@@ -71,4 +71,4 @@ void TerminalLoggerAppleEmbedded::log_error(const char *p_function, const char *
 	}
 }
 
-#endif // IOS_ENABLED
+#endif // APPLE_EMBEDDED_ENABLED

@@ -30,13 +30,17 @@
 
 #import "display_server.h"
 
+#import "device_metrics.h"
+
+#import <UIKit/UIKit.h>
+#import <sys/utsname.h>
+
 DisplayServerIOS *DisplayServerIOS::get_singleton() {
 	return (DisplayServerIOS *)DisplayServerAppleEmbedded::get_singleton();
 }
 
 DisplayServerIOS::DisplayServerIOS(const String &p_rendering_driver, WindowMode p_mode, DisplayServer::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, Context p_context, int64_t p_parent_window, Error &r_error) :
 DisplayServerAppleEmbedded(p_rendering_driver, p_mode, p_vsync_mode, p_flags,p_position, p_resolution, p_screen, p_context, p_parent_window, r_error) {
-	r_error = OK;
 }
 
 DisplayServerIOS::~DisplayServerIOS() {
@@ -52,4 +56,53 @@ void DisplayServerIOS::register_ios_driver() {
 
 String DisplayServerIOS::get_name() const {
 	return "iOS";
+}
+
+int DisplayServerIOS::screen_get_dpi(int p_screen) const {
+	struct utsname systemInfo;
+	uname(&systemInfo);
+
+	NSString *string = [NSString stringWithCString:systemInfo.machine encoding:NSUTF8StringEncoding];
+
+	NSDictionary *iOSModelToDPI = [GDTDeviceMetrics dpiList];
+
+	for (NSArray *keyArray in iOSModelToDPI) {
+		if ([keyArray containsObject:string]) {
+			NSNumber *value = iOSModelToDPI[keyArray];
+			return [value intValue];
+		}
+	}
+
+	// If device wasn't found in dictionary
+	// make a best guess from device metrics.
+	CGFloat scale = [UIScreen mainScreen].scale;
+
+	UIUserInterfaceIdiom idiom = [UIDevice currentDevice].userInterfaceIdiom;
+
+	switch (idiom) {
+		case UIUserInterfaceIdiomPad:
+			return scale == 2 ? 264 : 132;
+		case UIUserInterfaceIdiomPhone: {
+			if (scale == 3) {
+				CGFloat nativeScale = [UIScreen mainScreen].nativeScale;
+				return nativeScale == 3 ? 458 : 401;
+			}
+
+			return 326;
+		}
+		default:
+			return 72;
+	}
+}
+
+float DisplayServerIOS::screen_get_refresh_rate(int p_screen) const {
+	float fps = [UIScreen mainScreen].maximumFramesPerSecond;
+	if ([NSProcessInfo processInfo].lowPowerModeEnabled) {
+		fps = 60;
+	}
+	return fps;
+}
+
+float DisplayServerIOS::screen_get_scale(int p_screen) const {
+	return [UIScreen mainScreen].scale;
 }

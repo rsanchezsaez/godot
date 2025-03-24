@@ -32,24 +32,24 @@ def generate_bundle(target, source, env):
     dbg_target_bin_sim = lipo(bin_dir + "/" + dbg_prefix, ".simulator" + env.extra_suffix + ".a")
 
     # Assemble Xcode project bundle.
-    app_dir = Dir("#bin/ios_xcode").abspath
-    templ = Dir("#misc/dist/ios_xcode").abspath
+    app_dir = Dir("#bin/visionos_xcode").abspath
+    templ = Dir("#misc/dist/visionos_xcode").abspath
     if os.path.exists(app_dir):
         shutil.rmtree(app_dir)
     shutil.copytree(templ, app_dir)
     if rel_target_bin != "":
-        shutil.copy(rel_target_bin, app_dir + "/libgodot.ios.release.xcframework/ios-arm64/libgodot.a")
+        shutil.copy(rel_target_bin, app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64/libgodot.a")
     if dbg_target_bin != "":
-        shutil.copy(dbg_target_bin, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64/libgodot.a")
+        shutil.copy(dbg_target_bin, app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64/libgodot.a")
     if rel_target_bin_sim != "":
         shutil.copy(
-            rel_target_bin_sim, app_dir + "/libgodot.ios.release.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
+            rel_target_bin_sim, app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
         )
     if dbg_target_bin_sim != "":
         shutil.copy(
-            dbg_target_bin_sim, app_dir + "/libgodot.ios.debug.xcframework/ios-arm64_x86_64-simulator/libgodot.a"
+            dbg_target_bin_sim, app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
         )
-    mvk_path = detect_mvk(env, "ios-arm64")
+    mvk_path = detect_mvk(env, "visionos-arm64")
     if mvk_path != "":
         shutil.copytree(mvk_path, app_dir + "/MoltenVK.xcframework")
 
@@ -59,24 +59,26 @@ def generate_bundle(target, source, env):
     shutil.rmtree(app_dir)
 
 
-ios_lib = [
-    "main.mm",
-    "ios.mm",
+visionos_lib = [
+    "display_layer.mm",
     "display_server.mm",
-    "os_ios.mm",
+    "godot_view.mm",
+    "main.mm",
+    "os_visionos.mm",
+    "visionos.mm",
 ]
 
-env_ios = env.Clone()
-ios_lib = env_ios.add_library("ios", ios_lib)
+env_visionos = env.Clone()
+visionos_lib = env_visionos.add_library("visionos", visionos_lib)
 
-# (iOS) Enable module support
-env_ios.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
+# Enable module support
+env_visionos.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
 
 
 def combine_libs(target=None, source=None, env=None):
     lib_path = target[0].srcnode().abspath
     if "osxcross" in env:
-        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/${ios_triple}libtool"
+        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/${visionos_triple}libtool"
     else:
         libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/libtool"
     env.Execute(
@@ -84,7 +86,7 @@ def combine_libs(target=None, source=None, env=None):
     )
 
 
-combine_command = env_ios.Command("#bin/libgodot" + env_ios["LIBSUFFIX"], [ios_lib] + env_ios["LIBS"], combine_libs)
+combine_command = env_visionos.Command("#bin/libgodot" + env_visionos["LIBSUFFIX"], [visionos_lib] + env_visionos["LIBS"], combine_libs)
 
 if env["generate_bundle"]:
     generate_bundle_command = env.Command("generate_bundle", [], generate_bundle)

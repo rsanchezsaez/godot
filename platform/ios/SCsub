@@ -60,9 +60,12 @@ def generate_bundle(target, source, env):
 
 
 ios_lib = [
-    "main.mm",
-    "ios.mm",
+    "device_metrics.mm",
+    "display_layer.mm",
     "display_server.mm",
+    "godot_view.mm",
+    "ios.mm",
+    "main.mm",
     "os_ios.mm",
 ]
 
