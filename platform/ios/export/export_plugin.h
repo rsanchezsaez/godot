@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  export.cpp                                                            */
+/*  export_plugin.h                                                       */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -28,26 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "export.h"
+#pragma once
 
-#include "export_plugin.h"
+#include "drivers/apple_embedded/export/export_plugin.h"
 
-#include "editor/export/editor_export.h"
+class EditorExportPlatformIOS : public EditorExportPlatformAppleEmbedded {
+	GDCLASS(EditorExportPlatformIOS, EditorExportPlatformAppleEmbedded);
 
-void register_ios_exporter_types() {
-	GDREGISTER_ABSTRACT_CLASS(EditorExportPlatformAppleEmbedded);
-	GDREGISTER_VIRTUAL_CLASS(EditorExportPlatformIOS);
-}
-
-void register_ios_exporter() {
-	// TODO: Move to editor_settings.cpp
-#ifdef MACOS_ENABLED
-	EDITOR_DEF("export/ios/ios_deploy", "");
-	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/ios/ios_deploy", PROPERTY_HINT_GLOBAL_FILE, "*"));
-#endif
-
-	Ref<EditorExportPlatformIOS> platform;
-	platform.instantiate();
-
-	EditorExport::get_singleton()->add_export_platform(platform);
-}
+public:
+	EditorExportPlatformIOS();
+	~EditorExportPlatformIOS();
+};

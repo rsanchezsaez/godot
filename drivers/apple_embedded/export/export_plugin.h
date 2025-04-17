@@ -55,8 +55,8 @@ const String ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE = "GODOT_APPLE_EMBEDDED_PRO
 const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG";
 const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE";
 
-class EditorExportPlatformIOS : public EditorExportPlatform {
-	GDCLASS(EditorExportPlatformIOS, EditorExportPlatform);
+class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
+	GDCLASS(EditorExportPlatformAppleEmbedded, EditorExportPlatform);
 
 	Ref<ImageTexture> logo;
 	Ref<ImageTexture> run_icon;
@@ -76,7 +76,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	Mutex device_lock;
 
 	Mutex plugins_lock;
-	mutable Vector<PluginConfigIOS> plugins;
+	mutable Vector<PluginConfigAppleEmbedded> plugins;
 #ifdef MACOS_ENABLED
 	Thread check_for_changes_thread;
 	SafeFlag quit_request;
@@ -92,7 +92,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	static Error _codesign(String p_file, void *p_userdata);
 	void _blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot);
 
-	struct IOSConfigData {
+	struct AppleEmbeddedConfigData {
 		String pkg_name;
 		String binary_name;
 		String plist_content;
@@ -118,7 +118,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 		}
 	};
 
-	struct IOSExportAsset {
+	struct AppleEmbeddedExportAsset {
 		String exported_path;
 		bool is_framework = false; // framework is anything linked to the binary, otherwise it's a resource
 		bool should_embed = false;
@@ -127,7 +127,7 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	String _get_additional_plist_content();
 	String _get_linker_flags();
 	String _get_cpp_code();
-	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const IOSConfigData &p_config, bool p_debug);
+	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const AppleEmbeddedConfigData &p_config, bool p_debug);
 	Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir);
 	Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir);
 
@@ -137,11 +137,11 @@ class EditorExportPlatformIOS : public EditorExportPlatform {
 	void _check_xcframework_content(const String &p_path, int &r_total_libs, int &r_static_libs, int &r_dylibs, int &r_frameworks) const;
 	Error _convert_to_framework(const String &p_source, const String &p_destination, const String &p_id) const;
 
-	void _add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<IOSExportAsset> &p_additional_assets);
-	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
-	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<IOSExportAsset> &r_exported_assets);
-	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<IOSExportAsset> &r_exported_assets);
-	Error _export_ios_plugins(const Ref<EditorExportPreset> &p_preset, IOSConfigData &p_config_data, const String &dest_dir, Vector<IOSExportAsset> &r_exported_assets, bool p_debug);
+	void _add_assets_to_project(const String &p_out_dir, const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_project_data, const Vector<AppleEmbeddedExportAsset> &p_additional_assets);
+	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
+	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
+	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
+	Error _export_ios_plugins(const Ref<EditorExportPreset> &p_preset, AppleEmbeddedConfigData &p_config_data, const String &dest_dir, Vector<AppleEmbeddedExportAsset> &r_exported_assets, bool p_debug);
 
 	Error _export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_oneclick);
 
@@ -214,8 +214,8 @@ public:
 	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, HashSet<String> &p_features) override {
 	}
 
-	EditorExportPlatformIOS();
-	~EditorExportPlatformIOS();
+	EditorExportPlatformAppleEmbedded(const char *p_platform_logo_svg, const char *p_run_icon_svg);
+	~EditorExportPlatformAppleEmbedded();
 
 	/// List the gdip files in the directory specified by the p_path parameter.
 	static Vector<String> list_plugin_config_files(const String &p_path, bool p_check_directories) {
@@ -248,7 +248,7 @@ public:
 					continue;
 				}
 
-				if (file.ends_with(PluginConfigIOS::PLUGIN_CONFIG_EXT)) {
+				if (file.ends_with(PluginConfigAppleEmbedded::PLUGIN_CONFIG_EXT)) {
 					dir_files.push_back(file);
 				}
 			}
@@ -258,8 +258,8 @@ public:
 		return dir_files;
 	}
 
-	static Vector<PluginConfigIOS> get_plugins() {
-		Vector<PluginConfigIOS> loaded_plugins;
+	static Vector<PluginConfigAppleEmbedded> get_plugins() {
+		Vector<PluginConfigAppleEmbedded> loaded_plugins;
 
 		String plugins_dir = ProjectSettings::get_singleton()->get_resource_path().path_join("ios/plugins");
 
@@ -269,7 +269,7 @@ public:
 			if (!plugins_filenames.is_empty()) {
 				Ref<ConfigFile> config_file = memnew(ConfigFile);
 				for (int i = 0; i < plugins_filenames.size(); i++) {
-					PluginConfigIOS config = PluginConfigIOS::load_plugin_config(config_file, plugins_dir.path_join(plugins_filenames[i]));
+					PluginConfigAppleEmbedded config = PluginConfigAppleEmbedded::load_plugin_config(config_file, plugins_dir.path_join(plugins_filenames[i]));
 					if (config.valid_config) {
 						loaded_plugins.push_back(config);
 					} else {
@@ -282,11 +282,11 @@ public:
 		return loaded_plugins;
 	}
 
-	static Vector<PluginConfigIOS> get_enabled_plugins(const Ref<EditorExportPreset> &p_presets) {
-		Vector<PluginConfigIOS> enabled_plugins;
-		Vector<PluginConfigIOS> all_plugins = get_plugins();
+	static Vector<PluginConfigAppleEmbedded> get_enabled_plugins(const Ref<EditorExportPreset> &p_presets) {
+		Vector<PluginConfigAppleEmbedded> enabled_plugins;
+		Vector<PluginConfigAppleEmbedded> all_plugins = get_plugins();
 		for (int i = 0; i < all_plugins.size(); i++) {
-			PluginConfigIOS plugin = all_plugins[i];
+			PluginConfigAppleEmbedded plugin = all_plugins[i];
 			bool enabled = p_presets->get("plugins/" + plugin.name);
 			if (enabled) {
 				enabled_plugins.push_back(plugin);
