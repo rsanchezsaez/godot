@@ -39,12 +39,6 @@ void register_visionos_exporter_types() {
 }
 
 void register_visionos_exporter() {
-	// TODO: Move to editor_settings.cpp
-#ifdef MACOS_ENABLED
-	EDITOR_DEF("export/visionos/visionos_deploy", "");
-	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/visionos/visionos_deploy", PROPERTY_HINT_GLOBAL_FILE, "*"));
-#endif
-
 	Ref<EditorExportPlatformVisionOS> platform;
 	platform.instantiate();
 
