@@ -201,12 +201,6 @@ static const String export_method_string[] = {
 	"ad-hoc",
 	"enterprise"
 };
-static const String storyboard_image_scale_mode[] = {
-	"center",
-	"scaleAspectFit",
-	"scaleAspectFill",
-	"scaleToFill"
-};
 
 String EditorExportPlatformAppleEmbedded::get_export_option_warning(const EditorExportPreset *p_preset, const StringName &p_name) const {
 	if (p_preset) {
@@ -296,14 +290,10 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/provisioning_profile_specifier_release", PROPERTY_HINT_PLACEHOLDER_TEXT, ""), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/export_method_release", PROPERTY_HINT_ENUM, "App Store,Development,Ad-Hoc,Enterprise"), 0));
 
-	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/targeted_device_family", PROPERTY_HINT_ENUM, "iPhone,iPad,iPhone & iPad"), 2));
-
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/bundle_identifier", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.game"), "", false, true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/signature"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/short_version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/version", PROPERTY_HINT_PLACEHOLDER_TEXT, "Leave empty to use project version"), ""));
-
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_ios_version"), "14.0"));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/additional_plist_content", PROPERTY_HINT_MULTILINE_TEXT), ""));
 
@@ -312,7 +302,7 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/export_project_only"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "application/delete_old_export_files_unconditionally"), false));
 
-	Vector<PluginConfigAppleEmbedded> found_plugins = get_plugins();
+	Vector<PluginConfigAppleEmbedded> found_plugins = get_plugins(get_platform_name());
 	for (int i = 0; i < found_plugins.size(); i++) {
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, vformat("%s/%s", PNAME("plugins"), found_plugins[i].name)), false));
 	}
@@ -405,45 +395,19 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, String(icon_infos[i].preset_key) + "_tinted", PROPERTY_HINT_FILE, "*.png,*.jpg,*.jpeg"), ""));
 		}
 	}
-	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "storyboard/image_scale_mode", PROPERTY_HINT_ENUM, "Same as Logo,Center,Scale to Fit,Scale to Fill,Scale"), 0));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "storyboard/custom_image@2x", PROPERTY_HINT_FILE, "*.png,*.jpg,*.jpeg"), ""));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "storyboard/custom_image@3x", PROPERTY_HINT_FILE, "*.png,*.jpg,*.jpeg"), ""));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "storyboard/use_custom_bg_color"), false));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::COLOR, "storyboard/custom_bg_color"), Color()));
-}
-
-HashMap<String, Variant> EditorExportPlatformAppleEmbedded::get_custom_project_settings(const Ref<EditorExportPreset> &p_preset) const {
-	HashMap<String, Variant> settings;
-
-	int image_scale_mode = p_preset->get("storyboard/image_scale_mode");
-	String value;
-
-	switch (image_scale_mode) {
-		case 0: {
-			String logo_path = get_project_setting(p_preset, "application/boot_splash/image");
-			bool is_on = get_project_setting(p_preset, "application/boot_splash/fullsize");
-			// If custom logo is not specified, Godot does not scale default one, so we should do the same.
-			value = (is_on && logo_path.length() > 0) ? "scaleAspectFit" : "center";
-		} break;
-		default: {
-			value = storyboard_image_scale_mode[image_scale_mode - 1];
-		}
-	}
-	settings["ios/launch_screen_image_mode"] = value;
-	return settings;
 }
 
 void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const AppleEmbeddedConfigData &p_config, bool p_debug) {
 	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : p_preset->get("application/code_sign_identity_debug");
 	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : p_preset->get("application/code_sign_identity_release");
-	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
-	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
+	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
+	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
 
-	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG).operator String();
+	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_DEBUG).operator String();
 	bool valid_dbg_specifier = !provisioning_profile_specifier_dbg.is_empty();
 	dbg_manual |= valid_dbg_specifier;
 
-	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE).operator String();
+	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_RELEASE).operator String();
 	bool valid_rel_specifier = !provisioning_profile_specifier_rel.is_empty();
 	rel_manual |= valid_rel_specifier;
 
@@ -470,7 +434,8 @@ void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportP
 		} else if (lines[i].contains("$version")) {
 			strnew += lines[i].replace("$version", p_preset->get_version("application/version")) + "\n";
 		} else if (lines[i].contains("$min_version")) {
-			strnew += lines[i].replace("$min_version", p_preset->get("application/min_ios_version")) + "\n";
+			strnew += lines[i].replace("$min_version",
+									   p_preset->get("application/min_" + get_platform_name() + "_version")) + "\n";
 		} else if (lines[i].contains("$signature")) {
 			strnew += lines[i].replace("$signature", p_preset->get("application/signature")) + "\n";
 		} else if (lines[i].contains("$team_id")) {
@@ -488,9 +453,9 @@ void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportP
 			String specifier = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 			strnew += lines[i].replace("$provisioning_profile_specifier", specifier) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_release")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE)) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_debug")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG)) + "\n";
 		} else if (lines[i].contains("$code_sign_style_debug")) {
 			if (dbg_manual) {
 				strnew += lines[i].replace("$code_sign_style_debug", "Manual") + "\n";
@@ -504,7 +469,7 @@ void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportP
 				strnew += lines[i].replace("$code_sign_style_release", "Automatic") + "\n";
 			}
 		} else if (lines[i].contains("$provisioning_profile_uuid")) {
-			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE);
+			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE);
 			if (uuid.is_empty()) {
 				Variant variant = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 				bool valid = p_debug ? valid_dbg_specifier : valid_rel_specifier;
@@ -1067,7 +1032,7 @@ Error EditorExportPlatformAppleEmbedded::_export_icons(const Ref<EditorExportPre
 				json_description += String("}],");
 			}
 			json_description += String("\"idiom\":") + "\"" + info.idiom + "\",";
-			json_description += String("\"platform\":\"ios\",");
+			json_description += String("\"platform\":\"" + get_platform_name() + "\",");
 			json_description += String("\"size\":") + "\"" + info.unscaled_size + "\",";
 			if (String(info.scale) != "1x") {
 				json_description += String("\"scale\":") + "\"" + info.scale + "\",";
@@ -1095,66 +1060,6 @@ Error EditorExportPlatformAppleEmbedded::_export_icons(const Ref<EditorExportPre
 
 	CharString sizes_utf8 = sizes.utf8();
 	sizes_file->store_buffer((const uint8_t *)sizes_utf8.get_data(), sizes_utf8.length());
-
-	return OK;
-}
-
-Error EditorExportPlatformAppleEmbedded::_export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) {
-	const String custom_launch_image_2x = p_preset->get("storyboard/custom_image@2x");
-	const String custom_launch_image_3x = p_preset->get("storyboard/custom_image@3x");
-
-	if (custom_launch_image_2x.length() > 0 && custom_launch_image_3x.length() > 0) {
-		String image_path = p_dest_dir.path_join("splash@2x.png");
-		Error err = OK;
-		Ref<Image> image = _load_icon_or_splash_image(custom_launch_image_2x, &err);
-
-		if (err != OK || image.is_null() || image->is_empty()) {
-			return err;
-		}
-
-		if (image->save_png(image_path) != OK) {
-			return ERR_FILE_CANT_WRITE;
-		}
-
-		image_path = p_dest_dir.path_join("splash@3x.png");
-		image = _load_icon_or_splash_image(custom_launch_image_3x, &err);
-
-		if (err != OK || image.is_null() || image->is_empty()) {
-			return err;
-		}
-
-		if (image->save_png(image_path) != OK) {
-			return ERR_FILE_CANT_WRITE;
-		}
-	} else {
-		Error err = OK;
-		Ref<Image> splash;
-
-		const String splash_path = get_project_setting(p_preset, "application/boot_splash/image");
-
-		if (!splash_path.is_empty()) {
-			splash = _load_icon_or_splash_image(splash_path, &err);
-		}
-
-		if (err != OK || splash.is_null() || splash->is_empty()) {
-			splash.instantiate(boot_splash_png);
-		}
-
-		// Using same image for both @2x and @3x
-		// because Godot's own boot logo uses single image for all resolutions.
-		// Also not using @1x image, because devices using this image variant
-		// are not supported by iOS 9, which is minimal target.
-		const String splash_png_path_2x = p_dest_dir.path_join("splash@2x.png");
-		const String splash_png_path_3x = p_dest_dir.path_join("splash@3x.png");
-
-		if (splash->save_png(splash_png_path_2x) != OK) {
-			return ERR_FILE_CANT_WRITE;
-		}
-
-		if (splash->save_png(splash_png_path_3x) != OK) {
-			return ERR_FILE_CANT_WRITE;
-		}
-	}
 
 	return OK;
 }
@@ -1572,7 +1477,7 @@ Error EditorExportPlatformAppleEmbedded::_copy_asset(const Ref<EditorExportPrese
 	ERR_FAIL_COND_V_MSG(filesystem_da.is_null(), ERR_CANT_CREATE, "Cannot create DirAccess for path '" + p_out_dir + "'.");
 
 	if (p_is_framework && asset.ends_with(".dylib")) {
-		// For iOS we need to turn .dylib into .framework
+		// For Apple Embedded platforms we need to turn .dylib into .framework
 		// to be able to send application to AppStore
 		asset_path = String("dylibs").path_join(base_dir);
 
@@ -1596,7 +1501,7 @@ Error EditorExportPlatformAppleEmbedded::_copy_asset(const Ref<EditorExportPrese
 			return err;
 		}
 	} else if (p_is_framework && asset.ends_with(".xcframework")) {
-		// For iOS we need to turn .dylib inside .xcframework
+		// For Apple Embedded platforms we need to turn .dylib inside .xcframework
 		// into .framework to be able to send application to AppStore
 
 		int total_libs = 0;
@@ -1739,8 +1644,8 @@ Error EditorExportPlatformAppleEmbedded::_export_additional_assets(const Ref<Edi
 		err = _export_additional_assets(p_preset, p_out_dir, project_static_libs, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> ios_bundle_files = export_plugins[i]->get_apple_platform_bundle_files();
-		err = _export_additional_assets(p_preset, p_out_dir, ios_bundle_files, false, false, r_exported_assets);
+		Vector<String> apple_platform_bundle_files = export_plugins[i]->get_apple_platform_bundle_files();
+		err = _export_additional_assets(p_preset, p_out_dir, apple_platform_bundle_files, false, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 	}
 
@@ -1766,7 +1671,7 @@ Vector<String> EditorExportPlatformAppleEmbedded::_get_preset_architectures(cons
 	return enabled_archs;
 }
 
-Error EditorExportPlatformAppleEmbedded::_export_ios_plugins(const Ref<EditorExportPreset> &p_preset, AppleEmbeddedConfigData &p_config_data, const String &dest_dir, Vector<AppleEmbeddedExportAsset> &r_exported_assets, bool p_debug) {
+Error EditorExportPlatformAppleEmbedded::_export_apple_embedded_plugins(const Ref<EditorExportPreset> &p_preset, AppleEmbeddedConfigData &p_config_data, const String &dest_dir, Vector<AppleEmbeddedExportAsset> &r_exported_assets, bool p_debug) {
 	String plugin_definition_cpp_code;
 	String plugin_initialization_cpp_code;
 	String plugin_deinitialization_cpp_code;
@@ -1775,7 +1680,7 @@ Error EditorExportPlatformAppleEmbedded::_export_ios_plugins(const Ref<EditorExp
 	Vector<String> plugin_embedded_dependencies;
 	Vector<String> plugin_files;
 
-	Vector<PluginConfigAppleEmbedded> enabled_plugins = get_enabled_plugins(p_preset);
+	Vector<PluginConfigAppleEmbedded> enabled_plugins = get_enabled_plugins(get_platform_name(), p_preset);
 
 	Vector<String> added_linked_dependenciy_names;
 	Vector<String> added_embedded_dependenciy_names;
@@ -1938,15 +1843,15 @@ Error EditorExportPlatformAppleEmbedded::_export_ios_plugins(const Ref<EditorExp
 		plugin_format["deinitialization"] = plugin_deinitialization_cpp_code;
 
 		String plugin_cpp_code = "\n// Godot Plugins\n"
-								 "void godot_ios_plugins_initialize();\n"
-								 "void godot_ios_plugins_deinitialize();\n"
+								 "void godot_apple_plugins_initialize();\n"
+								 "void godot_apple_plugins_deinitialize();\n"
 								 "// Exported Plugins\n\n"
 								 "$definition"
 								 "// Use Plugins\n"
-								 "void godot_ios_plugins_initialize() {\n"
+								 "void godot_apple_plugins_initialize() {\n"
 								 "$initialization"
 								 "}\n\n"
-								 "void godot_ios_plugins_deinitialize() {\n"
+								 "void godot_apple_plugins_deinitialize() {\n"
 								 "$deinitialization"
 								 "}\n";
 
@@ -1997,7 +1902,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 		export_project_only = false; // Skip for one-click deploy.
 	}
 
-	EditorProgress ep("export", export_project_only ? TTR("Exporting for iOS (Project Files Only)") : TTR("Exporting for iOS"), export_project_only ? 2 : 5, true);
+	EditorProgress ep("export", export_project_only ? TTR("Exporting for " + get_name() + " (Project Files Only)") : TTR("Exporting for " + get_name() + ""), export_project_only ? 2 : 5, true);
 
 	String team_id = p_preset->get("application/app_store_team_id");
 	ERR_FAIL_COND_V_MSG(team_id.length() == 0, ERR_CANT_OPEN, "App Store Team ID not specified - cannot configure the project.");
@@ -2011,7 +1916,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 
 	if (src_pkg_name.is_empty()) {
 		String err;
-		src_pkg_name = find_export_template("ios.zip", &err);
+		src_pkg_name = find_export_template(get_platform_name() + ".zip", &err);
 		if (src_pkg_name.is_empty()) {
 			add_message(EXPORT_MESSAGE_ERROR, TTR("Prepare Templates"), TTR("Export template not found."));
 			return ERR_FILE_NOT_FOUND;
@@ -2112,7 +2017,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 		return ERR_SKIP;
 	}
 
-	String library_to_use = "libgodot.ios." + String(p_debug ? "debug" : "release") + ".xcframework";
+	String library_to_use = "libgodot." + get_platform_name() + "." + String(p_debug ? "debug" : "release") + ".xcframework";
 
 	print_line("Static framework: " + library_to_use);
 	String pkg_name;
@@ -2124,16 +2029,17 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 
 	bool found_library = false;
 
-	const String project_file = "godot_ios.xcodeproj/project.pbxproj";
+	const String godot_platform = "godot_" + get_platform_name();
+	const String project_file = godot_platform + ".xcodeproj/project.pbxproj";
 	HashSet<String> files_to_parse;
-	files_to_parse.insert("godot_ios/godot_ios-Info.plist");
+	files_to_parse.insert(godot_platform + "/godot_" + get_platform_name() + "-Info.plist");
 	files_to_parse.insert(project_file);
-	files_to_parse.insert("godot_ios/export_options.plist");
-	files_to_parse.insert("godot_ios/dummy.cpp");
-	files_to_parse.insert("godot_ios.xcodeproj/project.xcworkspace/contents.xcworkspacedata");
-	files_to_parse.insert("godot_ios.xcodeproj/xcshareddata/xcschemes/godot_ios.xcscheme");
-	files_to_parse.insert("godot_ios/godot_ios.entitlements");
-	files_to_parse.insert("godot_ios/Launch Screen.storyboard");
+	files_to_parse.insert(godot_platform + "/export_options.plist");
+	files_to_parse.insert(godot_platform + "/dummy.cpp");
+	files_to_parse.insert(godot_platform + ".xcodeproj/project.xcworkspace/contents.xcworkspacedata");
+	files_to_parse.insert(godot_platform + ".xcodeproj/xcshareddata/xcschemes/godot_" + get_platform_name() + ".xcscheme");
+	files_to_parse.insert(godot_platform + "/godot_" + get_platform_name() + ".entitlements");
+	files_to_parse.insert(godot_platform + "/Launch Screen.storyboard");
 	files_to_parse.insert("PrivacyInfo.xcprivacy");
 
 	AppleEmbeddedConfigData config_data = {
@@ -2170,12 +2076,12 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 		return ERR_CANT_OPEN;
 	}
 
-	err = _export_ios_plugins(p_preset, config_data, binary_dir, assets, p_debug);
+	err = _export_apple_embedded_plugins(p_preset, config_data, binary_dir, assets, p_debug);
 	if (err != OK) {
-		// TODO: Improve error reporting by using `add_message` throughout all methods called via `_export_ios_plugins`.
+		// TODO: Improve error reporting by using `add_message` throughout all methods called via `_export_apple_embedded_plugins`.
 		// For now a generic top level message would be fine, but we're ought to use proper reporting here instead of
 		// just fail macros and non-descriptive error return values.
-		add_message(EXPORT_MESSAGE_ERROR, TTR("iOS Plugins"), vformat(TTR("Failed to export iOS plugins with code %d. Please check the output log."), err));
+		add_message(EXPORT_MESSAGE_ERROR, TTR("Apple Embedded Plugins"), vformat(TTR("Failed to export Apple Embedded plugins with code %d. Please check the output log."), err));
 		return err;
 	}
 
@@ -2210,7 +2116,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 
 		if (files_to_parse.has(file)) {
 			_fix_config_file(p_preset, data, config_data, p_debug);
-		} else if (file.begins_with("libgodot.ios")) {
+		} else if (file.begins_with("libgodot." + get_platform_name())) {
 			if (!file.begins_with(library_to_use) || file.ends_with(String("/empty"))) {
 				ret = unzGoToNextFile(src_pkg_zip);
 				continue; //ignore!
@@ -2229,7 +2135,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 		///@TODO need to parse logo files
 
 		if (data.size() > 0) {
-			file = file.replace("godot_ios", binary_name);
+			file = file.replace("godot_" + get_platform_name(), binary_name);
 
 			print_line("ADDING: " + file + " size: " + itos(data.size()));
 
@@ -2425,7 +2331,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 	archive_args.push_back("-configuration");
 	archive_args.push_back(p_debug ? "Debug" : "Release");
 	archive_args.push_back("-destination");
-	archive_args.push_back("generic/platform=iOS");
+	archive_args.push_back("generic/platform=" + get_platform_name());
 	archive_args.push_back("archive");
 	archive_args.push_back("-allowProvisioningUpdates");
 	archive_args.push_back("-archivePath");
@@ -2482,7 +2388,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 bool EditorExportPlatformAppleEmbedded::has_valid_export_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates, bool p_debug) const {
 #if defined(MODULE_MONO_ENABLED) && !defined(MACOS_ENABLED)
 	// TODO: Remove this restriction when we don't rely on macOS tools to package up the native libraries anymore.
-	r_error += TTR("Exporting to iOS when using C#/.NET is experimental and requires macOS.") + "\n";
+	r_error += TTR("Exporting to an Apple Embedded platform when using C#/.NET is experimental and requires macOS.") + "\n";
 	return false;
 #else
 
@@ -2490,12 +2396,12 @@ bool EditorExportPlatformAppleEmbedded::has_valid_export_configuration(const Ref
 	bool valid = false;
 
 #if defined(MODULE_MONO_ENABLED)
-	// iOS export is still a work in progress, keep a message as a warning.
-	err += TTR("Exporting to iOS when using C#/.NET is experimental.") + "\n";
+	// Apple Embedded export is still a work in progress, keep a message as a warning.
+	err += TTR("Exporting to an Apple Embedded platform when using C#/.NET is experimental.") + "\n";
 #endif
 	// Look for export templates (first official, and if defined custom templates).
 
-	bool dvalid = exists_export_template("ios.zip", &err);
+	bool dvalid = exists_export_template(get_platform_name() + ".zip", &err);
 	bool rvalid = dvalid; // Both in the same ZIP.
 
 	if (p_preset->get("custom_template/debug") != "") {
@@ -2531,15 +2437,6 @@ bool EditorExportPlatformAppleEmbedded::has_valid_export_configuration(const Ref
 		if (!plist_parser->load_string(plist, plist_err)) {
 			err += TTR("Invalid additional PList content: ") + plist_err + "\n";
 			valid = false;
-		}
-	}
-
-	String rendering_method = get_project_setting(p_preset, "rendering/renderer/rendering_method.mobile");
-	String rendering_driver = get_project_setting(p_preset, "rendering/rendering_device/driver.ios");
-	if ((rendering_method == "forward_plus" || rendering_method == "mobile") && rendering_driver == "metal") {
-		float version = p_preset->get("application/min_ios_version").operator String().to_float();
-		if (version < 14.0) {
-			err += TTR("Metal renderer require iOS 14+.") + "\n";
 		}
 	}
 
@@ -2674,7 +2571,7 @@ void EditorExportPlatformAppleEmbedded::_check_for_changes_poll_thread(void *ud)
 		if (!ea->plugins_changed.is_set()) {
 			MutexLock lock(ea->plugins_lock);
 
-			Vector<PluginConfigAppleEmbedded> loaded_plugins = get_plugins();
+			Vector<PluginConfigAppleEmbedded> loaded_plugins = get_plugins(ea->get_platform_name());
 
 			if (ea->plugins.size() != loaded_plugins.size()) {
 				ea->plugins_changed.set();
@@ -2692,7 +2589,7 @@ void EditorExportPlatformAppleEmbedded::_check_for_changes_poll_thread(void *ud)
 		Vector<Device> ldevices;
 
 		// Enum real devices (via ios_deploy, pre Xcode 15).
-		String idepl = EDITOR_GET("export/ios/ios_deploy");
+		String idepl = EDITOR_GET("export/" + ea->get_platform_name() + "/ios_deploy");
 		if (ea->has_runnable_preset.is_set() && !idepl.is_empty()) {
 			String devices;
 			List<String> args;
@@ -2934,7 +2831,7 @@ Error EditorExportPlatformAppleEmbedded::run(const Ref<EditorExportPreset> &p_pr
 				args.push_back(app_args);
 			}
 
-			String idepl = EDITOR_GET("export/ios/ios_deploy");
+			String idepl = EDITOR_GET("export/" + get_platform_name() + "/ios_deploy");
 			if (idepl.is_empty()) {
 				idepl = "ios-deploy";
 			}

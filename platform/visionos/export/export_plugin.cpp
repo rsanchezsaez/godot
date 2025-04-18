@@ -439,14 +439,14 @@ HashMap<String, Variant> EditorExportPlatformVisionOS::get_custom_project_settin
 void EditorExportPlatformVisionOS::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const VisionOSConfigData &p_config, bool p_debug) {
 	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : p_preset->get("application/code_sign_identity_debug");
 	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : p_preset->get("application/code_sign_identity_release");
-	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
-	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
+	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
+	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
 
-	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG).operator String();
+	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_DEBUG).operator String();
 	bool valid_dbg_specifier = !provisioning_profile_specifier_dbg.is_empty();
 	dbg_manual |= valid_dbg_specifier;
 
-	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE).operator String();
+	String provisioning_profile_specifier_rel = p_preset->get_or_env("application/provisioning_profile_specifier_release", ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_RELEASE).operator String();
 	bool valid_rel_specifier = !provisioning_profile_specifier_rel.is_empty();
 	rel_manual |= valid_rel_specifier;
 
@@ -491,9 +491,9 @@ void EditorExportPlatformVisionOS::_fix_config_file(const Ref<EditorExportPreset
 			String specifier = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 			strnew += lines[i].replace("$provisioning_profile_specifier", specifier) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_release")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_release", p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE)) + "\n";
 		} else if (lines[i].contains("$provisioning_profile_uuid_debug")) {
-			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG)) + "\n";
+			strnew += lines[i].replace("$provisioning_profile_uuid_debug", p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG)) + "\n";
 		} else if (lines[i].contains("$code_sign_style_debug")) {
 			if (dbg_manual) {
 				strnew += lines[i].replace("$code_sign_style_debug", "Manual") + "\n";
@@ -507,7 +507,7 @@ void EditorExportPlatformVisionOS::_fix_config_file(const Ref<EditorExportPreset
 				strnew += lines[i].replace("$code_sign_style_release", "Automatic") + "\n";
 			}
 		} else if (lines[i].contains("$provisioning_profile_uuid")) {
-			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE);
+			String uuid = p_debug ? p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG) : p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE);
 			if (uuid.is_empty()) {
 				Variant variant = p_debug ? provisioning_profile_specifier_dbg : provisioning_profile_specifier_rel;
 				bool valid = p_debug ? valid_dbg_specifier : valid_rel_specifier;

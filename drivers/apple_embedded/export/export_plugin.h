@@ -50,10 +50,17 @@
 
 // Optional environment variables for defining confidential information. If any
 // of these is set, they will override the values set in the credentials file.
-const String ENV_APPLE_EMBEDDED_PROFILE_UUID_DEBUG = "GODOT_APPLE_EMBEDDED_PROVISIONING_PROFILE_UUID_DEBUG";
-const String ENV_APPLE_EMBEDDED_PROFILE_UUID_RELEASE = "GODOT_APPLE_EMBEDDED_PROVISIONING_PROFILE_UUID_RELEASE";
-const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_DEBUG";
-const String ENV_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE = "GODOT_APPLE_EMBEDDED_PROFILE_SPECIFIER_RELEASE";
+const String ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG = "GODOT_APPLE_PLATFORM_PROVISIONING_PROFILE_UUID_DEBUG";
+const String ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE = "GODOT_APPLE_PLATFORM_PROVISIONING_PROFILE_UUID_RELEASE";
+const String ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_DEBUG = "GODOT_APPLE_PLATFORM_PROFILE_SPECIFIER_DEBUG";
+const String ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_RELEASE = "GODOT_APPLE_PLATFORM_PROFILE_SPECIFIER_RELEASE";
+
+static const String storyboard_image_scale_mode[] = {
+	"center",
+	"scaleAspectFit",
+	"scaleAspectFill",
+	"scaleToFill"
+};
 
 class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	GDCLASS(EditorExportPlatformAppleEmbedded, EditorExportPlatform);
@@ -128,7 +135,6 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	String _get_linker_flags();
 	String _get_cpp_code();
 	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const AppleEmbeddedConfigData &p_config, bool p_debug);
-	Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir);
 	Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir);
 
 	Vector<ExportArchitecture> _get_supported_architectures() const;
@@ -141,13 +147,15 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<String> &p_assets, bool p_is_framework, bool p_should_embed, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
 	Error _copy_asset(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const String &p_asset, const String *p_custom_file_name, bool p_is_framework, bool p_should_embed, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
 	Error _export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<AppleEmbeddedExportAsset> &r_exported_assets);
-	Error _export_ios_plugins(const Ref<EditorExportPreset> &p_preset, AppleEmbeddedConfigData &p_config_data, const String &dest_dir, Vector<AppleEmbeddedExportAsset> &r_exported_assets, bool p_debug);
+	Error _export_apple_embedded_plugins(const Ref<EditorExportPreset> &p_preset, AppleEmbeddedConfigData &p_config_data, const String &dest_dir, Vector<AppleEmbeddedExportAsset> &r_exported_assets, bool p_debug);
 
 	Error _export_project_helper(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags, bool p_oneclick);
 
 	bool is_package_name_valid(const String &p_package, String *r_error = nullptr) const;
 
 protected:
+	virtual Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) { return OK; };
+	virtual String get_platform_name() const = 0;
 	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const override;
 	virtual void get_export_options(List<ExportOption> *r_options) const override;
 	virtual bool get_export_option_visibility(const EditorExportPreset *p_preset, const String &p_option) const override;
@@ -156,8 +164,7 @@ protected:
 	void _notification(int p_what);
 
 public:
-	virtual String get_name() const override { return "iOS"; }
-	virtual String get_os_name() const override { return "iOS"; }
+
 	virtual Ref<Texture2D> get_logo() const override { return logo; }
 	virtual Ref<Texture2D> get_run_icon() const override { return run_icon; }
 
@@ -199,17 +206,10 @@ public:
 		return list;
 	}
 
-	virtual HashMap<String, Variant> get_custom_project_settings(const Ref<EditorExportPreset> &p_preset) const override;
-
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags = 0) override;
 
 	virtual bool has_valid_export_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates, bool p_debug = false) const override;
 	virtual bool has_valid_project_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error) const override;
-
-	virtual void get_platform_features(List<String> *r_features) const override {
-		r_features->push_back("mobile");
-		r_features->push_back("ios");
-	}
 
 	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, HashSet<String> &p_features) override {
 	}
@@ -258,10 +258,10 @@ public:
 		return dir_files;
 	}
 
-	static Vector<PluginConfigAppleEmbedded> get_plugins() {
+	static Vector<PluginConfigAppleEmbedded> get_plugins(const String &p_platform_name) {
 		Vector<PluginConfigAppleEmbedded> loaded_plugins;
 
-		String plugins_dir = ProjectSettings::get_singleton()->get_resource_path().path_join("ios/plugins");
+		String plugins_dir = ProjectSettings::get_singleton()->get_resource_path().path_join(p_platform_name + "/plugins");
 
 		if (DirAccess::exists(plugins_dir)) {
 			Vector<String> plugins_filenames = list_plugin_config_files(plugins_dir, true);
@@ -282,9 +282,9 @@ public:
 		return loaded_plugins;
 	}
 
-	static Vector<PluginConfigAppleEmbedded> get_enabled_plugins(const Ref<EditorExportPreset> &p_presets) {
+	static Vector<PluginConfigAppleEmbedded> get_enabled_plugins(const String &p_platform_name, const Ref<EditorExportPreset> &p_presets) {
 		Vector<PluginConfigAppleEmbedded> enabled_plugins;
-		Vector<PluginConfigAppleEmbedded> all_plugins = get_plugins();
+		Vector<PluginConfigAppleEmbedded> all_plugins = get_plugins(p_platform_name);
 		for (int i = 0; i < all_plugins.size(); i++) {
 			PluginConfigAppleEmbedded plugin = all_plugins[i];
 			bool enabled = p_presets->get("plugins/" + plugin.name);

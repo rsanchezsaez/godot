@@ -33,11 +33,11 @@
 #if defined(VISIONOS_ENABLED)
 
 void register_visionos_api() {
-	godot_visionos_plugins_initialize();
+	godot_apple_plugins_deinitialize();
 }
 
 void unregister_visionos_api() {
-	godot_visionos_plugins_deinitialize();
+	godot_apple_plugins_deinitialize();
 }
 
 #else
