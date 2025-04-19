@@ -157,3 +157,197 @@ Error EditorExportPlatformIOS::_export_loading_screen_file(const Ref<EditorExpor
 
 	return OK;
 }
+
+Vector<EditorExportPlatformAppleEmbedded::IconInfo> EditorExportPlatformIOS::get_icon_infos() const {
+	Vector<EditorExportPlatformAppleEmbedded::IconInfo> icon_infos;
+	return {
+		// Settings on iPhone, iPad Pro, iPad, iPad mini
+		{ PNAME("icons/settings_58x58"), "universal", "Icon-58", "58", "2x", "29x29", false },
+		{ PNAME("icons/settings_87x87"), "universal", "Icon-87", "87", "3x", "29x29", false },
+
+		// Notifications on iPhone, iPad Pro, iPad, iPad mini
+		{ PNAME("icons/notification_40x40"), "universal", "Icon-40", "40", "2x", "20x20", false },
+		{ PNAME("icons/notification_60x60"), "universal", "Icon-60", "60", "3x", "20x20", false },
+		{ PNAME("icons/notification_76x76"), "universal", "Icon-76", "76", "2x", "38x38", false },
+		{ PNAME("icons/notification_114x114"), "universal", "Icon-114", "114", "3x", "38x38", false },
+
+		// Spotlight on iPhone, iPad Pro, iPad, iPad mini
+		{ PNAME("icons/spotlight_80x80"), "universal", "Icon-80", "80", "2x", "40x40", false },
+		{ PNAME("icons/spotlight_120x120"), "universal", "Icon-120", "120", "3x", "40x40", false },
+
+		// Home Screen on iPhone
+		{ PNAME("icons/iphone_120x120"), "universal", "Icon-120-1", "120", "2x", "60x60", false },
+		{ PNAME("icons/iphone_180x180"), "universal", "Icon-180", "180", "3x", "60x60", false },
+
+		// Home Screen on iPad Pro
+		{ PNAME("icons/ipad_167x167"), "universal", "Icon-167", "167", "2x", "83.5x83.5", false },
+
+		// Home Screen on iPad, iPad mini
+		{ PNAME("icons/ipad_152x152"), "universal", "Icon-152", "152", "2x", "76x76", false },
+
+		{ PNAME("icons/ios_128x128"), "universal", "Icon-128", "128", "2x", "64x64", false },
+		{ PNAME("icons/ios_192x192"), "universal", "Icon-192", "192", "3x", "64x64", false },
+
+		{ PNAME("icons/ios_136x136"), "universal", "Icon-136", "136", "2x", "68x68", false },
+
+		// App Store
+		{ PNAME("icons/app_store_1024x1024"), "universal", "Icon-1024", "1024", "1x", "1024x1024", true },
+	};
+};
+
+
+Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) {
+	String json_description = "{\"images\":[";
+	String sizes;
+
+	Ref<DirAccess> da = DirAccess::open(p_iconset_dir);
+	if (da.is_null()) {
+		add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat(TTR("Could not open a directory at path \"%s\"."), p_iconset_dir));
+		return ERR_CANT_OPEN;
+	}
+
+	Color boot_bg_color = get_project_setting(p_preset, "application/boot_splash/bg_color");
+
+	enum IconColorMode {
+		ICON_NORMAL,
+		ICON_DARK,
+		ICON_TINTED,
+		ICON_MAX,
+	};
+
+	Vector<IconInfo> icon_infos = get_icon_infos();
+	bool first_icon = true;
+	for (uint64_t i = 0; i < icon_infos.size(); ++i) {
+		for (int color_mode = ICON_NORMAL; color_mode < ICON_MAX; color_mode++) {
+			IconInfo info = icon_infos[i];
+			int side_size = String(info.actual_size_side).to_int();
+			String key = info.preset_key;
+			String exp_name = info.export_name;
+			if (color_mode == ICON_DARK) {
+				key += "_dark";
+				exp_name += "_dark";
+			} else if (color_mode == ICON_TINTED) {
+				key += "_tinted";
+				exp_name += "_tinted";
+			}
+			exp_name += ".png";
+			String icon_path = p_preset->get(key);
+			bool resize_waning = true;
+			if (icon_path.is_empty()) {
+				// Load and resize base icon.
+				key = "icons/icon_1024x1024";
+				if (color_mode == ICON_DARK) {
+					key += "_dark";
+				} else if (color_mode == ICON_TINTED) {
+					key += "_tinted";
+				}
+				icon_path = p_preset->get(key);
+				resize_waning = false;
+			}
+			if (icon_path.is_empty()) {
+				if (color_mode != ICON_NORMAL) {
+					continue;
+				}
+				// Resize main app icon.
+				icon_path = get_project_setting(p_preset, "application/config/icon");
+				Error err = OK;
+				Ref<Image> img = _load_icon_or_splash_image(icon_path, &err);
+				if (err != OK || img.is_null() || img->is_empty()) {
+					add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat("Invalid icon (%s): '%s'.", info.preset_key, icon_path));
+					return ERR_UNCONFIGURED;
+				} else if (info.force_opaque && img->detect_alpha() != Image::ALPHA_NONE) {
+					img->resize(side_size, side_size, (Image::Interpolation)(p_preset->get("application/icon_interpolation").operator int()));
+					Ref<Image> new_img = Image::create_empty(side_size, side_size, false, Image::FORMAT_RGBA8);
+					new_img->fill(boot_bg_color);
+					_blend_and_rotate(new_img, img, false);
+					err = new_img->save_png(p_iconset_dir + exp_name);
+				} else {
+					img->resize(side_size, side_size, (Image::Interpolation)(p_preset->get("application/icon_interpolation").operator int()));
+					err = img->save_png(p_iconset_dir + exp_name);
+				}
+				if (err) {
+					add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat("Failed to export icon (%s): '%s'.", info.preset_key, icon_path));
+					return err;
+				}
+			} else {
+				// Load custom icon and resize if required.
+				Error err = OK;
+				Ref<Image> img = _load_icon_or_splash_image(icon_path, &err);
+				if (err != OK || img.is_null() || img->is_empty()) {
+					add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat("Invalid icon (%s): '%s'.", info.preset_key, icon_path));
+					return ERR_UNCONFIGURED;
+				} else if (info.force_opaque && img->detect_alpha() != Image::ALPHA_NONE) {
+					if (resize_waning) {
+						add_message(EXPORT_MESSAGE_WARNING, TTR("Export Icons"), vformat("Icon (%s) must be opaque.", info.preset_key));
+					}
+					img->resize(side_size, side_size, (Image::Interpolation)(p_preset->get("application/icon_interpolation").operator int()));
+					Ref<Image> new_img = Image::create_empty(side_size, side_size, false, Image::FORMAT_RGBA8);
+					new_img->fill(boot_bg_color);
+					_blend_and_rotate(new_img, img, false);
+					err = new_img->save_png(p_iconset_dir + exp_name);
+				} else if (img->get_width() != side_size || img->get_height() != side_size) {
+					if (resize_waning) {
+						add_message(EXPORT_MESSAGE_WARNING, TTR("Export Icons"), vformat("Icon (%s): '%s' has incorrect size %s and was automatically resized to %s.", info.preset_key, icon_path, img->get_size(), Vector2i(side_size, side_size)));
+					}
+					img->resize(side_size, side_size, (Image::Interpolation)(p_preset->get("application/icon_interpolation").operator int()));
+					err = img->save_png(p_iconset_dir + exp_name);
+				} else if (!icon_path.ends_with(".png")) {
+					err = img->save_png(p_iconset_dir + exp_name);
+				} else {
+					err = da->copy(icon_path, p_iconset_dir + exp_name);
+				}
+
+				if (err) {
+					add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat("Failed to export icon (%s): '%s'.", info.preset_key, icon_path));
+					return err;
+				}
+			}
+			sizes += String(info.actual_size_side) + "\n";
+			if (first_icon) {
+				first_icon = false;
+			} else {
+				json_description += ",";
+			}
+			json_description += String("{");
+			if (color_mode != ICON_NORMAL) {
+				json_description += String("\"appearances\":[{");
+				json_description += String("\"appearance\":\"luminosity\",");
+				if (color_mode == ICON_DARK) {
+					json_description += String("\"value\":\"dark\"");
+				} else if (color_mode == ICON_TINTED) {
+					json_description += String("\"value\":\"tinted\"");
+				}
+				json_description += String("}],");
+			}
+			json_description += String("\"idiom\":") + "\"" + info.idiom + "\",";
+			json_description += String("\"platform\":\"" + get_platform_name() + "\",");
+			json_description += String("\"size\":") + "\"" + info.unscaled_size + "\",";
+			if (String(info.scale) != "1x") {
+				json_description += String("\"scale\":") + "\"" + info.scale + "\",";
+			}
+			json_description += String("\"filename\":") + "\"" + exp_name + "\"";
+			json_description += String("}");
+		}
+	}
+	json_description += "],\"info\":{\"author\":\"xcode\",\"version\":1}}";
+
+	Ref<FileAccess> json_file = FileAccess::open(p_iconset_dir + "Contents.json", FileAccess::WRITE);
+	if (json_file.is_null()) {
+		add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat(TTR("Could not write to a file at path \"%s\"."), p_iconset_dir + "Contents.json"));
+		return ERR_CANT_CREATE;
+	}
+
+	CharString json_utf8 = json_description.utf8();
+	json_file->store_buffer((const uint8_t *)json_utf8.get_data(), json_utf8.length());
+
+	Ref<FileAccess> sizes_file = FileAccess::open(p_iconset_dir + "sizes", FileAccess::WRITE);
+	if (sizes_file.is_null()) {
+		add_message(EXPORT_MESSAGE_ERROR, TTR("Export Icons"), vformat(TTR("Could not write to a file at path \"%s\"."), p_iconset_dir + "sizes"));
+		return ERR_CANT_CREATE;
+	}
+
+	CharString sizes_utf8 = sizes.utf8();
+	sizes_file->store_buffer((const uint8_t *)sizes_utf8.get_data(), sizes_utf8.length());
+
+	return OK;
+}

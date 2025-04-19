@@ -37,6 +37,8 @@ class EditorExportPlatformVisionOS : public EditorExportPlatformAppleEmbedded {
 
 	virtual String get_platform_name() const override { return "visionos"; }
 
+	virtual Vector<EditorExportPlatformAppleEmbedded::IconInfo> get_icon_infos() const override;
+
 	virtual void get_export_options(List<ExportOption> *r_options) const override;
 
 public:

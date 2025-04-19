@@ -97,7 +97,6 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	typedef Error (*FileHandler)(String p_file, void *p_userdata);
 	static Error _walk_dir_recursive(Ref<DirAccess> &p_da, FileHandler p_handler, void *p_userdata);
 	static Error _codesign(String p_file, void *p_userdata);
-	void _blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot);
 
 	struct AppleEmbeddedConfigData {
 		String pkg_name;
@@ -113,6 +112,7 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 		Vector<String> capabilities;
 		bool use_swift_runtime;
 	};
+
 	struct ExportArchitecture {
 		String name;
 		bool is_default = false;
@@ -135,7 +135,6 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	String _get_linker_flags();
 	String _get_cpp_code();
 	void _fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const AppleEmbeddedConfigData &p_config, bool p_debug);
-	Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir);
 
 	Vector<ExportArchitecture> _get_supported_architectures() const;
 	Vector<String> _get_preset_architectures(const Ref<EditorExportPreset> &p_preset) const;
@@ -154,12 +153,28 @@ class EditorExportPlatformAppleEmbedded : public EditorExportPlatform {
 	bool is_package_name_valid(const String &p_package, String *r_error = nullptr) const;
 
 protected:
+	struct IconInfo {
+		const char *preset_key;
+		const char *idiom;
+		const char *export_name;
+		const char *actual_size_side;
+		const char *scale;
+		const char *unscaled_size;
+		bool force_opaque;
+	};
+
+	void _blend_and_rotate(Ref<Image> &p_dst, Ref<Image> &p_src, bool p_rot);
+
 	virtual Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) { return OK; };
+	virtual Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) { return OK; };
+
 	virtual String get_platform_name() const = 0;
 	virtual void get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) const override;
 	virtual void get_export_options(List<ExportOption> *r_options) const override;
 	virtual bool get_export_option_visibility(const EditorExportPreset *p_preset, const String &p_option) const override;
 	virtual String get_export_option_warning(const EditorExportPreset *p_preset, const StringName &p_name) const override;
+
+	virtual Vector<IconInfo> get_icon_infos() const = 0;
 
 	void _notification(int p_what);
 

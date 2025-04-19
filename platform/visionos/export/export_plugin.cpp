@@ -45,3 +45,7 @@ void EditorExportPlatformVisionOS::get_export_options(List<ExportOption> *r_opti
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_visionos_version"), "1.0"));
 }
+
+Vector<EditorExportPlatformAppleEmbedded::IconInfo> EditorExportPlatformVisionOS::get_icon_infos() const {
+	return {};
+}

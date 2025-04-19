@@ -37,10 +37,13 @@ class EditorExportPlatformIOS : public EditorExportPlatformAppleEmbedded {
 
 	virtual String get_platform_name() const override { return "ios"; }
 
+	virtual Vector<IconInfo> get_icon_infos() const override;
+
 	virtual void get_export_options(List<ExportOption> *r_options) const override;
 	virtual bool has_valid_export_configuration(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates, bool p_debug = false) const override;
 
 	virtual Error _export_loading_screen_file(const Ref<EditorExportPreset> &p_preset, const String &p_dest_dir) override;
+	virtual Error _export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) override;
 	virtual HashMap<String, Variant> get_custom_project_settings(const Ref<EditorExportPreset> &p_preset) const override;
 
 public:
