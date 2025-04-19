@@ -238,8 +238,8 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/app_store_team_id"), "", false, true));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/export_method_debug", PROPERTY_HINT_ENUM, "App Store,Development,Ad-Hoc,Enterprise"), 1));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/code_sign_identity_debug", PROPERTY_HINT_PLACEHOLDER_TEXT, "iPhone Developer"), ""));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/code_sign_identity_release", PROPERTY_HINT_PLACEHOLDER_TEXT, "iPhone Distribution"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/code_sign_identity_debug", PROPERTY_HINT_PLACEHOLDER_TEXT, "Apple Development"), ""));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/code_sign_identity_release", PROPERTY_HINT_PLACEHOLDER_TEXT, "Apple Distribution"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/provisioning_profile_uuid_debug", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SECRET), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/provisioning_profile_uuid_release", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_SECRET), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/provisioning_profile_specifier_debug", PROPERTY_HINT_PLACEHOLDER_TEXT, ""), ""));
@@ -356,10 +356,10 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 }
 
 void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &pfile, const AppleEmbeddedConfigData &p_config, bool p_debug) {
-	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : p_preset->get("application/code_sign_identity_debug");
-	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : p_preset->get("application/code_sign_identity_release");
-	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "iPhone Developer" && dbg_sign_id != "iPhone Distribution");
-	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "iPhone Developer" && rel_sign_id != "iPhone Distribution");
+	String dbg_sign_id = p_preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "Apple Development" : p_preset->get("application/code_sign_identity_debug");
+	String rel_sign_id = p_preset->get("application/code_sign_identity_release").operator String().is_empty() ? "Apple Distribution" : p_preset->get("application/code_sign_identity_release");
+	bool dbg_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_debug", ENV_APPLE_PLATFORM_PROFILE_UUID_DEBUG).operator String().is_empty() || (dbg_sign_id != "Apple Development" && dbg_sign_id != "Apple Distribution");
+	bool rel_manual = !p_preset->get_or_env("application/provisioning_profile_uuid_release", ENV_APPLE_PLATFORM_PROFILE_UUID_RELEASE).operator String().is_empty() || (rel_sign_id != "Apple Development" && rel_sign_id != "Apple Distribution");
 
 	String provisioning_profile_specifier_dbg = p_preset->get_or_env("application/provisioning_profile_specifier_debug", ENV_APPLE_PLATFORM_PROFILE_SPECIFIER_DEBUG).operator String();
 	bool valid_dbg_specifier = !provisioning_profile_specifier_dbg.is_empty();
@@ -917,9 +917,9 @@ Error EditorExportPlatformAppleEmbedded::_codesign(String p_file, void *p_userda
 
 		String sign_id;
 		if (data->debug) {
-			sign_id = data->preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "iPhone Developer" : data->preset->get("application/code_sign_identity_debug");
+			sign_id = data->preset->get("application/code_sign_identity_debug").operator String().is_empty() ? "Apple Development" : data->preset->get("application/code_sign_identity_debug");
 		} else {
-			sign_id = data->preset->get("application/code_sign_identity_release").operator String().is_empty() ? "iPhone Distribution" : data->preset->get("application/code_sign_identity_release");
+			sign_id = data->preset->get("application/code_sign_identity_release").operator String().is_empty() ? "Apple Distribution" : data->preset->get("application/code_sign_identity_release");
 		}
 
 		List<String> codesign_args;
