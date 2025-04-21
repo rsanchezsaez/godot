@@ -69,7 +69,7 @@ static int apple_init_callbacks_count = 0;
 static int apple_init_callbacks_capacity = 0;
 HashMap<String, void *> OS_AppleEmbedded::dynamic_symbol_lookup_table;
 
-void add_apple_init_callback(init_callback cb) {
+void add_apple_platform_init_callback(init_callback cb) {
 	if (apple_init_callbacks_count == apple_init_callbacks_capacity) {
 		void *new_ptr = realloc(apple_init_callbacks, sizeof(cb) * (apple_init_callbacks_capacity + 32));
 		if (new_ptr) {
