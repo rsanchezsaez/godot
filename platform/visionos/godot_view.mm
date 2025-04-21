@@ -32,7 +32,7 @@
 
 #include "display_layer.h"
 
-@interface GDTViewVisionOS()
+@interface GDTViewVisionOS ()
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-property-synthesis"

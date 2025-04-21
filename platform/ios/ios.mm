@@ -33,4 +33,5 @@
 void iOS::_bind_methods() {
 }
 
-iOS::iOS() : AppleEmbedded() {}
+iOS::iOS() :
+		AppleEmbedded() {}

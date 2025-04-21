@@ -38,7 +38,8 @@ OS_IOS *OS_IOS::get_singleton() {
 	return (OS_IOS *)OS_AppleEmbedded::get_singleton();
 }
 
-OS_IOS::OS_IOS() : OS_AppleEmbedded() {
+OS_IOS::OS_IOS() :
+		OS_AppleEmbedded() {
 	DisplayServerIOS::register_ios_driver();
 }
 

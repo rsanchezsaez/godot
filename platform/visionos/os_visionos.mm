@@ -38,7 +38,8 @@ OS_VisionOS *OS_VisionOS::get_singleton() {
 	return (OS_VisionOS *)OS_AppleEmbedded::get_singleton();
 }
 
-OS_VisionOS::OS_VisionOS() : OS_AppleEmbedded() {
+OS_VisionOS::OS_VisionOS() :
+		OS_AppleEmbedded() {
 	DisplayServerVisionOS::register_visionos_driver();
 }
 

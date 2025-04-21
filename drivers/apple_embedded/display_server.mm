@@ -31,8 +31,8 @@
 #import "display_server.h"
 
 #import "app_delegate_service.h"
-#import "godot_view.h"
 #import "apple_embedded.h"
+#import "godot_view.h"
 #import "key_mapping.h"
 #import "keyboard_input_view.h"
 #import "os_apple_embedded.h"

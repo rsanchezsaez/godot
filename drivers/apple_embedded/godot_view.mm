@@ -120,7 +120,7 @@ static const float earth_gravity = 9.80665;
 #if !defined(VISIONOS_ENABLED)
 	self.contentScaleFactor = [UIScreen mainScreen].scale;
 #endif
-	
+
 	[self initTouches];
 
 	self.multipleTouchEnabled = YES;
@@ -426,7 +426,7 @@ static const float earth_gravity = 9.80665;
 #else
 	interfaceOrientation = [UIApplication sharedApplication].delegate.window.windowScene.interfaceOrientation;
 #endif
-	
+
 	switch (interfaceOrientation) {
 		case UIInterfaceOrientationLandscapeLeft: {
 			DisplayServerAppleEmbedded::get_singleton()->update_gravity(Vector3(gravity.x, gravity.y, gravity.z).rotated(Vector3(0, 0, 1), -Math::PI * 0.5));

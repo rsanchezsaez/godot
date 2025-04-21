@@ -76,7 +76,7 @@ static GDTViewController *mainViewController = nil;
 #else
 	CGRect windowBounds = CGRectMake(0, 0, 1280, 720);
 #endif
-	
+
 	// Create a full-screen window
 	self.window = [[UIWindow alloc] initWithFrame:windowBounds];
 

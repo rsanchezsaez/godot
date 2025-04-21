@@ -30,10 +30,10 @@
 
 #include "godot_view.h"
 
-#include "display_layer.h"
 #include "core/error/error_macros.h"
+#include "display_layer.h"
 
-@interface GDTViewIOS()
+@interface GDTViewIOS ()
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wobjc-property-synthesis"

@@ -33,4 +33,5 @@
 void visionOS::_bind_methods() {
 }
 
-visionOS::visionOS() : AppleEmbedded() {}
+visionOS::visionOS() :
+		AppleEmbedded() {}
