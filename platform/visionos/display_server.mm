@@ -54,7 +54,7 @@ String DisplayServerVisionOS::get_name() const {
 }
 
 int DisplayServerVisionOS::screen_get_dpi(int p_screen) const {
-	// TODO(rss): Compute this properly
+	// TODO(Apple): Compute this properly from SwiftUI Metric APIs
 	return 72;
 }
 
