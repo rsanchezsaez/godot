@@ -67,7 +67,6 @@ void register_exporter_types() {{
     if "ios" in env.platform_exporters or "visionos" in env.platform_exporters:
         env.add_source_files(env.editor_sources, "../drivers/apple_embedded/export/*.cpp")
 
-
     # Core API documentation.
     docs = []
     docs += Glob("#doc/classes/*.xml")
