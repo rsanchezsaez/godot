@@ -65,7 +65,7 @@ void register_exporter_types() {{
         env.add_source_files(env.editor_sources, f"../platform/{e}/export/*.cpp")
 
     if "ios" in env.platform_exporters or "visionos" in env.platform_exporters:
-        env.add_source_files(env.editor_sources, f"../drivers/apple_embedded/export/*.cpp")
+        env.add_source_files(env.editor_sources, "../drivers/apple_embedded/export/*.cpp")
 
 
     # Core API documentation.
