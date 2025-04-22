@@ -64,7 +64,7 @@ void register_exporter_types() {{
         # Add all .cpp files in export folder
         env.add_source_files(env.editor_sources, f"../platform/{e}/export/*.cpp")
 
-    if 'ios' in env.platform_exporters or 'visionos' in env.platform_exporters:
+    if "ios" in env.platform_exporters or "visionos" in env.platform_exporters:
         env.add_source_files(env.editor_sources, f"../drivers/apple_embedded/export/*.cpp")
 
 

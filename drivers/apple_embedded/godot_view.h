@@ -57,7 +57,7 @@ class String;
 
 @property(assign, nonatomic) NSTimeInterval renderingInterval;
 
-// Implented in subclasses
+// Implemented in subclasses
 - (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
 
 - (void)stopRendering;
@@ -65,5 +65,5 @@ class String;
 
 @end
 
-// Implented in subclasses
+// Implemented in subclasses
 extern GDTView *GDTViewCreate();

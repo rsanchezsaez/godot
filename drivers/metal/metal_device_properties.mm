@@ -131,7 +131,7 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 		features.metal_fx_temporal = false;
 #endif
 	}
-	
+
 	MTLCompileOptions *opts = [MTLCompileOptions new];
 	features.mslVersionEnum = opts.languageVersion; // By default, Metal uses the most recent language version.
 

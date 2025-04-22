@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  main_utilities.h                                                     */
+/*  main_utilities.h                                                      */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -27,6 +27,8 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
+
+#pragma once
 
 void change_to_launch_dir(char **p_args);
 

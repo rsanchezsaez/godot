@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
+#pragma once
+
 #include "drivers/apple_embedded/godot_view.h"
 
 @interface GDTViewVisionOS : GDTView

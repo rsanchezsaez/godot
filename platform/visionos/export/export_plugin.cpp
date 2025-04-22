@@ -34,7 +34,7 @@
 #include "run_icon_svg.gen.h"
 
 EditorExportPlatformVisionOS::EditorExportPlatformVisionOS() :
-	EditorExportPlatformAppleEmbedded(_visionos_logo_svg, _visionos_run_icon_svg) {
+		EditorExportPlatformAppleEmbedded(_visionos_logo_svg, _visionos_run_icon_svg) {
 }
 
 EditorExportPlatformVisionOS::~EditorExportPlatformVisionOS() {

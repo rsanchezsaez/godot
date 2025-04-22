@@ -393,7 +393,8 @@ void EditorExportPlatformAppleEmbedded::_fix_config_file(const Ref<EditorExportP
 			strnew += lines[i].replace("$version", p_preset->get_version("application/version")) + "\n";
 		} else if (lines[i].contains("$min_version")) {
 			strnew += lines[i].replace("$min_version",
-									   p_preset->get("application/min_" + get_platform_name() + "_version")) + "\n";
+							  p_preset->get("application/min_" + get_platform_name() + "_version")) +
+					"\n";
 		} else if (lines[i].contains("$signature")) {
 			strnew += lines[i].replace("$signature", p_preset->get("application/signature")) + "\n";
 		} else if (lines[i].contains("$team_id")) {

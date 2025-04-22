@@ -34,7 +34,7 @@
 #include "run_icon_svg.gen.h"
 
 EditorExportPlatformIOS::EditorExportPlatformIOS() :
-	EditorExportPlatformAppleEmbedded(_ios_logo_svg, _ios_run_icon_svg) {
+		EditorExportPlatformAppleEmbedded(_ios_logo_svg, _ios_run_icon_svg) {
 }
 
 EditorExportPlatformIOS::~EditorExportPlatformIOS() {
@@ -193,8 +193,7 @@ Vector<EditorExportPlatformAppleEmbedded::IconInfo> EditorExportPlatformIOS::get
 		// App Store
 		{ PNAME("icons/app_store_1024x1024"), "universal", "Icon-1024", "1024", "1x", "1024x1024", true },
 	};
-};
-
+}
 
 Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_preset, const String &p_iconset_dir) {
 	String json_description = "{\"images\":[";

@@ -38,16 +38,24 @@ def generate_bundle(target, source, env):
         shutil.rmtree(app_dir)
     shutil.copytree(templ, app_dir)
     if rel_target_bin != "":
-        shutil.copy(rel_target_bin, app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64/libgodot.a")
+        shutil.copy(
+            rel_target_bin,
+            app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64/libgodot.a"
+        )
     if dbg_target_bin != "":
-        shutil.copy(dbg_target_bin, app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64/libgodot.a")
+        shutil.copy(
+            dbg_target_bin,
+            app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64/libgodot.a"
+        )
     if rel_target_bin_sim != "":
         shutil.copy(
-            rel_target_bin_sim, app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
+            rel_target_bin_sim,
+             app_dir + "/libgodot.visionos.release.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
         )
     if dbg_target_bin_sim != "":
         shutil.copy(
-            dbg_target_bin_sim, app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
+            dbg_target_bin_sim,
+             app_dir + "/libgodot.visionos.debug.xcframework/visionos-arm64_x86_64-simulator/libgodot.a"
         )
     mvk_path = detect_mvk(env, "visionos-arm64")
     if mvk_path != "":
@@ -86,7 +94,9 @@ def combine_libs(target=None, source=None, env=None):
     )
 
 
-combine_command = env_visionos.Command("#bin/libgodot" + env_visionos["LIBSUFFIX"], [visionos_lib] + env_visionos["LIBS"], combine_libs)
+combine_command = env_visionos.Command(
+    "#bin/libgodot" + env_visionos["LIBSUFFIX"], [visionos_lib] + env_visionos["LIBS"], combine_libs
+)
 
 if env["generate_bundle"]:
     generate_bundle_command = env.Command("generate_bundle", [], generate_bundle)
