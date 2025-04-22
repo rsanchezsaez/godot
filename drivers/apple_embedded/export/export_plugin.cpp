@@ -804,7 +804,7 @@ String EditorExportPlatformAppleEmbedded::_get_additional_plist_content() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_apple_platform_plist_content();
+		result += export_plugins[i]->get_apple_embedded_platform_plist_content();
 	}
 	return result;
 }
@@ -813,7 +813,7 @@ String EditorExportPlatformAppleEmbedded::_get_linker_flags() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		String flags = export_plugins[i]->get_apple_platform_linker_flags();
+		String flags = export_plugins[i]->get_apple_embedded_platform_linker_flags();
 		if (flags.length() == 0) {
 			continue;
 		}
@@ -830,7 +830,7 @@ String EditorExportPlatformAppleEmbedded::_get_cpp_code() {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	String result;
 	for (int i = 0; i < export_plugins.size(); ++i) {
-		result += export_plugins[i]->get_apple_platform_cpp_code();
+		result += export_plugins[i]->get_apple_embedded_platform_cpp_code();
 	}
 	return result;
 }
@@ -1433,23 +1433,23 @@ Error EditorExportPlatformAppleEmbedded::_export_additional_assets(const Ref<Edi
 Error EditorExportPlatformAppleEmbedded::_export_additional_assets(const Ref<EditorExportPreset> &p_preset, const String &p_out_dir, const Vector<SharedObject> &p_libraries, Vector<AppleEmbeddedExportAsset> &r_exported_assets) {
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> linked_frameworks = export_plugins[i]->get_apple_platform_frameworks();
+		Vector<String> linked_frameworks = export_plugins[i]->get_apple_embedded_platform_frameworks();
 		Error err = _export_additional_assets(p_preset, p_out_dir, linked_frameworks, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> embedded_frameworks = export_plugins[i]->get_apple_platform_embedded_frameworks();
+		Vector<String> embedded_frameworks = export_plugins[i]->get_apple_embedded_platform_embedded_frameworks();
 		err = _export_additional_assets(p_preset, p_out_dir, embedded_frameworks, true, true, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_embedded_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			project_static_libs.write[j] = project_static_libs[j].get_file(); // Only the file name as it's copied to the project
 		}
 		err = _export_additional_assets(p_preset, p_out_dir, project_static_libs, true, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 
-		Vector<String> apple_platform_bundle_files = export_plugins[i]->get_apple_platform_bundle_files();
-		err = _export_additional_assets(p_preset, p_out_dir, apple_platform_bundle_files, false, false, r_exported_assets);
+		Vector<String> apple_embedded_platform_bundle_files = export_plugins[i]->get_apple_embedded_platform_bundle_files();
+		err = _export_additional_assets(p_preset, p_out_dir, apple_embedded_platform_bundle_files, false, false, r_exported_assets);
 		ERR_FAIL_COND_V(err, err);
 	}
 
@@ -2039,7 +2039,7 @@ Error EditorExportPlatformAppleEmbedded::_export_project_helper(const Ref<Editor
 	// Copy project static libs to the project
 	Vector<Ref<EditorExportPlugin>> export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
-		Vector<String> project_static_libs = export_plugins[i]->get_apple_platform_project_static_libs();
+		Vector<String> project_static_libs = export_plugins[i]->get_apple_embedded_platform_project_static_libs();
 		for (int j = 0; j < project_static_libs.size(); j++) {
 			const String &static_lib_path = project_static_libs[j];
 			String dest_lib_file_path = dest_dir + static_lib_path.get_file();

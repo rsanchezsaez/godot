@@ -65,21 +65,21 @@
 // everything else, but after all units are initialized.
 typedef void (*init_callback)();
 static init_callback *apple_init_callbacks = nullptr;
-static int apple_init_callbacks_count = 0;
-static int apple_init_callbacks_capacity = 0;
+static int apple_embedded_platform_init_callbacks_count = 0;
+static int apple_embedded_platform_init_callbacks_capacity = 0;
 HashMap<String, void *> OS_AppleEmbedded::dynamic_symbol_lookup_table;
 
-void add_apple_platform_init_callback(init_callback cb) {
-	if (apple_init_callbacks_count == apple_init_callbacks_capacity) {
-		void *new_ptr = realloc(apple_init_callbacks, sizeof(cb) * (apple_init_callbacks_capacity + 32));
+void add_apple_embedded_platform_init_callback(init_callback cb) {
+	if (apple_embedded_platform_init_callbacks_count == apple_embedded_platform_init_callbacks_capacity) {
+		void *new_ptr = realloc(apple_init_callbacks, sizeof(cb) * (apple_embedded_platform_init_callbacks_capacity + 32));
 		if (new_ptr) {
 			apple_init_callbacks = (init_callback *)(new_ptr);
-			apple_init_callbacks_capacity += 32;
+			apple_embedded_platform_init_callbacks_capacity += 32;
 		} else {
 			ERR_FAIL_MSG("Unable to allocate memory for extension callbacks.");
 		}
 	}
-	apple_init_callbacks[apple_init_callbacks_count++] = cb;
+	apple_init_callbacks[apple_embedded_platform_init_callbacks_count++] = cb;
 }
 
 void register_dynamic_symbol(char *name, void *address) {
@@ -131,13 +131,13 @@ OS_AppleEmbedded *OS_AppleEmbedded::get_singleton() {
 }
 
 OS_AppleEmbedded::OS_AppleEmbedded() {
-	for (int i = 0; i < apple_init_callbacks_count; ++i) {
+	for (int i = 0; i < apple_embedded_platform_init_callbacks_count; ++i) {
 		apple_init_callbacks[i]();
 	}
 	free(apple_init_callbacks);
 	apple_init_callbacks = nullptr;
-	apple_init_callbacks_count = 0;
-	apple_init_callbacks_capacity = 0;
+	apple_embedded_platform_init_callbacks_count = 0;
+	apple_embedded_platform_init_callbacks_capacity = 0;
 
 	main_loop = nullptr;
 
