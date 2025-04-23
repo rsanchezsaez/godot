@@ -121,6 +121,10 @@ static const float earth_gravity = 9.80665;
 	self.contentScaleFactor = [UIScreen mainScreen].scale;
 #endif
 
+	if (@available(iOS 17.0, visionOS 1.0, *)) {
+		[self registerForTraitChanges:@[[UITraitUserInterfaceStyle class]] withTarget:self action:@selector(traitCollectionDidChangeWithView:previousTraitCollection:)];
+	}
+
 	[self initTouches];
 
 	self.multipleTouchEnabled = YES;
@@ -146,8 +150,15 @@ static const float earth_gravity = 9.80665;
 
 - (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection {
 	if (@available(iOS 13.0, *)) {
+#if !defined(VISIONOS_ENABLED)
 		[super traitCollectionDidChange:previousTraitCollection];
+#endif
+		[self traitCollectionDidChangeWithView:self previousTraitCollection:previousTraitCollection];
+	}
+}
 
+- (void)traitCollectionDidChangeWithView:(UIView *)view previousTraitCollection:(UITraitCollection *)previousTraitCollection {
+	if (@available(iOS 13.0, *)) {
 		if ([UITraitCollection currentTraitCollection].userInterfaceStyle != previousTraitCollection.userInterfaceStyle) {
 			[self system_theme_changed];
 		}

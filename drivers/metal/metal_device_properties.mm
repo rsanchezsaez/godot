@@ -63,6 +63,7 @@
 #define MTLGPUFamilyApple9 (MTLGPUFamily)1009
 #endif
 
+API_AVAILABLE(macos(11.0), ios(14.0), tvos(14.0), visionos(1.0))
 MTLGPUFamily &operator--(MTLGPUFamily &p_family) {
 	p_family = static_cast<MTLGPUFamily>(static_cast<int>(p_family) - 1);
 	if (p_family < MTLGPUFamilyApple1) {
@@ -139,12 +140,12 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 	features.mslVersion = SPIRV_CROSS_NAMESPACE::CompilerMSL::Options::make_msl_version(m_maj, m_min)
 
 	switch (features.mslVersionEnum) {
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 150000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 180000 || __TV_OS_VERSION_MAX_ALLOWED >= 180000
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_15_0 || __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_18_0 || __TV_OS_VERSION_MAX_ALLOWED >= __TVOS_18_0 || __VISION_OS_VERSION_MAX_ALLOWED >= __VISIONOS_2_0
 		case MTLLanguageVersion3_2:
 			setMSLVersion(3, 2);
 			break;
 #endif
-#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 140000 || __IPHONE_OS_VERSION_MAX_ALLOWED >= 170000 || __TV_OS_VERSION_MAX_ALLOWED >= 170000
+#if __MAC_OS_X_VERSION_MAX_ALLOWED >= __MAC_14_0 || __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_17_0 || __TV_OS_VERSION_MAX_ALLOWED >= __TVOS_17_0
 		case MTLLanguageVersion3_1:
 			setMSLVersion(3, 1);
 			break;
@@ -173,7 +174,7 @@ void MetalDeviceProperties::init_features(id<MTLDevice> p_device) {
 		case MTLLanguageVersion1_1:
 			setMSLVersion(1, 1);
 			break;
-#if TARGET_OS_IPHONE && !TARGET_OS_MACCATALYST
+#if TARGET_OS_IPHONE && !TARGET_OS_MACCATALYST && !TARGET_OS_VISION
 		case MTLLanguageVersion1_0:
 			setMSLVersion(1, 0);
 			break;
