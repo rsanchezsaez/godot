@@ -34,7 +34,7 @@
 
 #import <os/log.h>
 
-void TerminalLoggerAppleEmbedded::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type) {
+void TerminalLoggerAppleEmbedded::log_error(const char *p_function, const char *p_file, int p_line, const char *p_code, const char *p_rationale, bool p_editor_notify, ErrorType p_type, const Vector<Ref<ScriptBacktrace>> &p_script_backtraces) {
 	if (!should_log(true)) {
 		return;
 	}
@@ -48,7 +48,7 @@ void TerminalLoggerAppleEmbedded::log_error(const char *p_function, const char *
 
 	switch (p_type) {
 		case ERR_WARNING:
-			os_log_info(OS_LOG_DEFAULT,
+			os_log_error(OS_LOG_DEFAULT,
 					"WARNING: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
 			break;
@@ -68,6 +68,10 @@ void TerminalLoggerAppleEmbedded::log_error(const char *p_function, const char *
 					"ERROR: %{public}s\nat: %{public}s (%{public}s:%i)",
 					err_details, p_function, p_file, p_line);
 			break;
+	}
+
+	for (const Ref<ScriptBacktrace> &backtrace : p_script_backtraces) {
+		os_log_error(OS_LOG_DEFAULT, "%{public}s", backtrace->format().utf8().get_data());
 	}
 }
 
