@@ -6,7 +6,7 @@ Import("env")
 import os
 import shutil
 
-from platform_methods import detect_mvk, lipo
+from platform_methods import lipo
 
 
 def generate_bundle(target, source, env):

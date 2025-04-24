@@ -122,7 +122,7 @@ static const float earth_gravity = 9.80665;
 #endif
 
 	if (@available(iOS 17.0, visionOS 1.0, *)) {
-		[self registerForTraitChanges:@[[UITraitUserInterfaceStyle class]] withTarget:self action:@selector(traitCollectionDidChangeWithView:previousTraitCollection:)];
+		[self registerForTraitChanges:@[ [UITraitUserInterfaceStyle class] ] withTarget:self action:@selector(traitCollectionDidChangeWithView:previousTraitCollection:)];
 	}
 
 	[self initTouches];
@@ -153,7 +153,8 @@ static const float earth_gravity = 9.80665;
 #if !defined(VISIONOS_ENABLED)
 		[super traitCollectionDidChange:previousTraitCollection];
 #endif
-		[self traitCollectionDidChangeWithView:self previousTraitCollection:previousTraitCollection];
+		[self traitCollectionDidChangeWithView:self
+					   previousTraitCollection:previousTraitCollection];
 	}
 }
 
