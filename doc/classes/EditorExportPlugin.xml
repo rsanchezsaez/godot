@@ -251,17 +251,6 @@
 				If no modifications are needed, then an empty [PackedByteArray] should be returned.
 			</description>
 		</method>
-		<method name="add_file">
-			<return type="void" />
-			<param index="0" name="path" type="String" />
-			<param index="1" name="file" type="PackedByteArray" />
-			<param index="2" name="remap" type="bool" />
-			<description>
-				Adds a custom file to be exported. [param path] is the virtual path that can be used to load the file, [param file] is the binary data of the file.
-				When called inside [method _export_file] and [param remap] is [code]true[/code], the current file will not be exported, but instead remapped to this custom file. [param remap] is ignored when called in other places.
-				[param file] will not be imported, so consider using [method _customize_resource] to remap imported resources.
-			</description>
-		</method>
 		<method name="add_apple_embedded_platform_bundle_file">
 			<return type="void" />
 			<param index="0" name="path" type="String" />
@@ -311,6 +300,17 @@
 			<param index="0" name="path" type="String" />
 			<description>
 				Adds a static lib from the given [param path] to the Apple Embedded Platform project.
+			</description>
+		</method>
+		<method name="add_file">
+			<return type="void" />
+			<param index="0" name="path" type="String" />
+			<param index="1" name="file" type="PackedByteArray" />
+			<param index="2" name="remap" type="bool" />
+			<description>
+				Adds a custom file to be exported. [param path] is the virtual path that can be used to load the file, [param file] is the binary data of the file.
+				When called inside [method _export_file] and [param remap] is [code]true[/code], the current file will not be exported, but instead remapped to this custom file. [param remap] is ignored when called in other places.
+				[param file] will not be imported, so consider using [method _customize_resource] to remap imported resources.
 			</description>
 		</method>
 		<method name="add_ios_bundle_file" deprecated="Use [method add_apple_embedded_platform_bundle_file] instead.">
