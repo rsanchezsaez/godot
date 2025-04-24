@@ -55,6 +55,8 @@ def get_flags():
         "metal": True,
         "supported": ["metal", "mono"],
         "builtin_pcre2_with_jit": False,
+        "vulkan": False,
+        "opengl3": False,
     }
 
 
