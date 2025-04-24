@@ -345,7 +345,7 @@ void EditorExportPlatformAppleEmbedded::get_export_options(List<ExportOption> *r
 	HashSet<String> used_names;
 
 	Vector<IconInfo> icon_infos = get_icon_infos();
-	for (uint64_t i = 0; i < icon_infos.size(); ++i) {
+	for (int i = 0; i < icon_infos.size(); ++i) {
 		if (!used_names.has(icon_infos[i].preset_key)) {
 			used_names.insert(icon_infos[i].preset_key);
 			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, String(icon_infos[i].preset_key), PROPERTY_HINT_FILE, "*.png,*.jpg,*.jpeg"), ""));

@@ -216,7 +216,7 @@ Error EditorExportPlatformIOS::_export_icons(const Ref<EditorExportPreset> &p_pr
 
 	Vector<IconInfo> icon_infos = get_icon_infos();
 	bool first_icon = true;
-	for (uint64_t i = 0; i < icon_infos.size(); ++i) {
+	for (int i = 0; i < icon_infos.size(); ++i) {
 		for (int color_mode = ICON_NORMAL; color_mode < ICON_MAX; color_mode++) {
 			IconInfo info = icon_infos[i];
 			int side_size = String(info.actual_size_side).to_int();
