@@ -79,7 +79,6 @@ static GDTViewController *mainViewController = nil;
 	self.window = [[UIWindow alloc] init];
 #endif
 
-
 	int err = apple_embedded_main(gargc, gargv);
 
 	if (err != 0) {
