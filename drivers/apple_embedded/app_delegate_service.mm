@@ -72,13 +72,13 @@ static GDTViewController *mainViewController = nil;
 	// DummyViewController(Splash/LoadingViewController) -> setup -> GodotViewController
 
 #if !defined(VISIONOS_ENABLED)
+	// Create a full-screen window
 	CGRect windowBounds = [[UIScreen mainScreen] bounds];
+	self.window = [[UIWindow alloc] initWithFrame:windowBounds];
 #else
-	CGRect windowBounds = CGRectMake(0, 0, 1280, 720);
+	self.window = [[UIWindow alloc] init];
 #endif
 
-	// Create a full-screen window
-	self.window = [[UIWindow alloc] initWithFrame:windowBounds];
 
 	int err = apple_embedded_main(gargc, gargv);
 
