@@ -157,13 +157,6 @@ def configure(env: "SConsEnvironment"):
         )
         env.Prepend(CPPPATH=["#thirdparty/spirv-cross"])
 
-    if env["vulkan"] and env["visionos_simulator"]:
-        print_warning("visionOS simulator does not support the Vulkan rendering driver")
-        env["vulkan"] = False
-
-    if env["vulkan"]:
-        env.AppendUnique(CPPDEFINES=["VULKAN_ENABLED", "RD_ENABLED"])
-
     if env["opengl3"]:
         print_warning("The visionOS platform does not support the OpenGL rendering driver")
         env["opengl3"] = False
