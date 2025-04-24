@@ -49,9 +49,6 @@ def generate_bundle(target, source, env):
         shutil.copy(
             dbg_target_bin_sim, app_dir + "/libgodot.visionos.debug.xcframework/xros-arm64-simulator/libgodot.a"
         )
-    mvk_path = detect_mvk(env, "visionos-arm64")
-    if mvk_path != "":
-        shutil.copytree(mvk_path, app_dir + "/MoltenVK.xcframework")
 
     # ZIP Xcode project bundle.
     zip_dir = Dir("#bin/" + (app_prefix + env.extra_suffix).replace(".", "_")).abspath
