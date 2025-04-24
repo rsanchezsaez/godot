@@ -890,7 +890,8 @@
 			MacOS override for [member display/display_server/driver].
 		</member>
 		<member name="display/display_server/driver.visionos" type="String" setter="" getter="">
-		<member>
+			visionOS override for [member display/display_server/driver].
+		</member>
 		<member name="display/display_server/driver.windows" type="String" setter="" getter="">
 			Windows override for [member display/display_server/driver].
 		</member>
