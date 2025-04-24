@@ -105,14 +105,14 @@ def configure(env: "SConsEnvironment"):
 
     if env["visionos_simulator"]:
         detect_darwin_sdk_path("visionossimulator", env)
-        env.Append(ASFLAGS=["-mtargetos=xros1.0-simulator"])
-        env.Append(CCFLAGS=["-mtargetos=xros1.0-simulator"])
+        env.Append(ASFLAGS=["-mtargetos=xros2.0-simulator"])
+        env.Append(CCFLAGS=["-mtargetos=xros2.0-simulator"])
         env.Append(CPPDEFINES=["VISIONOS_SIMULATOR"])
         env.extra_suffix = ".simulator" + env.extra_suffix
     else:
         detect_darwin_sdk_path("visionos", env)
-        env.Append(ASFLAGS=["-mtargetos=xros1.0"])
-        env.Append(CCFLAGS=["-mtargetos=xros1.0"])
+        env.Append(ASFLAGS=["-mtargetos=xros2.0"])
+        env.Append(CCFLAGS=["-mtargetos=xros2.0"])
 
     if env["arch"] == "arm64":
         env.Append(
