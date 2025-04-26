@@ -1647,15 +1647,15 @@ Error EditorExportPlatformAppleEmbedded::_export_apple_embedded_plugins(const Re
 		plugin_format["deinitialization"] = plugin_deinitialization_cpp_code;
 
 		String plugin_cpp_code = "\n// Godot Plugins\n"
-								 "void godot_apple_plugins_initialize();\n"
-								 "void godot_apple_plugins_deinitialize();\n"
+								 "void godot_apple_embedded_plugins_initialize();\n"
+								 "void godot_apple_embedded_plugins_deinitialize();\n"
 								 "// Exported Plugins\n\n"
 								 "$definition"
 								 "// Use Plugins\n"
-								 "void godot_apple_plugins_initialize() {\n"
+								 "void godot_apple_embedded_plugins_initialize() {\n"
 								 "$initialization"
 								 "}\n\n"
-								 "void godot_apple_plugins_deinitialize() {\n"
+								 "void godot_apple_embedded_plugins_deinitialize() {\n"
 								 "$deinitialization"
 								 "}\n";
 
