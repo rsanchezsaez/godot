@@ -3163,8 +3163,8 @@
 		</member>
 		<member name="rendering/rendering_device/driver.visionos" type="String" setter="" getter="" default="&quot;metal&quot;">
 			visionOS override for [member rendering/rendering_device/driver].
-			Only Metal is supported.
-		</member>
+			Only one option is supported:
+			- [code]metal[/code] (default), Metal from native drivers.		</member>
 		<member name="rendering/rendering_device/driver.windows" type="String" setter="" getter="" default="&quot;vulkan&quot;">
 			Windows override for [member rendering/rendering_device/driver].
 			Two options are supported:
