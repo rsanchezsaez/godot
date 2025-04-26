@@ -178,6 +178,11 @@ protected:
 
 	void _notification(int p_what);
 
+	virtual void get_platform_features(List<String> *r_features) const override {
+		r_features->push_back("mobile");
+		r_features->push_back("apple_embedded");
+	}
+
 public:
 	virtual Ref<Texture2D> get_logo() const override { return logo; }
 	virtual Ref<Texture2D> get_run_icon() const override { return run_icon; }

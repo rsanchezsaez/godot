@@ -115,7 +115,7 @@ void GDExtensionExportPlugin::_export_file(const String &p_path, const String &p
 			libs_added.insert(library_path);
 			add_shared_object(library_path, tags);
 
-			if (p_features.has("ios") && (library_path.ends_with(".a") || library_path.ends_with(".xcframework"))) {
+			if (p_features.has("apple_embedded") && (library_path.ends_with(".a") || library_path.ends_with(".xcframework"))) {
 				String additional_code = "extern void register_dynamic_symbol(char *name, void *address);\n"
 										 "extern void add_apple_embedded_platform_init_callback(void (*cb)());\n"
 										 "\n"

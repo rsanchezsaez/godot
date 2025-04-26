@@ -51,7 +51,7 @@ public:
 	virtual String get_os_name() const override { return "iOS"; }
 
 	virtual void get_platform_features(List<String> *r_features) const override {
-		r_features->push_back("mobile");
+		EditorExportPlatformAppleEmbedded::get_platform_features(r_features);
 		r_features->push_back("ios");
 	}
 
