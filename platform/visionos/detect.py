@@ -32,7 +32,6 @@ def get_opts():
         ),
         ("VISIONOS_SDK_PATH", "Path to the visionOS SDK", ""),
         BoolVariable("visionos_simulator", "Build for visionOS Simulator", False),
-        ("visionos_triple", "Triple for visionOS toolchain", ""),
         BoolVariable("generate_bundle", "Generate an APP bundle after building visionOS/macOS binaries", False),
     ]
 
