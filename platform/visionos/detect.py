@@ -31,7 +31,7 @@ def get_opts():
             "",
         ),
         ("VISIONOS_SDK_PATH", "Path to the visionOS SDK", ""),
-        BoolVariable("visionos_simulator", "Build for visionOS Simulator", False),
+        BoolVariable("simulator", "Build for Simulator", False),
         BoolVariable("generate_bundle", "Generate an APP bundle after building visionOS/macOS binaries", False),
     ]
 
@@ -104,7 +104,7 @@ def configure(env: "SConsEnvironment"):
 
     ## Compile flags
 
-    if env["visionos_simulator"]:
+    if env["simulator"]:
         detect_darwin_sdk_path("visionossimulator", env)
         env.Append(ASFLAGS=["-mtargetos=xros2.0-simulator"])
         env.Append(CCFLAGS=["-mtargetos=xros2.0-simulator"])
@@ -143,8 +143,8 @@ def configure(env: "SConsEnvironment"):
         print_warning("The visionOS platform does not support the Vulkan rendering driver")
         env["vulkan"] = False
 
-    if env["metal"] and env["visionos_simulator"]:
-        print_warning("visionOS simulator does not support the Metal rendering driver")
+    if env["metal"] and env["simulator"]:
+        print_warning("visionOS Simulator does not support the Metal rendering driver")
         env["metal"] = False
 
     if env["metal"]:
