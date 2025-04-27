@@ -1,60 +1,11 @@
 #!/usr/bin/env python
 from misc.utility.scons_hints import *
 
+from platform_visionos_builders import generate_bundle
+
+from platform_methods import combine_libs_apple_embedded
+
 Import("env")
-
-import os
-import shutil
-
-from platform_methods import lipo
-
-
-def generate_bundle(target, source, env):
-    bin_dir = Dir("#bin").abspath
-
-    # Template bundle.
-    app_prefix = "godot." + env["platform"]
-    rel_prefix = "libgodot." + env["platform"] + "." + "template_release"
-    dbg_prefix = "libgodot." + env["platform"] + "." + "template_debug"
-    if env.dev_build:
-        app_prefix += ".dev"
-        rel_prefix += ".dev"
-        dbg_prefix += ".dev"
-    if env["precision"] == "double":
-        app_prefix += ".double"
-        rel_prefix += ".double"
-        dbg_prefix += ".double"
-
-    # Lipo template libraries.
-    rel_target_bin = lipo(bin_dir + "/" + rel_prefix, env.extra_suffix + ".a")
-    dbg_target_bin = lipo(bin_dir + "/" + dbg_prefix, env.extra_suffix + ".a")
-    rel_target_bin_sim = lipo(bin_dir + "/" + rel_prefix, ".simulator" + env.extra_suffix + ".a")
-    dbg_target_bin_sim = lipo(bin_dir + "/" + dbg_prefix, ".simulator" + env.extra_suffix + ".a")
-
-    # Assemble Xcode project bundle.
-    app_dir = Dir("#bin/visionos_xcode").abspath
-    templ = Dir("#misc/dist/visionos_xcode").abspath
-    if os.path.exists(app_dir):
-        shutil.rmtree(app_dir)
-    shutil.copytree(templ, app_dir)
-    if rel_target_bin != "":
-        shutil.copy(rel_target_bin, app_dir + "/libgodot.visionos.release.xcframework/xros-arm64/libgodot.a")
-    if dbg_target_bin != "":
-        shutil.copy(dbg_target_bin, app_dir + "/libgodot.visionos.debug.xcframework/xros-arm64/libgodot.a")
-    if rel_target_bin_sim != "":
-        shutil.copy(
-            rel_target_bin_sim, app_dir + "/libgodot.visionos.release.xcframework/xros-arm64-simulator/libgodot.a"
-        )
-    if dbg_target_bin_sim != "":
-        shutil.copy(
-            dbg_target_bin_sim, app_dir + "/libgodot.visionos.debug.xcframework/xros-arm64-simulator/libgodot.a"
-        )
-
-    # ZIP Xcode project bundle.
-    zip_dir = Dir("#bin/" + (app_prefix + env.extra_suffix).replace(".", "_")).abspath
-    shutil.make_archive(zip_dir, "zip", root_dir=app_dir)
-    shutil.rmtree(app_dir)
-
 
 visionos_lib = [
     "display_layer.mm",
@@ -71,23 +22,9 @@ visionos_lib = env_visionos.add_library("visionos", visionos_lib)
 # Enable module support
 env_visionos.Append(CCFLAGS=["-fmodules", "-fcxx-modules"])
 
-
-def combine_libs(target=None, source=None, env=None):
-    lib_path = target[0].srcnode().abspath
-    if "osxcross" in env:
-        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/${visionos_triple}libtool"
-    else:
-        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/libtool"
-    env.Execute(
-        libtool + ' -static -o "' + lib_path + '" ' + " ".join([('"' + lib.srcnode().abspath + '"') for lib in source])
-    )
-
-
 combine_command = env_visionos.Command(
-    "#bin/libgodot" + env_visionos["LIBSUFFIX"], [visionos_lib] + env_visionos["LIBS"], combine_libs
+    "#bin/libgodot" + env_visionos["LIBSUFFIX"], [visionos_lib] + env_visionos["LIBS"], combine_libs_apple_embedded
 )
 
 if env["generate_bundle"]:
-    generate_bundle_command = env.Command("generate_bundle", [], generate_bundle)
-    command = env.AlwaysBuild(generate_bundle_command)
-    env.Depends(command, [combine_command])
+    env.AlwaysBuild(env.CommandNoCache("generate_bundle", combine_command, env.Run(generate_bundle)))
