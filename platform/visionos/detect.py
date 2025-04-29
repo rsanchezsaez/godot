@@ -31,6 +31,7 @@ def get_opts():
             "",
         ),
         ("VISIONOS_SDK_PATH", "Path to the visionOS SDK", ""),
+        ("apple_target_triple", "Triple for corresponding target Apple platform toolchain", ""),
         BoolVariable("simulator", "Build for Simulator", False),
         BoolVariable("generate_bundle", "Generate an APP bundle after building visionOS/macOS binaries", False),
     ]
@@ -86,7 +87,7 @@ def configure(env: "SConsEnvironment"):
 
     env["ENV"]["PATH"] = env["APPLE_TOOLCHAIN_PATH"] + "/Developer/usr/bin/:" + env["ENV"]["PATH"]
 
-    compiler_path = "$APPLE_TOOLCHAIN_PATH/usr/bin/${visionos_triple}"
+    compiler_path = "$APPLE_TOOLCHAIN_PATH/usr/bin/${apple_target_triple}"
 
     ccache_path = os.environ.get("CCACHE")
     if ccache_path is None:

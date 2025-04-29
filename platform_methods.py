@@ -165,7 +165,10 @@ def detect_mvk(env, osname):
 
 def combine_libs_apple_embedded(target, source, env):
     lib_path = target[0].srcnode().abspath
-    libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/libtool"
+    if "osxcross" in env:
+        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/${apple_target_triple}libtool"
+    else:
+        libtool = "$APPLE_TOOLCHAIN_PATH/usr/bin/libtool"
     env.Execute(
         libtool + ' -static -o "' + lib_path + '" ' + " ".join([('"' + lib.srcnode().abspath + '"') for lib in source])
     )
