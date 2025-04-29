@@ -39,7 +39,8 @@ struct StringName::Table {
 	constexpr static uint32_t TABLE_MASK = TABLE_LEN - 1;
 
 	static inline _Data *table[TABLE_LEN];
-	static inline Mutex mutex;
+	static inline BinaryMutex mutex;
+	static inline PagedAllocator<_Data> allocator;
 };
 
 void StringName::setup() {
@@ -95,7 +96,7 @@ void StringName::cleanup() {
 			}
 
 			Table::table[i] = Table::table[i]->next;
-			memdelete(d);
+			Table::allocator.free(d);
 		}
 	}
 	if (lost_strings) {
@@ -123,7 +124,7 @@ void StringName::unref() {
 		if (_data->next) {
 			_data->next->prev = _data->prev;
 		}
-		memdelete(_data);
+		Table::allocator.free(_data);
 	}
 
 	_data = nullptr;
@@ -207,13 +208,6 @@ StringName::StringName(const StringName &p_name) {
 	}
 }
 
-void StringName::assign_static_unique_class_name(StringName *ptr, const char *p_name) {
-	MutexLock lock(Table::mutex);
-	if (*ptr == StringName()) {
-		*ptr = StringName(p_name, true);
-	}
-}
-
 StringName::StringName(const char *p_name, bool p_static) {
 	_data = nullptr;
 
@@ -250,7 +244,7 @@ StringName::StringName(const char *p_name, bool p_static) {
 		return;
 	}
 
-	_data = memnew(_Data);
+	_data = Table::allocator.alloc();
 	_data->name = p_name;
 	_data->refcount.init();
 	_data->static_count.set(p_static ? 1 : 0);
@@ -306,7 +300,7 @@ StringName::StringName(const String &p_name, bool p_static) {
 		return;
 	}
 
-	_data = memnew(_Data);
+	_data = Table::allocator.alloc();
 	_data->name = p_name;
 	_data->refcount.init();
 	_data->static_count.set(p_static ? 1 : 0);
