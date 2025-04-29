@@ -57,6 +57,9 @@ class String;
 
 @property(assign, nonatomic) NSTimeInterval renderingInterval;
 
+// Can be extended by subclasses
+- (void)godot_commonInit;
+
 // Implemented in subclasses
 - (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
 

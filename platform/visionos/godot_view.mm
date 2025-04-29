@@ -32,6 +32,8 @@
 
 #include "display_layer.h"
 
+#import <GameController/GameController.h>
+
 @interface GDTViewVisionOS ()
 
 #pragma clang diagnostic push
@@ -42,6 +44,15 @@
 @end
 
 @implementation GDTViewVisionOS
+
+- (void)godot_commonInit {
+	[super godot_commonInit];
+
+	// Enable GamePad handler
+	GCEventInteraction *gamepadInteraction = [[GCEventInteraction alloc] init];
+	gamepadInteraction.handledEventTypes = GCUIEventTypeGamepad;
+	[self addInteraction:gamepadInteraction];
+}
 
 - (CALayer<GDTDisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName {
 	if (self.renderingLayer) {
