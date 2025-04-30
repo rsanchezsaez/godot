@@ -33,6 +33,7 @@ def get_opts():
         ),
         ("IOS_SDK_PATH", "Path to the iOS SDK", ""),
         ("apple_target_triple", "Triple for corresponding target Apple platform toolchain", ""),
+        ("ios_triple", "Deprecated, use 'apple_target_triple' instead", ""),
         BoolVariable("simulator", "Build for Simulator", False),
         BoolVariable("ios_simulator", "Deprecated, use 'simulator=yes' instead", False),
         BoolVariable("generate_bundle", "Generate an APP bundle after building iOS/macOS binaries", False),
@@ -61,6 +62,11 @@ def get_flags():
 
 
 def configure(env: "SConsEnvironment"):
+    # Backwards compatibility with old 'ios_simulator' option
+    if env["ios_triple"]:
+        print_warning("The 'ios_triple' option is deprecated, use 'apple_target_triple' instead.")
+        env["apple_target_triple"] = env["ios_triple"]
+
     # Validate arch.
     supported_arches = ["x86_64", "arm64"]
     validate_arch(env["arch"], get_name(), supported_arches)
@@ -105,7 +111,7 @@ def configure(env: "SConsEnvironment"):
 
     ## Compile flags
 
-    # Backwards compatibility with old 'ios_simulator' parameter
+    # Backwards compatibility with old 'ios_simulator' option
     if env["ios_simulator"]:
         print_warning("The 'ios_simulator' option is deprecated, use 'simulator=yes' instead.")
         env["simulator"] = True
