@@ -163,7 +163,7 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 		}
 
 		RasterizerGLES3::make_current(false);
-		has_made_current_renderer_compositor = true;
+		has_made_render_compositor_current = true;
 	}
 #endif
 
