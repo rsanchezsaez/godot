@@ -62,6 +62,8 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 	}
 	native_menu = memnew(NativeMenu);
 
+	bool has_made_render_compositor_current = false;
+
 #if defined(RD_ENABLED)
 	rendering_context = nullptr;
 	rendering_device = nullptr;
@@ -148,6 +150,7 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 		rendering_device->screen_create(MAIN_WINDOW_ID);
 
 		RendererCompositorRD::make_current();
+		has_made_render_compositor_current = true;
 	}
 #endif
 
@@ -160,8 +163,11 @@ DisplayServerAppleEmbedded::DisplayServerAppleEmbedded(const String &p_rendering
 		}
 
 		RasterizerGLES3::make_current(false);
+		has_made_current_renderer_compositor = true;
 	}
 #endif
+
+	ERR_FAIL_COND_MSG(!has_made_render_compositor_current, vformat("Failed to make RendererCompositor current for rendering driver %s", rendering_driver));
 
 	bool keep_screen_on = bool(GLOBAL_GET("display/window/energy_saving/keep_screen_on"));
 	screen_set_keep_on(keep_screen_on);
