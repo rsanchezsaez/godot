@@ -35,7 +35,7 @@
 #include "main/main.h"
 
 #import <UIKit/UIKit.h>
-#include <stdio.h>
+#include <cstdio>
 
 int gargc;
 char **gargv;
