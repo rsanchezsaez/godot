@@ -211,6 +211,7 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 	uint32_t view_count = render_buffers->get_view_count();
 
 	RID vrs_texture;
+	void *rasterization_rate_map = nullptr;
 #ifndef XR_DISABLED
 	if (render_buffers->get_vrs_mode() == RS::VIEWPORT_VRS_XR) {
 		Ref<XRInterface> interface = XRServer::get_singleton()->get_primary_interface();
@@ -218,6 +219,12 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 			vrs_texture = interface->get_vrs_texture();
 		}
 	}
+#ifdef VISIONOS_ENABLED
+	Ref<XRInterface> xr_interface = XRServer::get_singleton()->get_primary_interface();
+	if (xr_interface.is_valid()) {
+		rasterization_rate_map = xr_interface->get_rasterization_rate_map();
+	}
+#endif
 #endif // XR_DISABLED
 	if (vrs_texture.is_null() && render_buffers->has_texture(RB_SCOPE_VRS, RB_TEXTURE)) {
 		vrs_texture = render_buffers->get_texture(RB_SCOPE_VRS, RB_TEXTURE);
@@ -245,6 +252,7 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 			RD::FramebufferPass pass;
 			pass.color_attachments.push_back(0);
 			pass.depth_attachment = 1;
+			pass.rasterization_rate_map = rasterization_rate_map;
 
 			if (use_msaa) {
 				// Add resolve
@@ -265,6 +273,7 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 			RD::FramebufferPass pass;
 			pass.color_attachments.push_back(0);
 			pass.depth_attachment = 1;
+			pass.rasterization_rate_map = rasterization_rate_map;
 
 			if (use_msaa) {
 				// add resolve
@@ -291,7 +300,8 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 			RD::FramebufferPass blit_pass;
 			blit_pass.input_attachments.push_back(color_buffer_id); // Read from our (resolved) color buffer
 			blit_pass.color_attachments.push_back(target_buffer_id); // Write into our target buffer
-			// this doesn't need VRS
+			// this doesn't need VRS nor rasterization_rate_map
+			blit_pass.rasterization_rate_map = nullptr;
 			passes.push_back(blit_pass);
 
 			return FramebufferCacheRD::get_singleton()->get_cache_multipass(textures, passes, view_count);
@@ -1190,6 +1200,11 @@ void RenderForwardMobile::_render_scene(RenderDataRD *p_render_data, const Color
 		}
 
 		RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(framebuffer, load_color ? RD::DRAW_CLEAR_DEPTH : (RD::DRAW_CLEAR_COLOR_0 | RD::DRAW_CLEAR_DEPTH), c, 0.0f, 0, p_render_data->render_region, breadcrumb);
+		if (p_render_data->xr_viewports.size() == 2) {
+			RD::get_singleton()->draw_list_set_viewports(draw_list, p_render_data->xr_viewports);
+			RD::get_singleton()->draw_list_set_empty_scissor(draw_list);
+		}
+
 		RD::FramebufferFormatID fb_format = RD::get_singleton()->framebuffer_get_format(framebuffer);
 
 		if (copy_canvas) {

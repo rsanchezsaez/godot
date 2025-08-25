@@ -1,5 +1,5 @@
 /**************************************************************************/
-/*  godot_app_delegate.h                                                  */
+/*  godot_app_delegate_apple_embedded.h                                   */
 /**************************************************************************/
 /*                         This file is part of:                          */
 /*                             GODOT ENGINE                               */
@@ -34,7 +34,7 @@
 
 typedef NSObject<UIApplicationDelegate> GDTAppDelegateServiceProtocol;
 
-@interface GDTApplicationDelegate : NSObject <UIApplicationDelegate>
+@interface GDTAppDelegate : NSObject <UIApplicationDelegate>
 
 @property(class, readonly, strong) NSArray<GDTAppDelegateServiceProtocol *> *services;
 
