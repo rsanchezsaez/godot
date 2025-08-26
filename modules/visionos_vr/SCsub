@@ -4,7 +4,5 @@ from misc.utility.scons_hints import *
 Import("env")
 Import("env_modules")
 
-env_mobile_vr = env_modules.Clone()
-
-env_mobile_vr.add_source_files(env.modules_sources, "*.cpp")
-env_mobile_vr.add_source_files(env.modules_sources, "*.mm")
+env_visionos_vr = env_modules.Clone()
+env_visionos_vr.add_source_files(env.modules_sources, "*.mm")

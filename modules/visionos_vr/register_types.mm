@@ -28,9 +28,9 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
 /**************************************************************************/
 
-#include "register_types.h"
-
 #ifdef VISIONOS_ENABLED
+
+#include "register_types.h"
 
 #include "visionos_vr_interface.h"
 
@@ -69,11 +69,5 @@ void uninitialize_visionos_vr_module(ModuleInitializationLevel p_level) {
 		visionos_vr.unref();
 	}
 }
-
-#else
-
-void initialize_visionos_vr_module(ModuleInitializationLevel p_level) {}
-
-void uninitialize_visionos_vr_module(ModuleInitializationLevel p_level) {}
 
 #endif // VISIONOS_ENABLED

@@ -30,7 +30,11 @@
 
 #pragma once
 
+#ifdef VISIONOS_ENABLED
+
 #include "modules/register_module_types.h"
 
 void initialize_visionos_vr_module(ModuleInitializationLevel p_level);
 void uninitialize_visionos_vr_module(ModuleInitializationLevel p_level);
+
+#endif

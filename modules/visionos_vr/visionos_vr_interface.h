@@ -129,4 +129,4 @@ public:
 	virtual void *get_rasterization_rate_map() override;
 };
 
-#endif // VISION_OS_ENABLED
+#endif
