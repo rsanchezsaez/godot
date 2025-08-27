@@ -3968,9 +3968,6 @@ void Viewport::set_vrs_mode(Viewport::VRSMode p_vrs_mode) {
 		case VRS_XR: {
 			RS::get_singleton()->viewport_set_vrs_mode(viewport, RS::VIEWPORT_VRS_XR);
 		} break;
-		case VRS_XR_RASTERIZATION_RATE_MAP: {
-			RS::get_singleton()->viewport_set_vrs_mode(viewport, RS::VIEWPORT_VRS_XR_RASTERIZATION_RATE_MAP);
-		} break;
 		default: {
 			RS::get_singleton()->viewport_set_vrs_mode(viewport, RS::VIEWPORT_VRS_DISABLED);
 		} break;

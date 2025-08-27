@@ -215,23 +215,22 @@ RID RenderForwardMobile::RenderBufferDataForwardMobile::get_color_fbs(Framebuffe
 #ifndef XR_DISABLED
 	RS::ViewportVRSMode vrs_mode = render_buffers->get_vrs_mode();
 	if (vrs_mode == RS::VIEWPORT_VRS_XR) {
-		Ref<XRInterface> interface = XRServer::get_singleton()->get_primary_interface();
-		if (interface.is_valid() && RD::get_singleton()->vrs_get_method() == RD::VRS_METHOD_FRAGMENT_DENSITY_MAP && interface->get_vrs_texture_format() == XRInterface::XR_VRS_TEXTURE_FORMAT_FRAGMENT_DENSITY_MAP) {
-			vrs_texture = interface->get_vrs_texture();
-		}
-	}
-#ifdef VISIONOS_ENABLED
-	if (vrs_mode == RS::VIEWPORT_VRS_XR_RASTERIZATION_RATE_MAP) {
 		Ref<XRInterface> xr_interface = XRServer::get_singleton()->get_primary_interface();
 		if (xr_interface.is_valid()) {
-			RID rasterization_rate_map_rid = xr_interface->get_vrs_texture();
-			RD::Texture *texture = RenderingDevice::get_singleton()->texture_owner.get_or_null(rasterization_rate_map_rid);
-			if (texture) {
-				rasterization_rate_map = (void *)texture->driver_id.id;
+			if (RD::get_singleton()->vrs_get_method() == RD::VRS_METHOD_FRAGMENT_DENSITY_MAP && xr_interface->get_vrs_texture_format() == XRInterface::XR_VRS_TEXTURE_FORMAT_FRAGMENT_DENSITY_MAP) {
+				vrs_texture = xr_interface->get_vrs_texture();
 			}
+#ifdef VISIONOS_ENABLED
+			if (xr_interface->get_vrs_texture_format() == XRInterface::XR_VRS_TEXTURE_FORMAT_RASTERIZATION_RATE_MAP) {
+				RID rasterization_rate_map_rid = xr_interface->get_vrs_texture();
+				RD::Texture *texture = RenderingDevice::get_singleton()->texture_owner.get_or_null(rasterization_rate_map_rid);
+				if (texture) {
+					rasterization_rate_map = (void *)texture->driver_id.id;
+				}
+			}
+#endif
 		}
 	}
-#endif
 #endif // XR_DISABLED
 	if (vrs_texture.is_null() && render_buffers->has_texture(RB_SCOPE_VRS, RB_TEXTURE)) {
 		vrs_texture = render_buffers->get_texture(RB_SCOPE_VRS, RB_TEXTURE);

@@ -63,8 +63,8 @@ Vector<EditorExportPlatformAppleEmbedded::IconInfo> EditorExportPlatformVisionOS
 Error EditorExportPlatformVisionOS::customize_exported_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags) {
 	int app_role_enum = (int)p_preset->get("application/app_role");
 	if (app_role_enum == 1) {
-		// App role is immersive mode, set hardcoded VRS_XR_RASTERIZATION_RATE_MAP project setting
-		ProjectSettings::get_singleton()->set_setting("rendering/vrs/mode", Viewport::VRS_XR_RASTERIZATION_RATE_MAP);
+		// App role is immersive mode, set hardcoded VRS_XR project setting
+		ProjectSettings::get_singleton()->set_setting("rendering/vrs/mode", Viewport::VRS_XR);
 	}
 	return OK;
 }
