@@ -89,6 +89,7 @@ public:
 		XR_VRS_TEXTURE_FORMAT_UNIFIED,
 		XR_VRS_TEXTURE_FORMAT_FRAGMENT_SHADING_RATE,
 		XR_VRS_TEXTURE_FORMAT_FRAGMENT_DENSITY_MAP,
+		XR_VRS_TEXTURE_FORMAT_RASTERIZATION_RATE_MAP
 	};
 
 protected:
@@ -170,9 +171,6 @@ public:
 	/** VRS **/
 	virtual RID get_vrs_texture(); /* obtain VRS texture */
 	virtual VRSTextureFormat get_vrs_texture_format() { return XR_VRS_TEXTURE_FORMAT_UNIFIED; }
-
-	/** visionOS foveation support. No need to expose this method in GDScript **/
-	virtual void *get_rasterization_rate_map() { return nullptr; }
 
 	XRInterface();
 	~XRInterface();

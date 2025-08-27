@@ -72,6 +72,8 @@ private:
 	RID current_color_texture_id;
 	RD::Texture current_depth_texture;
 	RID current_depth_texture_id;
+	RD::Texture current_rasterization_rate_map;
+	RID current_rasterization_rate_map_id;
 
 	// tracker for our head
 	Ref<XRPositionalTracker> head;
@@ -80,7 +82,6 @@ private:
 
 	RenderingDevice *rendering_device = nullptr;
 	RenderingDeviceDriverMetal *rendering_device_driver_metal = nullptr;
-	//	RenderingContextDriverMetal *rendering_context_driver_metal = nullptr;
 
 	void set_head_pose_from_arkit();
 
@@ -125,8 +126,7 @@ public:
 	virtual RID get_color_texture() override;
 	virtual RID get_depth_texture() override;
 	virtual RID get_vrs_texture() override;
-
-	virtual void *get_rasterization_rate_map() override;
+	virtual VRSTextureFormat get_vrs_texture_format() override;
 };
 
 #endif

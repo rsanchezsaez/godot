@@ -33,6 +33,8 @@
 #include "logo_svg.gen.h"
 #include "run_icon_svg.gen.h"
 
+#include "scene/main/viewport.h"
+
 Vector<String> EditorExportPlatformVisionOS::device_types({ "realityDevice" });
 
 EditorExportPlatformVisionOS::EditorExportPlatformVisionOS() :
@@ -56,6 +58,15 @@ void EditorExportPlatformVisionOS::get_export_options(List<ExportOption> *r_opti
 
 Vector<EditorExportPlatformAppleEmbedded::IconInfo> EditorExportPlatformVisionOS::get_icon_infos() const {
 	return Vector<EditorExportPlatformAppleEmbedded::IconInfo>();
+}
+
+Error EditorExportPlatformVisionOS::customize_exported_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags) {
+	int app_role_enum = (int)p_preset->get("application/app_role");
+	if (app_role_enum == 1) {
+		// App role is immersive mode, set hardcoded VRS_XR_RASTERIZATION_RATE_MAP project setting
+		ProjectSettings::get_singleton()->set_setting("rendering/vrs/mode", Viewport::VRS_XR_RASTERIZATION_RATE_MAP);
+	}
+	return OK;
 }
 
 String EditorExportPlatformVisionOS::_process_config_file_line(const Ref<EditorExportPreset> &p_preset, const String &p_line, const AppleEmbeddedConfigData &p_config, bool p_debug, const CodeSigningDetails &p_code_signing) {
@@ -99,8 +110,7 @@ String EditorExportPlatformVisionOS::_process_config_file_line(const Ref<EditorE
 	} else if (p_line.contains("$valid_archs")) {
 		strnew += p_line.replace("$valid_archs", "arm64") + "\n";
 
-		// Appleication Scene Manifest
-		// Scene Manifest
+		// Application Scene Manifest
 	} else if (p_line.contains("$application_scene_manifest")) {
 		int app_role_enum = (int)p_preset->get("application/app_role");
 		if (app_role_enum == 0) {

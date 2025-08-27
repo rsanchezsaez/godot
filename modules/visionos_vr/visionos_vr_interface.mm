@@ -416,24 +416,24 @@ RID VisionOSVRInterface::get_depth_texture() {
 	}
 
 	ERR_FAIL_NULL_V_MSG(current_drawable, RID(), "Current drawable is nil, probably pre_render() has not been called");
-	id<MTLTexture> color_texture = cp_drawable_get_depth_texture(current_drawable, 0);
+	id<MTLTexture> depth_texture = cp_drawable_get_depth_texture(current_drawable, 0);
 
 	PixelFormats pixel_formats = rendering_device_driver_metal->get_pixel_formats();
 
 	RD::Texture texture;
-	texture.driver_id = rid::make(color_texture);
+	texture.driver_id = rid::make(depth_texture);
 	ERR_FAIL_COND_V(!texture.driver_id, RID());
-	texture.type = MTL::texture_type_from_metal(color_texture.textureType);
-	texture.format = pixel_formats.getDataFormat(color_texture.pixelFormat);
-	texture.width = color_texture.width;
-	texture.height = color_texture.height;
-	texture.depth = color_texture.depth;
-	texture.layers = color_texture.arrayLength;
-	texture.mipmaps = color_texture.mipmapLevelCount;
+	texture.type = MTL::texture_type_from_metal(depth_texture.textureType);
+	texture.format = pixel_formats.getDataFormat(depth_texture.pixelFormat);
+	texture.width = depth_texture.width;
+	texture.height = depth_texture.height;
+	texture.depth = depth_texture.depth;
+	texture.layers = depth_texture.arrayLength;
+	texture.mipmaps = depth_texture.mipmapLevelCount;
 	texture.base_mipmap = 0;
 	texture.base_layer = 0;
 	texture.usage_flags = RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-	texture.samples = MTL::texture_samples_from_metal(color_texture.sampleCount);
+	texture.samples = MTL::texture_samples_from_metal(depth_texture.sampleCount);
 	texture.is_resolve_buffer = false;
 	texture.has_initial_data = false;
 
@@ -452,19 +452,31 @@ RID VisionOSVRInterface::get_depth_texture() {
 RID VisionOSVRInterface::get_vrs_texture() {
 	_THREAD_SAFE_METHOD_
 
-	return RID();
+	if (!initialized) {
+		return RID();
+	}
+
+	if (current_rasterization_rate_map_id != RID()) {
+		rendering_device->texture_owner.free(current_rasterization_rate_map_id);
+	}
+
+	ERR_FAIL_NULL_V_MSG(current_drawable, RID(), "Current drawable is nil, probably pre_render() has not been called");
+	size_t count = cp_drawable_get_rasterization_rate_map_count(current_drawable);
+	ERR_FAIL_COND_V_MSG(count == 0, RID(), "No rasterizationRateMaps found");
+	id<MTLRasterizationRateMap> rasterization_rate_map = cp_drawable_get_rasterization_rate_map(current_drawable, 0);
+
+	RD::Texture texture;
+	texture.driver_id = RDD::TextureID((__bridge void *)rasterization_rate_map);
+	ERR_FAIL_COND_V(!texture.driver_id, RID());
+
+	current_rasterization_rate_map = texture;
+	current_rasterization_rate_map_id = rendering_device->texture_owner.make_rid(current_rasterization_rate_map);
+
+	return current_rasterization_rate_map_id;
 }
 
-void *VisionOSVRInterface::get_rasterization_rate_map() {
-	id<MTLRasterizationRateMap> rasterization_rate_map = nil;
-	if (initialized) {
-		ERR_FAIL_NULL_V_MSG(current_drawable, (void *)nullptr, "Current drawable is nil, probably pre_render() has not been called");
-		size_t count = cp_drawable_get_rasterization_rate_map_count(current_drawable);
-		if (count > 0) {
-			rasterization_rate_map = (count == 0) ? nil : cp_drawable_get_rasterization_rate_map(current_drawable, 0);
-		}
-	}
-	return (__bridge void *)rasterization_rate_map;
+VisionOSVRInterface::VRSTextureFormat VisionOSVRInterface::get_vrs_texture_format() {
+	return XR_VRS_TEXTURE_FORMAT_RASTERIZATION_RATE_MAP;
 }
 
 #endif // VISIONOS_ENABLED

@@ -47,6 +47,8 @@ class EditorExportPlatformVisionOS : public EditorExportPlatformAppleEmbedded {
 
 	virtual void get_export_options(List<ExportOption> *r_options) const override;
 
+	virtual Error customize_exported_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, BitField<EditorExportPlatform::DebugFlags> p_flags = 0) override;
+
 	virtual String _process_config_file_line(const Ref<EditorExportPreset> &p_preset, const String &p_line, const AppleEmbeddedConfigData &p_config, bool p_debug, const CodeSigningDetails &p_code_signing) override;
 
 public:
