@@ -2678,9 +2678,9 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 		for (uint32_t v = 0; v < view_count; v++) {
 			transforms[v] = p_xr_interface->get_transform_for_view(v, world_origin);
 			projections[v] = p_xr_interface->get_projection_for_view(v, aspect, camera->znear, camera->zfar);
-			Rect2 viewport = p_xr_interface->get_viewport_for_view(v);
-			if (viewport != Rect2()) {
-				viewports.push_back(p_xr_interface->get_viewport_for_view(v));
+			Rect2i viewport = p_xr_interface->get_render_region_for_view(v);
+			if (viewport != Rect2i()) {
+				viewports.push_back(viewport);
 			}
 		}
 

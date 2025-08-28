@@ -1094,7 +1094,7 @@ Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_as
 	return cm;
 }
 
-Rect2i OpenXRInterface::get_render_region() {
+Rect2i OpenXRInterface::get_render_region_for_view(uint32_t p_view) {
 	if (openxr_api) {
 		return openxr_api->get_render_region();
 	} else {
@@ -1588,7 +1588,7 @@ RID OpenXRInterface::get_vrs_texture() {
 		eye_foci.push_back(openxr_api->get_eye_focus(v, aspect_ratio));
 	}
 
-	xr_vrs.set_vrs_render_region(get_render_region());
+	xr_vrs.set_vrs_render_region(get_render_region_for_view(0));
 
 	return xr_vrs.make_vrs_texture(target_size, eye_foci);
 }

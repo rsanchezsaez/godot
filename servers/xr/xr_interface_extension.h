@@ -103,7 +103,8 @@ public:
 	virtual Transform3D get_camera_transform() override;
 	virtual Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) override;
 	virtual Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) override;
-	virtual Rect2i get_viewport_for_view(uint32_t p_view) override;
+	virtual Rect2i get_render_region_for_view(uint32_t p_view) override;
+	virtual Rect2i get_render_region(); // Backwards compatibility, assumes view index is 0
 	virtual RID get_vrs_texture() override;
 	virtual VRSTextureFormat get_vrs_texture_format() override;
 	virtual RID get_color_texture() override;
@@ -116,7 +117,7 @@ public:
 	GDVIRTUAL0R(Transform3D, _get_camera_transform);
 	GDVIRTUAL2R(Transform3D, _get_transform_for_view, uint32_t, const Transform3D &);
 	GDVIRTUAL4R(PackedFloat64Array, _get_projection_for_view, uint32_t, double, double, double);
-	GDVIRTUAL1R(Rect2i, _get_viewport_for_view, uint32_t);
+	GDVIRTUAL1R(PackedInt32Array, _get_render_region_for_view, uint32_t);
 	GDVIRTUAL0R(RID, _get_vrs_texture);
 	GDVIRTUAL0R(VRSTextureFormat, _get_vrs_texture_format);
 	GDVIRTUAL0R(RID, _get_color_texture);

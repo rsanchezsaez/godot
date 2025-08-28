@@ -77,7 +77,7 @@ bool VisionOSVRInterface::initialize() {
 	print_verbose("VisionOSVRInterface.initialize()");
 
 	if (initialized) {
-		ERR_PRINT("vision_vr_interface already initialized");
+		ERR_PRINT("VisionOSVRInterface already initialized");
 		return true;
 	}
 
@@ -233,7 +233,7 @@ Projection VisionOSVRInterface::get_projection_for_view(uint32_t p_view, double 
 	return eye_projection;
 }
 
-Rect2i VisionOSVRInterface::get_viewport_for_view(uint32_t p_view) {
+Rect2i VisionOSVRInterface::get_render_region_for_view(uint32_t p_view) {
 	_THREAD_SAFE_METHOD_
 
 	Rect2 viewport_rect;

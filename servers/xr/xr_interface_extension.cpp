@@ -50,7 +50,7 @@ void XRInterfaceExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_camera_transform);
 	GDVIRTUAL_BIND(_get_transform_for_view, "view", "cam_transform");
 	GDVIRTUAL_BIND(_get_projection_for_view, "view", "aspect", "z_near", "z_far");
-	GDVIRTUAL_BIND(_get_viewport_for_view, "view");
+	GDVIRTUAL_BIND(_get_render_region_for_view, "view");
 	GDVIRTUAL_BIND(_get_vrs_texture);
 	GDVIRTUAL_BIND(_get_vrs_texture_format);
 
@@ -228,23 +228,28 @@ Transform3D XRInterfaceExtension::get_transform_for_view(uint32_t p_view, const 
 Projection XRInterfaceExtension::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) {
 	Projection cm;
 	PackedFloat64Array arr;
-
 	if (GDVIRTUAL_CALL(_get_projection_for_view, p_view, p_aspect, p_z_near, p_z_far, arr)) {
-		ERR_FAIL_COND_V_MSG(arr.size() != 16, Projection(), "Projection matrix must contain 16 floats");
+		ERR_FAIL_COND_V_MSG(arr.size() != 16, cm, "Projection matrix must contain 16 floats");
 		real_t *m = (real_t *)cm.columns;
 		for (int i = 0; i < 16; i++) {
 			m[i] = arr[i];
 		}
-		return cm;
 	}
-
-	return Projection();
+	return cm;
 }
 
-Rect2i XRInterfaceExtension::get_viewport_for_view(uint32_t p_view) {
+Rect2i XRInterfaceExtension::get_render_region_for_view(uint32_t p_view) {
 	Rect2i rect;
-	GDVIRTUAL_CALL(_get_viewport_for_view, p_view, rect);
+	PackedInt32Array arr;
+	if (GDVIRTUAL_CALL(_get_render_region_for_view, p_view, arr)) {
+		ERR_FAIL_COND_V_MSG(arr.size() != 4, rect, "Rect must contains 4 ints");
+		return Rect2(arr[0], arr[1], arr[2], arr[3]);
+	}
 	return rect;
+}
+
+Rect2i XRInterfaceExtension::get_render_region() {
+	return get_render_region_for_view(0);
 }
 
 RID XRInterfaceExtension::get_vrs_texture() {
