@@ -1898,6 +1898,9 @@ uint32_t RenderingDevice::_texture_vrs_method_to_usage_bits() const {
 			return RDD::TEXTURE_USAGE_VRS_FRAGMENT_SHADING_RATE_BIT;
 		case VRS_METHOD_FRAGMENT_DENSITY_MAP:
 			return RDD::TEXTURE_USAGE_VRS_FRAGMENT_DENSITY_MAP_BIT;
+		case VRS_METHOD_RASTERIZATION_RATE_MAP:
+			// Currently no special usage is needed for rasterization rate map
+			return 0;
 		default:
 			return 0;
 	}
@@ -2550,8 +2553,6 @@ RDD::RenderPassID RenderingDevice::_render_pass_create(RenderingDeviceDriver *p_
 		const FramebufferPass *pass = &p_passes[i];
 		RDD::Subpass &subpass = subpasses[i];
 
-		subpass.rasterization_rate_map = pass->rasterization_rate_map;
-
 		TextureSamples texture_samples = TEXTURE_SAMPLES_1;
 		bool is_multisample_first = true;
 
@@ -2693,6 +2694,9 @@ RDD::RenderPassID RenderingDevice::_render_pass_create(RenderingDeviceDriver *p_
 	if (p_vrs_method == VRS_METHOD_FRAGMENT_DENSITY_MAP && p_vrs_attachment >= 0) {
 		fragment_density_map_attachment_reference.attachment = p_vrs_attachment;
 		fragment_density_map_attachment_reference.layout = RDD::TEXTURE_LAYOUT_FRAGMENT_DENSITY_MAP_ATTACHMENT_OPTIMAL;
+	} else if (p_vrs_method == VRS_METHOD_RASTERIZATION_RATE_MAP && p_vrs_attachment >= 0) {
+		fragment_density_map_attachment_reference.attachment = p_vrs_attachment;
+		fragment_density_map_attachment_reference.layout = RDD::TEXTURE_LAYOUT_UNDEFINED;
 	}
 
 	RDD::RenderPassID render_pass = p_driver->render_pass_create(attachments, subpasses, subpass_dependencies, p_view_count, fragment_density_map_attachment_reference);
@@ -2718,6 +2722,8 @@ RDG::ResourceUsage RenderingDevice::_vrs_usage_from_method(VRSMethod p_method) {
 			return RDG::RESOURCE_USAGE_ATTACHMENT_FRAGMENT_SHADING_RATE_READ;
 		case VRS_METHOD_FRAGMENT_DENSITY_MAP:
 			return RDG::RESOURCE_USAGE_ATTACHMENT_FRAGMENT_DENSITY_MAP_READ;
+		case VRS_METHOD_RASTERIZATION_RATE_MAP:
+			return RDG::RESOURCE_USAGE_ATTACHMENT_RASTERIZATION_RATE_MAP_READ;
 		default:
 			return RDG::RESOURCE_USAGE_NONE;
 	}
@@ -2729,6 +2735,9 @@ RDD::PipelineStageBits RenderingDevice::_vrs_stages_from_method(VRSMethod p_meth
 			return RDD::PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT;
 		case VRS_METHOD_FRAGMENT_DENSITY_MAP:
 			return RDD::PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT;
+		case VRS_METHOD_RASTERIZATION_RATE_MAP:
+			// Rasterization rate does not need barrier. It's not a texture. It's readonly in shader.
+			return RDD::PipelineStageBits(0);
 		default:
 			return RDD::PipelineStageBits(0);
 	}
@@ -2740,6 +2749,10 @@ RDD::TextureLayout RenderingDevice::_vrs_layout_from_method(VRSMethod p_method) 
 			return RDD::TEXTURE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL;
 		case VRS_METHOD_FRAGMENT_DENSITY_MAP:
 			return RDD::TEXTURE_LAYOUT_FRAGMENT_DENSITY_MAP_ATTACHMENT_OPTIMAL;
+		case VRS_METHOD_RASTERIZATION_RATE_MAP:
+			// Rasterization rate does not need layout transform. It's not a texture. It's readonly in shader.
+			// Keep its layout UNDEFINED
+			return RDD::TEXTURE_LAYOUT_UNDEFINED;
 		default:
 			return RDD::TEXTURE_LAYOUT_UNDEFINED;
 	}
@@ -2752,6 +2765,8 @@ void RenderingDevice::_vrs_detect_method() {
 		vrs_method = VRS_METHOD_FRAGMENT_SHADING_RATE;
 	} else if (fdm_capabilities.attachment_supported) {
 		vrs_method = VRS_METHOD_FRAGMENT_DENSITY_MAP;
+	} else if (driver->is_rasterization_rate_map_supported()) {
+		vrs_method = VRS_METHOD_RASTERIZATION_RATE_MAP;
 	}
 
 	switch (vrs_method) {
@@ -2762,6 +2777,12 @@ void RenderingDevice::_vrs_detect_method() {
 		case VRS_METHOD_FRAGMENT_DENSITY_MAP:
 			vrs_format = DATA_FORMAT_R8G8_UNORM;
 			vrs_texel_size = Vector2i(32, 32).clamp(fdm_capabilities.min_texel_size, fdm_capabilities.max_texel_size);
+			break;
+		case VRS_METHOD_RASTERIZATION_RATE_MAP:
+			// Rasterization rate map is not a real texture. It's a special opaque object contains screen space distortion metadata.
+			// For the sake of consistancy with other APIs, we wrap it as a texture.
+			vrs_format = DATA_FORMAT_R8_UINT;
+			vrs_texel_size = Vector2i(16, 16);
 			break;
 		default:
 			break;
@@ -2958,6 +2979,8 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 	attachments.resize(p_texture_attachments.size());
 	Size2i size;
 	bool size_set = false;
+	bool should_override_size = false;
+	Size2i override_size;
 	for (int i = 0; i < p_texture_attachments.size(); i++) {
 		AttachmentFormat af;
 		Texture *texture = texture_owner.get_or_null(p_texture_attachments[i]);
@@ -2972,6 +2995,13 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 			if (i != 0 && texture->usage_flags & TEXTURE_USAGE_VRS_ATTACHMENT_BIT) {
 				// Detect if the texture is the fragment density map and it's not the first attachment.
 				vrs_attachment = i;
+			}
+
+			// Rasterization map enables a bigger logical viewport than the physical texture.
+			if (texture->usage_flags & TEXTURE_USAGE_VRS_ATTACHMENT_BIT && vrs_method == VRS_METHOD_RASTERIZATION_RATE_MAP) {
+				should_override_size = true;
+				override_size.width = texture->width;
+				override_size.height = texture->height;
 			}
 
 			if (!size_set) {
@@ -3000,6 +3030,10 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 	}
 
 	ERR_FAIL_COND_V_MSG(!size_set, RID(), "All attachments unused.");
+
+	if (should_override_size) {
+		size = override_size;
+	}
 
 	FramebufferFormatID format_id = framebuffer_format_create_multipass(attachments, p_passes, p_view_count, vrs_attachment);
 	if (format_id == INVALID_ID) {
@@ -4391,8 +4425,8 @@ RenderingDevice::DrawListID RenderingDevice::draw_list_begin_for_screen(DisplayS
 	RDD::RenderPassID render_pass = driver->swap_chain_get_render_pass(sc_it->value);
 	draw_graph.add_draw_list_begin(render_pass, fb_it->value, viewport, RDG::ATTACHMENT_OPERATION_CLEAR, clear_value, RDD::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, RDD::BreadcrumbMarker::BLIT_PASS, split_swapchain_into_its_own_cmd_buffer);
 
-	draw_graph.add_draw_list_set_viewports(viewport);
-	draw_graph.add_draw_list_set_scissors(viewport);
+	draw_graph.add_draw_list_set_viewport(viewport);
+	draw_graph.add_draw_list_set_scissor(viewport);
 
 	return int64_t(ID_TYPE_DRAW_LIST) << ID_BASE_SHIFT;
 }
@@ -4512,8 +4546,8 @@ RenderingDevice::DrawListID RenderingDevice::draw_list_begin(RID p_framebuffer, 
 	draw_list_subpass_count = framebuffer_key.passes.size();
 
 	Rect2i viewport_rect(viewport_offset, viewport_size);
-	draw_graph.add_draw_list_set_viewports(viewport_rect);
-	draw_graph.add_draw_list_set_scissors(viewport_rect);
+	draw_graph.add_draw_list_set_viewport(viewport_rect);
+	draw_graph.add_draw_list_set_scissor(viewport_rect);
 
 	return int64_t(ID_TYPE_DRAW_LIST) << ID_BASE_SHIFT;
 }
@@ -5016,18 +5050,7 @@ void RenderingDevice::draw_list_set_viewport(DrawListID p_list, const Rect2i &p_
 	}
 
 	draw_list.viewport = p_rect;
-	draw_graph.add_draw_list_set_viewports(p_rect);
-}
-
-void RenderingDevice::draw_list_set_viewports(DrawListID p_list, VectorView<Rect2i> p_rects) {
-	ERR_FAIL_COND(!draw_list.active);
-
-	if (p_rects.size() == 0) {
-		return;
-	}
-
-	draw_list.viewport = p_rects[0];
-	draw_graph.add_draw_list_set_viewports(p_rects);
+	draw_graph.add_draw_list_set_viewport(p_rect);
 }
 
 void RenderingDevice::draw_list_enable_scissor(DrawListID p_list, const Rect2 &p_rect) {
@@ -5044,7 +5067,7 @@ void RenderingDevice::draw_list_enable_scissor(DrawListID p_list, const Rect2 &p
 		return;
 	}
 
-	draw_graph.add_draw_list_set_scissors(rect);
+	draw_graph.add_draw_list_set_scissor(rect);
 }
 
 void RenderingDevice::draw_list_disable_scissor(DrawListID p_list) {
@@ -5052,15 +5075,7 @@ void RenderingDevice::draw_list_disable_scissor(DrawListID p_list) {
 
 	ERR_FAIL_COND(!draw_list.active);
 
-	draw_graph.add_draw_list_set_scissors(draw_list.viewport);
-}
-
-void RenderingDevice::draw_list_set_empty_scissor(DrawListID p_list) {
-	ERR_RENDER_THREAD_GUARD();
-
-	ERR_FAIL_COND(!draw_list.active);
-
-	draw_graph.add_draw_list_set_scissors(LocalVector<Rect2i>());
+	draw_graph.add_draw_list_set_scissor(draw_list.viewport);
 }
 
 uint32_t RenderingDevice::draw_list_get_current_pass() {
@@ -7347,6 +7362,7 @@ bool RenderingDevice::has_feature(const Features p_feature) const {
 		case SUPPORTS_ATTACHMENT_VRS: {
 			const RDD::FragmentShadingRateCapabilities &fsr_capabilities = driver->get_fragment_shading_rate_capabilities();
 			const RDD::FragmentDensityMapCapabilities &fdm_capabilities = driver->get_fragment_density_map_capabilities();
+			// Rasterization rate map is not fully implemented. Explicitly ignore rasterization rate map support to avoid default VRS texture creation logic.
 			return fsr_capabilities.attachment_supported || fdm_capabilities.attachment_supported;
 		}
 		default:
