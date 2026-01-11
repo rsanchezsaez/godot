@@ -31,7 +31,7 @@
 #import "os_macos.h"
 
 #import "dir_access_macos.h"
-#ifdef DEBUG_ENABLED
+#ifdef TOOLS_ENABLED
 #import "display_server_embedded.h"
 #endif
 #import "display_server_macos.h"
@@ -1088,8 +1088,6 @@ static void handle_interrupt(int sig) {
 }
 
 void OS_MacOS_NSApp::start_main() {
-	godot_init_profiler();
-
 	Error err;
 	@autoreleasepool {
 		err = Main::setup(execpath, argc, argv);
@@ -1258,7 +1256,7 @@ OS_MacOS_Headless::OS_MacOS_Headless(const char *p_execpath, int p_argc, char **
 
 // MARK: - OS_MacOS_Embedded
 
-#ifdef DEBUG_ENABLED
+#ifdef TOOLS_ENABLED
 
 void OS_MacOS_Embedded::run() {
 	CFRunLoopGetCurrent();

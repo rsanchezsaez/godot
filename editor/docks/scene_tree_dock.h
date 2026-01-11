@@ -42,7 +42,9 @@ class HBoxContainer;
 class MenuButton;
 class RenameDialog;
 class ReparentDialog;
+class Shader;
 class ShaderCreateDialog;
+class ShaderMaterial;
 class TextureRect;
 class VBoxContainer;
 
@@ -103,7 +105,7 @@ class SceneTreeDock : public EditorDock {
 
 	int current_option = 0;
 
-	VBoxContainer *main_vbox = nullptr;
+	MarginContainer *main_mc = nullptr;
 
 	CreateDialog *create_dialog = nullptr;
 	RenameDialog *rename_dialog = nullptr;
@@ -128,9 +130,8 @@ class SceneTreeDock : public EditorDock {
 	HBoxContainer *button_hb = nullptr;
 	Button *edit_local, *edit_remote;
 	SceneTreeEditor *scene_tree = nullptr;
-	Control *remote_tree = nullptr;
+	Tree *remote_tree = nullptr;
 
-	HBoxContainer *tool_hbc = nullptr;
 	void _tool_selected(int p_tool, bool p_confirm_override = false);
 	void _property_selected(int p_idx);
 
@@ -167,7 +168,6 @@ class SceneTreeDock : public EditorDock {
 
 	LineEdit *filter = nullptr;
 	PopupMenu *filter_quick_menu = nullptr;
-	TextureRect *filter_icon = nullptr;
 
 	PopupMenu *menu = nullptr;
 	PopupMenu *menu_subresources = nullptr;
@@ -278,7 +278,7 @@ class SceneTreeDock : public EditorDock {
 
 	void _perform_instantiate_scenes(const Vector<String> &p_files, Node *p_parent, int p_pos);
 	void _perform_create_audio_stream_players(const Vector<String> &p_files, Node *p_parent, int p_pos);
-	void _replace_with_branch_scene(const String &p_file, Node *base);
+	void _replace_with_branch_scene(const String &p_file, Node *p_base);
 
 	void _remote_tree_selected();
 	void _local_tree_selected();
@@ -338,7 +338,7 @@ public:
 	SceneTreeEditor *get_tree_editor() { return scene_tree; }
 	EditorData *get_editor_data() { return editor_data; }
 
-	void add_remote_tree_editor(Control *p_remote);
+	void add_remote_tree_editor(Tree *p_remote);
 	void show_remote_tree();
 	void hide_remote_tree();
 	void show_tab_buttons();

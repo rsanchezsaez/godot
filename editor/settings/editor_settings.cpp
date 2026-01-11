@@ -487,7 +487,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 		EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "network/connection/check_for_updates", int(default_update_mode), "Disable Update Checks,Check Newest Preview,Check Newest Stable,Check Newest Patch"); // Uses EngineUpdateLabel::UpdateMode.
 	}
 
-	EDITOR_SETTING_USAGE(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/use_embedded_menu", false, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED | PROPERTY_USAGE_EDITOR_BASIC_SETTING)
+	EDITOR_SETTING_USAGE(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/use_embedded_menu", false, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_EDITOR_BASIC_SETTING)
 	EDITOR_SETTING_USAGE(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/use_native_file_dialogs", false, "", PROPERTY_USAGE_DEFAULT)
 	EDITOR_SETTING_USAGE(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/expand_to_title", true, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED | PROPERTY_USAGE_EDITOR_BASIC_SETTING)
 
@@ -905,7 +905,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING_USAGE(Variant::COLOR, PROPERTY_HINT_NONE, "editors/3d_gizmos/gizmo_colors/ik_chain", Color(0.6, 0.9, 0.8), "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED)
 	_initial_set("editors/3d_gizmos/gizmo_settings/bone_axis_length", (float)0.1);
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "editors/3d_gizmos/gizmo_settings/bone_shape", 1, "Wire,Octahedron");
-	EDITOR_SETTING_USAGE(Variant::FLOAT, PROPERTY_HINT_NONE, "editors/3d_gizmos/gizmo_settings/path3d_tilt_disk_size", 0.8, "", PROPERTY_USAGE_DEFAULT)
+	EDITOR_SETTING_USAGE(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/3d_gizmos/gizmo_settings/path3d_tilt_disk_size", 0.8, "0.01,4.0,0.001,or_greater", PROPERTY_USAGE_DEFAULT)
 	EDITOR_SETTING_USAGE(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/3d_gizmos/gizmo_settings/lightmap_gi_probe_size", 0.4, "0.0,1.0,0.001,or_greater", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED)
 
 	// If a line is a multiple of this, it uses the primary grid color.
@@ -964,7 +964,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	// 3D: Manipulator
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "editors/3d/manipulator_gizmo_size", 80, "16,160,1");
-	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/3d/manipulator_gizmo_opacity", 0.9, "0,1,0.01")
+	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/3d/manipulator_gizmo_opacity", 0.9, "0,1,0.01");
+	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_FLAGS, "editors/3d/show_gizmo_during_rotation", 2, "Global,Local");
 
 	// 2D
 	_initial_set("editors/2d/grid_color", Color(1.0, 1.0, 1.0, 0.07), true);
@@ -981,6 +982,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("editors/2d/use_integer_zoom_by_default", false, true);
 	EDITOR_SETTING_BASIC(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/2d/zoom_speed_factor", 1.1, "1.01,2,0.01")
 	EDITOR_SETTING_BASIC(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/2d/ruler_width", 16.0, "12.0,30.0,1.0")
+	EDITOR_SETTING(Variant::FLOAT, PROPERTY_HINT_RANGE, "editors/2d/auto_resample_delay", 0.3, "0.1,2,0.1")
 
 	// Bone mapper (BoneMapEditorPlugin)
 	_initial_set("editors/bone_mapper/handle_colors/unset", Color(0.3, 0.3, 0.3));
@@ -1123,7 +1125,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	// TRANSLATORS: Project Manager here refers to the tool used to create/manage Godot projects.
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "project_manager/sorting_order", 0, "Last Edited,Name,Path")
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "project_manager/directory_naming_convention", 1, "No convention,kebab-case,snake_case,camelCase,PascalCase,Title Case")
+	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "project_manager/directory_naming_convention", 1, "No Convention,kebab-case,snake_case,camelCase,PascalCase,Title Case")
 
 #if defined(WEB_ENABLED)
 	// Web platform only supports `gl_compatibility`.
@@ -1928,6 +1930,8 @@ void EditorSettings::_add_shortcut_default(const String &p_path, const Ref<Short
 }
 
 void EditorSettings::add_shortcut(const String &p_path, const Ref<Shortcut> &p_shortcut) {
+	ERR_FAIL_COND_MSG(p_shortcut.is_null(), "Cannot add a null shortcut for path: " + p_path);
+
 	Array use_events = p_shortcut->get_events();
 	if (shortcuts.has(p_path)) {
 		Ref<Shortcut> existing = shortcuts.get(p_path);

@@ -112,17 +112,13 @@ class EditorHelp : public VBoxContainer {
 	int description_line = 0;
 
 	RichTextLabel *class_desc = nullptr;
-	HSplitContainer *h_split = nullptr;
 	inline static DocTools *doc = nullptr;
 	inline static DocTools *ext_doc = nullptr;
 
-	ConfirmationDialog *search_dialog = nullptr;
 	LineEdit *search = nullptr;
 	FindBar *find_bar = nullptr;
 	HBoxContainer *status_bar = nullptr;
 	Button *toggle_files_button = nullptr;
-
-	String base_path;
 
 	struct ThemeCache {
 		Ref<StyleBox> background_style;
@@ -358,7 +354,7 @@ public:
 	void set_content_height_limits(float p_min, float p_max);
 	void update_content_height();
 
-	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_use_class_prefix = false, bool p_allow_selection = true);
+	EditorHelpBit(const String &p_symbol = String(), const String &p_prologue = String(), bool p_use_class_prefix = false, bool p_allow_selection = true, bool p_in_tooltip = false);
 };
 
 // Standard tooltips do not allow you to hover over them.

@@ -2709,12 +2709,12 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	DEV_ASSERT(NULL_DISPLAY_DRIVER == DisplayServer::get_create_function_name(DisplayServer::get_create_function_count() - 1));
 
 	GLOBAL_DEF_NOVAL("display/display_server/driver", "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.windows", PROPERTY_HINT_ENUM_SUGGESTION, "default,windows,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.linuxbsd", PROPERTY_HINT_ENUM_SUGGESTION, "default,x11,wayland,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.android", PROPERTY_HINT_ENUM_SUGGESTION, "default,android,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.ios", PROPERTY_HINT_ENUM_SUGGESTION, "default,iOS,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.visionos", PROPERTY_HINT_ENUM_SUGGESTION, "default,visionOS,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.macos", PROPERTY_HINT_ENUM_SUGGESTION, "default,macos,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.windows", PROPERTY_HINT_ENUM, "default,windows,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.linuxbsd", PROPERTY_HINT_ENUM, "default,x11,wayland,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.android", PROPERTY_HINT_ENUM, "default,android,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.ios", PROPERTY_HINT_ENUM, "default,iOS,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.visionos", PROPERTY_HINT_ENUM, "default,visionOS,headless"), "default");
+	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.macos", PROPERTY_HINT_ENUM, "default,macos,headless"), "default");
 
 	GLOBAL_DEF_RST_NOVAL("audio/driver/driver", AudioDriverManager::get_driver(0)->get_name());
 	if (audio_driver.is_empty()) { // Specified in project.godot.
@@ -4704,7 +4704,21 @@ int Main::start() {
 	}
 
 	if (movie_writer) {
-		movie_writer->begin(DisplayServer::get_singleton()->window_get_size(), fixed_fps, Engine::get_singleton()->get_write_movie_path());
+		Size2i movie_size = Size2i(GLOBAL_GET("display/window/size/viewport_width"), GLOBAL_GET("display/window/size/viewport_height"));
+		String stretch_mode = GLOBAL_GET("display/window/stretch/mode");
+		if (stretch_mode != "viewport") {
+			// `canvas_items` and `disabled` modes use the window size override instead,
+			// which allows for higher resolution recording with 2D elements designed for a lower resolution.
+			const int window_width_override = GLOBAL_GET("display/window/size/window_width_override");
+			if (window_width_override > 0) {
+				movie_size.width = window_width_override;
+			}
+			const int window_height_override = GLOBAL_GET("display/window/size/window_height_override");
+			if (window_height_override > 0) {
+				movie_size.height = window_height_override;
+			}
+		}
+		movie_writer->begin(movie_size, fixed_fps, Engine::get_singleton()->get_write_movie_path());
 	}
 
 	GDExtensionManager::get_singleton()->startup();

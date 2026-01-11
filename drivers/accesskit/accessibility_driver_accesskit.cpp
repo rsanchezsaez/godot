@@ -612,6 +612,13 @@ _FORCE_INLINE_ void AccessibilityDriverAccessKit::_ensure_node(const RID &p_id, 
 
 		wd->update.insert(p_id);
 		p_ae->node = accesskit_node_new(p_ae->role);
+
+		// Re-apply stored name if any, so nodes recreated by _ensure_node
+		// retain their label even if the caller doesn't re-set all properties.
+		if (!p_ae->name.is_empty() || !p_ae->name_extra_info.is_empty()) {
+			String full_name = p_ae->name + " " + p_ae->name_extra_info;
+			accesskit_node_set_label(p_ae->node, full_name.utf8().ptr());
+		}
 	}
 }
 
@@ -968,11 +975,13 @@ void AccessibilityDriverAccessKit::accessibility_update_add_custom_action(const 
 	_ensure_node(p_id, ae);
 
 	if (!p_action_description.is_empty()) {
-		accesskit_custom_action ca = accesskit_custom_action_new(p_action_id, p_action_description.utf8().ptr());
+		accesskit_custom_action *ca = accesskit_custom_action_new(p_action_id);
+		accesskit_custom_action_set_description(ca, p_action_description.utf8().ptr());
 		accesskit_node_push_custom_action(ae->node, ca);
 	} else {
 		String cs_name = vformat("Custom Action %d", p_action_id);
-		accesskit_custom_action ca = accesskit_custom_action_new(p_action_id, cs_name.utf8().ptr());
+		accesskit_custom_action *ca = accesskit_custom_action_new(p_action_id);
+		accesskit_custom_action_set_description(ca, cs_name.utf8().ptr());
 		accesskit_node_push_custom_action(ae->node, ca);
 	}
 }

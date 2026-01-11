@@ -41,6 +41,7 @@
 #include "editor/editor_string_names.h"
 #include "editor/file_system/editor_file_system.h"
 #include "editor/gui/editor_bottom_panel.h"
+#include "editor/gui/editor_file_dialog.h"
 #include "editor/script/script_editor_plugin.h"
 #include "editor/settings/editor_command_palette.h"
 #include "editor/settings/editor_settings.h"
@@ -1073,7 +1074,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	set_up_ssh_public_key_path->connect(SceneStringName(text_changed), callable_mp(this, &VersionControlEditorPlugin::_update_set_up_warning));
 	set_up_ssh_public_key_input_hbc->add_child(set_up_ssh_public_key_path);
 
-	set_up_ssh_public_key_file_dialog = memnew(FileDialog);
+	set_up_ssh_public_key_file_dialog = memnew(EditorFileDialog);
 	set_up_ssh_public_key_file_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
 	set_up_ssh_public_key_file_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
 	set_up_ssh_public_key_file_dialog->set_show_hidden_files(true);
@@ -1108,7 +1109,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	set_up_ssh_private_key_path->set_accessibility_name(TTRC("SSH Private Key Path"));
 	set_up_ssh_private_key_input_hbc->add_child(set_up_ssh_private_key_path);
 
-	set_up_ssh_private_key_file_dialog = memnew(FileDialog);
+	set_up_ssh_private_key_file_dialog = memnew(EditorFileDialog);
 	set_up_ssh_private_key_file_dialog->set_access(FileDialog::ACCESS_FILESYSTEM);
 	set_up_ssh_private_key_file_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
 	set_up_ssh_private_key_file_dialog->set_show_hidden_files(true);
@@ -1150,7 +1151,7 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	version_commit_dock->set_layout_key("VersionCommit");
 	version_commit_dock->set_icon_name("VcsBranches");
 	version_commit_dock->set_dock_shortcut(ED_SHORTCUT_AND_COMMAND("docks/open_version_control", TTRC("Open Version Control Dock")));
-	version_commit_dock->set_default_slot(DockConstants::DOCK_SLOT_RIGHT_UL);
+	version_commit_dock->set_default_slot(EditorDock::DOCK_SLOT_RIGHT_UL);
 
 	VBoxContainer *dock_vb = memnew(VBoxContainer);
 	version_commit_dock->add_child(dock_vb);

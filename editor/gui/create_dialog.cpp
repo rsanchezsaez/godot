@@ -620,7 +620,16 @@ String CreateDialog::get_selected_type() {
 	}
 
 	String type = selected->get_text(0).get_slicec(' ', 0);
-	return ClassDB::class_exists(type) ? type : String(selected->get_meta("_script_path", ""));
+	if (ClassDB::class_exists(type)) {
+		return type; // CPP type - from the core or GDExtensions
+	}
+
+	const EditorData::CustomType *custom_type = EditorNode::get_editor_data().get_custom_type_by_name(type);
+	if (custom_type != nullptr) {
+		return custom_type->script->get_path(); // Types via EditorPlugin::add_custom_type()
+	}
+
+	return String(selected->get_meta("_script_path", "")); // Script types
 }
 
 void CreateDialog::set_base_type(const String &p_base) {
@@ -929,6 +938,7 @@ CreateDialog::CreateDialog() {
 	search_options->connect("item_activated", callable_mp(this, &CreateDialog::_confirmed));
 	search_options->connect("cell_selected", callable_mp(this, &CreateDialog::_item_selected));
 	search_options->connect("button_clicked", callable_mp(this, &CreateDialog::_script_button_clicked));
+	search_options->set_theme_type_variation("TreeSecondary");
 	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 
 	help_bit = memnew(EditorHelpBit);

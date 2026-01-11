@@ -1981,7 +1981,8 @@ void EditorExportPlatformAndroid::get_preset_features(const Ref<EditorExportPres
 	r_features->push_back("etc2");
 	r_features->push_back("astc");
 
-	if (p_preset->get("shader_baker/enabled")) {
+	if (!p_preset->is_dedicated_server() && p_preset->get("shader_baker/enabled")) {
+		// Don't use the shader baker if exporting as a dedicated server, as no rendering is performed.
 		r_features->push_back("shader_baker");
 	}
 
@@ -3115,8 +3116,12 @@ bool EditorExportPlatformAndroid::has_valid_project_configuration(const Ref<Edit
 
 List<String> EditorExportPlatformAndroid::get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const {
 	List<String> list;
-	list.push_back("apk");
-	list.push_back("aab");
+	int export_format = int(p_preset->get("gradle_build/export_format"));
+	if (export_format == EXPORT_FORMAT_AAB) {
+		list.push_back("aab");
+	} else {
+		list.push_back("apk");
+	}
 	return list;
 }
 
@@ -3957,6 +3962,7 @@ Error EditorExportPlatformAndroid::export_project_helper(const Ref<EditorExportP
 				project_path,
 				build_path.substr(project_path.length()),
 				export_path.path_join(export_filename),
+				export_format_arg,
 				cmdline,
 				copy_args);
 #else

@@ -1081,7 +1081,7 @@ RID RenderingDevice::texture_create(const TextureFormat &p_format, const Texture
 
 	if (driver->api_trait_get(RDD::API_TRAIT_TEXTURE_OUTPUTS_REQUIRE_CLEARS)) {
 		// Check if a clear for this texture must be performed the first time it's used if the driver requires explicit clears after initialization.
-		texture.pending_clear = !texture.has_initial_data && (format.usage_bits & (TEXTURE_USAGE_STORAGE_BIT | TEXTURE_USAGE_COLOR_ATTACHMENT_BIT));
+		texture.pending_clear = !texture.has_initial_data && (format.usage_bits & (TEXTURE_USAGE_STORAGE_BIT | TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT));
 	}
 
 	if ((format.usage_bits & (TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | TEXTURE_USAGE_DEPTH_RESOLVE_ATTACHMENT_BIT))) {
@@ -1968,16 +1968,20 @@ void RenderingDevice::_texture_check_pending_clear(RID p_texture_rid, Texture *p
 	}
 
 	if (p_texture != nullptr && clear) {
-		_texture_clear(p_texture_rid, p_texture, Color(), 0, p_texture->mipmaps, 0, p_texture->layers);
+		if (p_texture->usage_flags & TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
+			_texture_clear_depth_stencil(p_texture_rid, p_texture, 0.0f, 0, 0, p_texture->mipmaps, 0, p_texture->layers);
+		} else {
+			_texture_clear_color(p_texture_rid, p_texture, Color(), 0, p_texture->mipmaps, 0, p_texture->layers);
+		}
 		p_texture->pending_clear = false;
 	}
 }
 
-void RenderingDevice::_texture_clear(RID p_texture_rid, Texture *p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers) {
+void RenderingDevice::_texture_clear_color(RID p_texture_rid, Texture *p_texture, const Color &p_color, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers) {
 	_check_transfer_worker_texture(p_texture);
 
 	RDD::TextureSubresourceRange range;
-	range.aspect = p_texture->read_aspect_flags;
+	range.aspect = RDD::TEXTURE_ASPECT_COLOR_BIT;
 	range.base_mipmap = p_texture->base_mipmap + p_base_mipmap;
 	range.mipmap_count = p_mipmaps;
 	range.base_layer = p_texture->base_layer + p_base_layer;
@@ -1991,7 +1995,33 @@ void RenderingDevice::_texture_clear(RID p_texture_rid, Texture *p_texture, cons
 		draw_graph.add_synchronization();
 	}
 
-	draw_graph.add_texture_clear(p_texture->driver_id, p_texture->draw_tracker, p_color, range);
+	draw_graph.add_texture_clear_color(p_texture->driver_id, p_texture->draw_tracker, p_color, range);
+}
+
+void RenderingDevice::_texture_clear_depth_stencil(RID p_texture_rid, Texture *p_texture, float p_depth, uint8_t p_stencil, uint32_t p_base_mipmap, uint32_t p_mipmaps, uint32_t p_base_layer, uint32_t p_layers) {
+	_check_transfer_worker_texture(p_texture);
+
+	RDD::TextureSubresourceRange range;
+	if (format_has_depth(p_texture->format)) {
+		range.aspect.set_flag(RDD::TEXTURE_ASPECT_DEPTH_BIT);
+	}
+	if (format_has_stencil(p_texture->format)) {
+		range.aspect.set_flag(RDD::TEXTURE_ASPECT_STENCIL_BIT);
+	}
+	range.base_mipmap = p_texture->base_mipmap + p_base_mipmap;
+	range.mipmap_count = p_mipmaps;
+	range.base_layer = p_texture->base_layer + p_base_layer;
+	range.layer_count = p_layers;
+
+	// Indicate the texture will get modified for the shared texture fallback.
+	_texture_update_shared_fallback(p_texture_rid, p_texture, true);
+
+	if (_texture_make_mutable(p_texture, p_texture_rid)) {
+		// The texture must be mutable to be used as a clear destination.
+		draw_graph.add_synchronization();
+	}
+
+	draw_graph.add_texture_clear_depth_stencil(p_texture->driver_id, p_texture->draw_tracker, p_depth, p_stencil, range);
 }
 
 Vector<uint8_t> RenderingDevice::texture_get_data(RID p_texture, uint32_t p_layer) {
@@ -2457,7 +2487,7 @@ Error RenderingDevice::texture_clear(RID p_texture, const Color &p_color, uint32
 	// Clear the texture if the driver requires it during its first use.
 	_texture_check_pending_clear(p_texture, src_tex);
 
-	_texture_clear(p_texture, src_tex, p_color, p_base_mipmap, p_mipmaps, p_base_layer, p_layers);
+	_texture_clear_color(p_texture, src_tex, p_color, p_base_mipmap, p_mipmaps, p_base_layer, p_layers);
 
 	return OK;
 }
@@ -4259,7 +4289,7 @@ RID RenderingDevice::render_pipeline_create(RID p_shader, FramebufferFormatID p_
 	ERR_FAIL_COND_V(!pipeline.driver_id, RID());
 
 	if (pipeline_cache_enabled) {
-		_update_pipeline_cache();
+		update_pipeline_cache();
 	}
 
 	pipeline.shader = p_shader;
@@ -4347,7 +4377,7 @@ RID RenderingDevice::compute_pipeline_create(RID p_shader, const Vector<Pipeline
 	ERR_FAIL_COND_V(!pipeline.driver_id, RID());
 
 	if (pipeline_cache_enabled) {
-		_update_pipeline_cache();
+		update_pipeline_cache();
 	}
 
 	pipeline.shader = p_shader;
@@ -5031,12 +5061,13 @@ void RenderingDevice::draw_list_draw(DrawListID p_list, bool p_use_indices, uint
 
 		if (draw_list.state.sets[i].pipeline_expected_format != draw_list.state.sets[i].uniform_set_format) {
 			if (draw_list.state.sets[i].uniform_set_format == 0) {
-				ERR_FAIL_MSG("Uniforms were never supplied for set (" + itos(i) + ") at the time of drawing, which are required by the pipeline.");
+				ERR_FAIL_MSG(vformat("Uniforms were never supplied for set (%d) at the time of drawing, which are required by the pipeline.", i));
 			} else if (uniform_set_owner.owns(draw_list.state.sets[i].uniform_set)) {
 				UniformSet *us = uniform_set_owner.get_or_null(draw_list.state.sets[i].uniform_set);
-				ERR_FAIL_MSG("Uniforms supplied for set (" + itos(i) + "):\n" + _shader_uniform_debug(us->shader_id, us->shader_set) + "\nare not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n" + _shader_uniform_debug(draw_list.state.pipeline_shader));
+				const String us_info = us ? vformat("(%d):\n%s\n", i, _shader_uniform_debug(us->shader_id, us->shader_set)) : vformat("(%d, which was just freed) ", i);
+				ERR_FAIL_MSG(vformat("Uniforms supplied for set %sare not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", us_info, _shader_uniform_debug(draw_list.state.pipeline_shader)));
 			} else {
-				ERR_FAIL_MSG("Uniforms supplied for set (" + itos(i) + ", which was just freed) are not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n" + _shader_uniform_debug(draw_list.state.pipeline_shader));
+				ERR_FAIL_MSG(vformat("Uniforms supplied for set (%d, which was just freed) are not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", i, _shader_uniform_debug(draw_list.state.pipeline_shader)));
 			}
 		}
 	}
@@ -5088,6 +5119,7 @@ void RenderingDevice::draw_list_draw(DrawListID p_list, bool p_use_indices, uint
 				}
 
 				UniformSet *uniform_set = uniform_set_owner.get_or_null(draw_list.state.sets[i].uniform_set);
+				ERR_FAIL_NULL(uniform_set);
 				_uniform_set_update_shared(uniform_set);
 				_uniform_set_update_clears(uniform_set);
 
@@ -5196,9 +5228,10 @@ void RenderingDevice::draw_list_draw_indirect(DrawListID p_list, bool p_use_indi
 				ERR_FAIL_MSG(vformat("Uniforms were never supplied for set (%d) at the time of drawing, which are required by the pipeline.", i));
 			} else if (uniform_set_owner.owns(draw_list.state.sets[i].uniform_set)) {
 				UniformSet *us = uniform_set_owner.get_or_null(draw_list.state.sets[i].uniform_set);
-				ERR_FAIL_MSG(vformat("Uniforms supplied for set (%d):\n%s\nare not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", i, _shader_uniform_debug(us->shader_id, us->shader_set), _shader_uniform_debug(draw_list.state.pipeline_shader)));
+				const String us_info = us ? vformat("(%d):\n%s\n", i, _shader_uniform_debug(us->shader_id, us->shader_set)) : vformat("(%d, which was just freed) ", i);
+				ERR_FAIL_MSG(vformat("Uniforms supplied for set %sare not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", us_info, _shader_uniform_debug(draw_list.state.pipeline_shader)));
 			} else {
-				ERR_FAIL_MSG(vformat("Uniforms supplied for set (%s, which was just freed) are not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", i, _shader_uniform_debug(draw_list.state.pipeline_shader)));
+				ERR_FAIL_MSG(vformat("Uniforms supplied for set (%d, which was just freed) are not the same format as required by the pipeline shader. Pipeline shader requires the following bindings:\n%s", i, _shader_uniform_debug(draw_list.state.pipeline_shader)));
 			}
 		}
 	}
@@ -5226,6 +5259,7 @@ void RenderingDevice::draw_list_draw_indirect(DrawListID p_list, bool p_use_indi
 			draw_graph.add_draw_list_bind_uniform_set(draw_list.state.pipeline_shader_driver_id, draw_list.state.sets[i].uniform_set_driver_id, i);
 
 			UniformSet *uniform_set = uniform_set_owner.get_or_null(draw_list.state.sets[i].uniform_set);
+			ERR_FAIL_NULL(uniform_set);
 			_uniform_set_update_shared(uniform_set);
 			_uniform_set_update_clears(uniform_set);
 
@@ -7030,15 +7064,14 @@ Error RenderingDevice::initialize(RenderingContextDriver *p_context, DisplayServ
 	ERR_FAIL_COND_V(!main_queue, FAILED);
 
 	transfer_queue_family = driver->command_queue_family_get(RDD::COMMAND_QUEUE_FAMILY_TRANSFER_BIT);
-	if (transfer_queue_family) {
-		// Create the transfer queue.
-		transfer_queue = driver->command_queue_create(transfer_queue_family);
-		ERR_FAIL_COND_V(!transfer_queue, FAILED);
-	} else {
-		// Use main queue as the transfer queue.
-		transfer_queue = main_queue;
+	if (!transfer_queue_family) {
+		// Use main queue family if transfer queue family is not supported.
 		transfer_queue_family = main_queue_family;
 	}
+
+	// Create the transfer queue.
+	transfer_queue = driver->command_queue_create(transfer_queue_family);
+	ERR_FAIL_COND_V(!transfer_queue, FAILED);
 
 	if (present_queue_family) {
 		// Create the present queue.
@@ -7226,7 +7259,7 @@ Vector<uint8_t> RenderingDevice::_load_pipeline_cache() {
 	}
 }
 
-void RenderingDevice::_update_pipeline_cache(bool p_closing) {
+void RenderingDevice::update_pipeline_cache(bool p_closing) {
 	_THREAD_SAFE_METHOD_
 
 	{
@@ -7556,7 +7589,7 @@ void RenderingDevice::finalize() {
 	}
 
 	if (pipeline_cache_enabled) {
-		_update_pipeline_cache(true);
+		update_pipeline_cache(true);
 		driver->pipeline_cache_free();
 	}
 

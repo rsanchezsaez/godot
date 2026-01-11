@@ -298,7 +298,7 @@ void EditorDockManager::_dock_container_popup(int p_tab_idx, TabContainer *p_doc
 
 	// Right click context menu.
 	dock_context_popup->set_dock(hovered_dock);
-	dock_context_popup->set_position(p_dock_container->get_tab_bar()->get_screen_position() + p_dock_container->get_local_mouse_position());
+	dock_context_popup->set_position(p_dock_container->get_tab_bar()->get_screen_position() + p_dock_container->get_tab_bar()->get_local_mouse_position());
 	dock_context_popup->popup();
 }
 
@@ -406,7 +406,7 @@ void EditorDockManager::_open_dock_in_window(EditorDock *p_dock, bool p_show_win
 	Point2 dock_screen_pos = p_dock->get_screen_position();
 
 	WindowWrapper *wrapper = memnew(WindowWrapper);
-	wrapper->set_window_title(vformat(TTR("%s - Godot Engine"), p_dock->get_display_title()));
+	wrapper->set_window_title(vformat(TTR("%s - Godot Engine"), TTR(p_dock->get_display_title())));
 	wrapper->set_margins_enabled(true);
 
 	EditorNode::get_singleton()->get_gui_base()->add_child(wrapper);
@@ -520,6 +520,26 @@ void EditorDockManager::_move_dock(EditorDock *p_dock, Control *p_target, int p_
 	}
 }
 
+void EditorDockManager::_queue_update_tab_style(EditorDock *p_dock) {
+	if (dirty_docks.is_empty()) {
+		callable_mp(this, &EditorDockManager::_update_dirty_dock_tabs).call_deferred();
+	}
+	dirty_docks.insert(p_dock);
+}
+
+void EditorDockManager::_update_dirty_dock_tabs() {
+	bool update_menu = false;
+	for (EditorDock *dock : dirty_docks) {
+		update_menu = update_menu || dock->global;
+		_update_tab_style(dock);
+	}
+	dirty_docks.clear();
+
+	if (update_menu) {
+		update_docks_menu();
+	}
+}
+
 void EditorDockManager::_update_tab_style(EditorDock *p_dock) {
 	if (!p_dock->enabled || !p_dock->is_open) {
 		return; // Disabled by feature profile or manually closed by user.
@@ -534,33 +554,34 @@ void EditorDockManager::_update_tab_style(EditorDock *p_dock) {
 	int index = tab_container->get_tab_idx_from_control(p_dock);
 	ERR_FAIL_COND(index == -1);
 
-	if (p_dock->global) {
-		update_docks_menu();
-	}
-
 	tab_container->get_tab_bar()->set_font_color_override_all(index, p_dock->title_color);
 
 	const TabStyle style = (tab_container == EditorNode::get_bottom_panel())
 			? (TabStyle)EDITOR_GET("interface/editor/bottom_dock_tab_style").operator int()
 			: (TabStyle)EDITOR_GET("interface/editor/dock_tab_style").operator int();
+
 	const Ref<Texture2D> icon = _get_dock_icon(p_dock, callable_mp((Control *)tab_container, &Control::get_editor_theme_icon));
 	bool assign_icon = p_dock->force_show_icon;
+	String tooltip;
 	switch (style) {
 		case TabStyle::TEXT_ONLY: {
 			tab_container->set_tab_title(index, p_dock->get_display_title());
-			tab_container->set_tab_tooltip(index, String());
 		} break;
 		case TabStyle::ICON_ONLY: {
 			tab_container->set_tab_title(index, icon.is_valid() ? String() : p_dock->get_display_title());
-			tab_container->set_tab_tooltip(index, p_dock->get_display_title());
+			tooltip = TTR(p_dock->get_display_title());
 			assign_icon = true;
 		} break;
 		case TabStyle::TEXT_AND_ICON: {
 			tab_container->set_tab_title(index, p_dock->get_display_title());
-			tab_container->set_tab_tooltip(index, String());
 			assign_icon = true;
 		} break;
 	}
+
+	if (p_dock->shortcut.is_valid() && p_dock->shortcut->has_valid_event()) {
+		tooltip += (tooltip.is_empty() ? "" : "\n") + TTR(p_dock->shortcut->get_name()) + " (" + p_dock->shortcut->get_as_text() + ")";
+	}
+	tab_container->set_tab_tooltip(index, tooltip);
 
 	if (assign_icon) {
 		tab_container->set_tab_icon(index, icon);
@@ -823,6 +844,19 @@ void EditorDockManager::open_dock(EditorDock *p_dock, bool p_set_current) {
 	ERR_FAIL_COND_MSG(!all_docks.has(p_dock), vformat("Cannot open unknown dock '%s'.", p_dock->get_display_title()));
 
 	if (p_dock->is_open) {
+		// Show the dock if it is already open.
+		if (p_set_current) {
+			if (p_dock->dock_window) {
+				p_dock->get_window()->grab_focus();
+				return;
+			}
+
+			TabContainer *dock_tab_container = get_dock_tab_container(p_dock);
+			if (dock_tab_container) {
+				int tab_index = dock_tab_container->get_tab_idx_from_control(p_dock);
+				dock_tab_container->set_current_tab(tab_index);
+			}
+		}
 		return;
 	}
 
@@ -866,7 +900,7 @@ void EditorDockManager::focus_dock(EditorDock *p_dock) {
 	}
 
 	if (!p_dock->is_open) {
-		open_dock(p_dock);
+		open_dock(p_dock, false);
 	}
 
 	if (p_dock->dock_window) {
@@ -874,7 +908,11 @@ void EditorDockManager::focus_dock(EditorDock *p_dock) {
 		return;
 	}
 
-	if (!docks_visible && p_dock->get_parent() != EditorNode::get_bottom_panel()) {
+	if (p_dock->get_parent() == EditorNode::get_bottom_panel()) {
+		if (EditorNode::get_bottom_panel()->is_locked()) {
+			return;
+		}
+	} else if (!docks_visible) {
 		return;
 	}
 
@@ -893,10 +931,10 @@ void EditorDockManager::add_dock(EditorDock *p_dock) {
 
 	p_dock->dock_slot_index = p_dock->default_slot;
 	all_docks.push_back(p_dock);
-	p_dock->connect("tab_style_changed", callable_mp(this, &EditorDockManager::_update_tab_style).bind(p_dock));
-	p_dock->connect("renamed", callable_mp(this, &EditorDockManager::_update_tab_style).bind(p_dock));
+	p_dock->connect("_tab_style_changed", callable_mp(this, &EditorDockManager::_queue_update_tab_style).bind(p_dock));
+	p_dock->connect("renamed", callable_mp(this, &EditorDockManager::_queue_update_tab_style).bind(p_dock));
 
-	if (p_dock->default_slot != DockConstants::DOCK_SLOT_NONE) {
+	if (p_dock->default_slot != EditorDock::DOCK_SLOT_NONE) {
 		open_dock(p_dock, false);
 	} else {
 		closed_dock_parent->add_child(p_dock);
@@ -912,8 +950,8 @@ void EditorDockManager::remove_dock(EditorDock *p_dock) {
 	_move_dock(p_dock, nullptr);
 
 	all_docks.erase(p_dock);
-	p_dock->disconnect("tab_style_changed", callable_mp(this, &EditorDockManager::_update_tab_style));
-	p_dock->disconnect("renamed", callable_mp(this, &EditorDockManager::_update_tab_style));
+	p_dock->disconnect("_tab_style_changed", callable_mp(this, &EditorDockManager::_queue_update_tab_style));
+	p_dock->disconnect("renamed", callable_mp(this, &EditorDockManager::_queue_update_tab_style));
 	_update_layout();
 }
 
@@ -923,7 +961,9 @@ void EditorDockManager::set_docks_visible(bool p_show) {
 	}
 	docks_visible = p_show;
 	for (int i = 0; i < DockConstants::DOCK_SLOT_BOTTOM; i++) {
-		dock_slots[i].container->set_visible(docks_visible && dock_slots[i].container->get_tab_count() > 0);
+		// Show and hide in reverse order due to the SplitContainer prioritizing the last split offset.
+		TabContainer *container = dock_slots[docks_visible ? i : DockConstants::DOCK_SLOT_BOTTOM - i - 1].container;
+		container->set_visible(docks_visible && container->get_tab_count() > 0);
 	}
 	_update_layout();
 }
