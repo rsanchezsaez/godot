@@ -284,19 +284,29 @@ Projection VisionOSXRInterface::get_projection_for_view(uint32_t p_view, double 
 
 	// Godot renderers work in the normalized [-1, 1] depth space, and they do a final z remap of the projection matrixes to the [0, 1] depth space in RenderSceneDataRD::update_ubo().
 	// Compositor Services projection matrices are already in the [0, 1] depth space, so we need to apply the inverse z remap before passing them to the renderer.
-	Projection correction;
-	correction.set_depth_correction(false, false, true);
-	eye_projection = correction.inverse() * eye_projection;
+	Projection normalized_depth_correction;
+	normalized_depth_correction.set_depth_correction(false, false, true);
 
+	// Correct depth by world_scale
+	Projection reverse_z;
+	real_t *m = &reverse_z.columns[0][0];
+	m[10] = -1.0;
+	m[14] = 1.0;
+
+	Projection world_scale_correction;
+	world_scale_correction.make_scale(Vector3(1, 1, world_scale));
+
+	eye_projection = normalized_depth_correction.inverse() * reverse_z.inverse() * world_scale_correction * reverse_z * eye_projection;
 	return eye_projection;
 }
 
 // The render region is the logical texture size. With foveated rendering, it's bigger than the
 // physical texture size. This value is equivalent to rasterizationRateMap.screenSize.
 Rect2i VisionOSXRInterface::get_render_region() {
-	_THREAD_SAFE_METHOD_
-
 	Rect2 viewport_rect;
+
+	ERR_NOT_ON_RENDER_THREAD_V(viewport_rect);
+
 	if (!initialized) {
 		return viewport_rect;
 	}
