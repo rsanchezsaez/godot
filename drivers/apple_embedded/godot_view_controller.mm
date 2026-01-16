@@ -239,7 +239,7 @@
 
 // MARK: Orientation
 
-#if defined(IOS_ENABLED)
+#ifdef IOS_ENABLED
 - (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator {
 	[super viewWillTransitionToSize:size withTransitionCoordinator:coordinator];
 
@@ -247,6 +247,7 @@
 								 completion:^(id<UIViewControllerTransitionCoordinatorContext> context) {
 									 // Get the new interface orientation after rotation completes (iOS only)
 									 UIInterfaceOrientation orientation = self.view.window.windowScene.interfaceOrientation;
+
 									 // Notify camera server of orientation change
 									 CameraServer *camera_server = CameraServer::get_singleton();
 									 if (camera_server) {
@@ -254,7 +255,7 @@
 									 }
 								 }];
 }
-#endif // defined(IOS_ENABLED)
+#endif
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures {
 	if (GLOBAL_GET("display/window/ios/suppress_ui_gesture")) {
