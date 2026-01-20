@@ -202,6 +202,16 @@ void VisionOSXRInterface::RenderThread::uninitialize() {
 	initialized = false;
 }
 
+void VisionOSXRInterface::update_layer_renderer(cp_layer_renderer_t p_layer_renderer, cp_layer_renderer_capabilities_t p_layer_renderer_capabilities) {
+	layer_renderer = p_layer_renderer;
+	layer_renderer_capabilities = p_layer_renderer_capabilities;
+
+	RenderingServer *rendering_server = RenderingServer::get_singleton();
+	ERR_FAIL_NULL(rendering_server);
+	float minimum_supported_near_plane = cp_layer_renderer_capabilities_supported_minimum_near_plane_distance(layer_renderer_capabilities);
+	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::set_minimum_supported_near_plane).bind(minimum_supported_near_plane));
+}
+
 Dictionary VisionOSXRInterface::get_system_info() {
 	Dictionary dict;
 
@@ -259,6 +269,8 @@ void VisionOSXRInterface::process() {
 	}
 
 	current_frame = cp_layer_renderer_query_next_frame(layer_renderer);
+
+	ERR_FAIL_NULL_MSG(current_frame, "Layer renderer unexpectedly returned a nil frame, probably the layer renderer has been invalidated and it hasn't been updated to a new one");
 
 	// Set head pose before engine update, so scripts can access fresh head tracker data
 	set_head_pose_from_arkit();

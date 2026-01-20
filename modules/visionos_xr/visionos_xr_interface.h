@@ -148,6 +148,10 @@ public:
 	virtual bool initialize() override;
 	virtual void uninitialize() override;
 
+	// The LayerRenderer and Capabilities are polled from the app delegate when initializing the VisionOSXRInterface,
+	// but they need to be updated when the app backgrounds and foregrounds because they are recreated by visionOS
+	void update_layer_renderer(cp_layer_renderer_t p_layer_renderer, cp_layer_renderer_capabilities_t p_layer_renderer_capabilities);
+
 	virtual Dictionary get_system_info() override;
 	virtual VRSTextureFormat get_vrs_texture_format() override;
 

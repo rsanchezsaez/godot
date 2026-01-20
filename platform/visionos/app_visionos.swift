@@ -90,13 +90,20 @@ struct CompositorServicesImmersiveSpace: Scene {
 	}
 
 	@State var renderer: GDTCompositorServicesRenderer!
+    @State var didSetUpRenderer: Bool = false
 
 	var body: some Scene {
 		ImmersiveSpace(id: "ImmersiveSpace") {
 			CompositorLayer(configuration: ContentStageConfiguration()) { @MainActor layerRenderer in
 				GDTAppDelegateServiceVisionOS.layerRenderer = layerRenderer
-				renderer = GDTCompositorServicesRenderer(layerRenderer: layerRenderer)
-				renderer.setUp()
+				renderer = GDTCompositorServicesRenderer(layerRenderer: layerRenderer,
+                                                         capabilities: GDTAppDelegateServiceVisionOS.layerRendererCapabilities)
+                if !didSetUpRenderer {
+                    renderer.setUp()
+                    didSetUpRenderer = true
+                } else {
+                    renderer.updateXRInterface()
+                }
 				Task(executorPreference: RendererTaskExecutor.shared) {
 					await renderer.startRenderLoop()
 				}

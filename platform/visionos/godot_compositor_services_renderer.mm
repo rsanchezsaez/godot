@@ -38,14 +38,24 @@ extern void apple_embedded_finish();
 
 @implementation GDTCompositorServicesRenderer {
 	cp_layer_renderer_t _layer_renderer;
+	cp_layer_renderer_capabilities_t _layer_renderer_capabilities;
 }
 
-- (instancetype)initWithLayerRenderer:(cp_layer_renderer_t)layer_renderer {
+- (instancetype)initWithLayerRenderer:(cp_layer_renderer_t)layer_renderer
+						 capabilities:(cp_layer_renderer_capabilities_t)capabilities {
 	self = [super init];
 	if (self) {
 		_layer_renderer = layer_renderer;
+		_layer_renderer_capabilities = capabilities;
 	}
 	return self;
+}
+
+- (void)updateXRInterface {
+	Ref<VisionOSXRInterface> visionos_xr_interface = VisionOSXRInterface::find_interface();
+	if (visionos_xr_interface.is_valid()) {
+		visionos_xr_interface->update_layer_renderer(_layer_renderer, _layer_renderer_capabilities);
+	}
 }
 
 - (void)startRenderLoop {
@@ -60,14 +70,7 @@ extern void apple_embedded_finish();
 			if (visionos_xr_interface.is_valid()) {
 				visionos_xr_interface->emit_signal_enum(VisionOSXRInterface::VISIONOS_XR_SIGNAL_SESSION_INVALIDATED);
 			}
-			// There's no way to recover from the layer renderer being invalidated without opening a new immersive space
-			// so exit the app. Unfortunately, pressing the Crown on Apple Vision Pro currently invalidates the layer renderer,
-			// so we cannot currently background a Godot immersive game, and come back to it again later.
-			NSLog(@"Compositor Services layer invalidated, exiting");
-			safeDispatchSyncToMain(^{
-				apple_embedded_finish();
-				exit(0);
-			});
+			// Exit render loop and wait for a new layer renderer
 			return;
 		} else if (state == cp_layer_renderer_state_paused) {
 			if (previous_state == cp_layer_renderer_state_running && visionos_xr_interface.is_valid()) {
