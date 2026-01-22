@@ -59,10 +59,12 @@ private:
 	bool initialized = false;
 	XRInterface::TrackingStatus tracking_state;
 
+	static RenderingServer *rendering_server;
+	static ar_world_tracking_provider_t world_tracking_provider;
+
 	cp_layer_renderer_t layer_renderer = nullptr;
 	cp_layer_renderer_capabilities_t layer_renderer_capabilities = nullptr;
 	ar_session_t ar_session = nullptr;
-	ar_world_tracking_provider_t world_tracking_provider = nullptr;
 
 	ar_device_anchor_t current_device_anchor = nullptr;
 	cp_frame_t current_frame = nullptr;
@@ -76,7 +78,10 @@ private:
 
 		float minimum_supported_near_plane = 0;
 
+		// RenderThread must query the device anchor again,
+		// because ar_device_anchor_t objects cannot be safely shared between threads
 		ar_device_anchor_t current_device_anchor = nullptr;
+		Transform3D origin_from_head;
 
 		cp_frame_t current_frame = nullptr;
 		cp_drawable_t current_drawable = nullptr;
@@ -93,8 +98,6 @@ private:
 		void uninitialize();
 
 		void set_minimum_supported_near_plane(float p_minimum_supported_near_plane);
-		// p_current_device_anchor should be an ar_device_anchor_t pointer casted to uint64_t
-		void set_current_device_anchor(uint64_t p_current_device_anchor);
 		// p_current_frame should be an cp_frame_t pointer casted to uint64_t
 		void set_current_frame(uint64_t p_current_frame);
 
@@ -122,9 +125,7 @@ private:
 	Ref<XRPositionalTracker> head_tracker;
 
 	static void _bind_methods();
-
 	static const String name;
-
 	static StringName get_signal_name(SignalEnum p_signal);
 
 	void set_head_pose_from_arkit();

@@ -43,6 +43,9 @@
 
 const String VisionOSXRInterface::name = "visionOS";
 
+RenderingServer *VisionOSXRInterface::rendering_server = nullptr;
+ar_world_tracking_provider_t VisionOSXRInterface::world_tracking_provider = nullptr;
+
 StringName VisionOSXRInterface::get_signal_name(SignalEnum p_signal) {
 	switch (p_signal) {
 		case VISIONOS_XR_SIGNAL_SESSION_STARTED:
@@ -140,7 +143,7 @@ bool VisionOSXRInterface::initialize() {
 	xr_server->add_tracker(head_tracker);
 
 	// RenderThread
-	RenderingServer *rendering_server = RenderingServer::get_singleton();
+	rendering_server = RenderingServer::get_singleton();
 	ERR_FAIL_NULL_V(rendering_server, false);
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::initialize));
 
@@ -159,8 +162,6 @@ void VisionOSXRInterface::uninitialize() {
 		return;
 	}
 
-	RenderingServer *rendering_server = RenderingServer::get_singleton();
-	ERR_FAIL_NULL(rendering_server);
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::uninitialize));
 
 	XRServer *xr_server = XRServer::get_singleton();
@@ -185,6 +186,8 @@ void VisionOSXRInterface::RenderThread::initialize() {
 	RenderingDeviceDriverMetal *rendering_device_driver_metal = (RenderingDeviceDriverMetal *)rendering_device->get_device_driver();
 	pixel_formats = &rendering_device_driver_metal->get_pixel_formats();
 
+	current_device_anchor = ar_device_anchor_create();
+
 	initialized = true;
 }
 
@@ -206,8 +209,6 @@ void VisionOSXRInterface::update_layer_renderer(cp_layer_renderer_t p_layer_rend
 	layer_renderer = p_layer_renderer;
 	layer_renderer_capabilities = p_layer_renderer_capabilities;
 
-	RenderingServer *rendering_server = RenderingServer::get_singleton();
-	ERR_FAIL_NULL(rendering_server);
 	float minimum_supported_near_plane = cp_layer_renderer_capabilities_supported_minimum_near_plane_distance(layer_renderer_capabilities);
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::set_minimum_supported_near_plane).bind(minimum_supported_near_plane));
 }
@@ -257,10 +258,6 @@ void VisionOSXRInterface::set_head_pose_from_arkit() {
 		// Set our head position (in real space, reference frame and world scale is applied later)
 		head_tracker->set_pose("default", MTL::simd_to_transform3D(origin_from_head_simd), Vector3(), Vector3(), XRPose::XR_TRACKING_CONFIDENCE_HIGH);
 	}
-
-	RenderingServer *rendering_server = RenderingServer::get_singleton();
-	ERR_FAIL_NULL(rendering_server);
-	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::set_current_device_anchor).bind((uint64_t)current_device_anchor));
 }
 
 void VisionOSXRInterface::process() {
@@ -275,8 +272,6 @@ void VisionOSXRInterface::process() {
 	// Set head pose before engine update, so scripts can access fresh head tracker data
 	set_head_pose_from_arkit();
 
-	RenderingServer *rendering_server = RenderingServer::get_singleton();
-	ERR_FAIL_NULL(rendering_server);
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::set_current_frame).bind((uint64_t)current_frame));
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::start_frame_update));
 }
@@ -286,14 +281,21 @@ void VisionOSXRInterface::RenderThread::set_minimum_supported_near_plane(float p
 	minimum_supported_near_plane = p_minimum_supported_near_plane;
 }
 
-void VisionOSXRInterface::RenderThread::set_current_device_anchor(uint64_t p_current_device_anchor) {
-	ERR_NOT_ON_RENDER_THREAD;
-	current_device_anchor = (__bridge ar_device_anchor_t)(void *)p_current_device_anchor;
-}
-
 void VisionOSXRInterface::RenderThread::set_current_frame(uint64_t p_current_frame) {
 	ERR_NOT_ON_RENDER_THREAD;
 	current_frame = (cp_frame_t)p_current_frame;
+
+	// Query anchor again from the render thread
+	cp_frame_timing_t current_timing = cp_frame_predict_timing(current_frame);
+	CFTimeInterval presentation_time = cp_time_to_cf_time_interval(cp_frame_timing_get_presentation_time(current_timing));
+	ar_device_anchor_query_status_t query_anchor_result = ar_world_tracking_provider_query_device_anchor_at_timestamp(world_tracking_provider, presentation_time, current_device_anchor);
+
+	if (query_anchor_result != ar_device_anchor_query_status_success) {
+		ERR_FAIL_MSG("Cannot query device anchor, result: " + itos(query_anchor_result));
+	}
+
+	simd_float4x4 origin_from_head_simd = ar_anchor_get_origin_from_anchor_transform(current_device_anchor);
+	origin_from_head = MTL::simd_to_transform3D(origin_from_head_simd);
 }
 
 uint32_t VisionOSXRInterface::RenderThread::get_view_count() {
@@ -313,8 +315,6 @@ Transform3D VisionOSXRInterface::RenderThread::get_camera_transform() {
 	ERR_FAIL_NULL_V(xr_server, camera_transform);
 	// scale our origin point of our transform
 	float world_scale = xr_server->get_world_scale();
-	simd_float4x4 origin_from_head_simd = ar_anchor_get_origin_from_anchor_transform(current_device_anchor);
-	Transform3D origin_from_head = MTL::simd_to_transform3D(origin_from_head_simd);
 	origin_from_head.origin *= world_scale;
 	camera_transform = origin_from_head;
 	return camera_transform;
@@ -329,9 +329,6 @@ Transform3D VisionOSXRInterface::RenderThread::get_transform_for_view(uint32_t p
 	if (initialized) {
 		ERR_FAIL_COND_V(p_view > get_view_count(), origin_from_eye);
 		ERR_FAIL_NULL_V_MSG(current_drawable, origin_from_eye, "Current drawable is nil, probably pre_render() has not been called, using identity transform");
-
-		simd_float4x4 origin_from_head_simd = ar_anchor_get_origin_from_anchor_transform(current_device_anchor);
-		Transform3D origin_from_head = MTL::simd_to_transform3D(origin_from_head_simd);
 
 		cp_view_t view = cp_drawable_get_view(current_drawable, p_view);
 		simd_float4x4 head_from_eye_simd = cp_view_get_transform(view);
@@ -505,6 +502,7 @@ void VisionOSXRInterface::RenderThread::encode_present(MDCommandBuffer *p_cmd_bu
 
 	ERR_FAIL_NULL_MSG(current_drawable, "Current drawable is nil, probably process() has not been called");
 	cp_drawable_encode_present(current_drawable, p_cmd_buffer->get_command_buffer());
+	current_drawable = nullptr;
 }
 
 void VisionOSXRInterface::RenderThread::end_frame() {
@@ -516,6 +514,7 @@ void VisionOSXRInterface::RenderThread::end_frame() {
 
 	ERR_FAIL_NULL_MSG(current_frame, "Current frame is nil, probably process() has not been called");
 	cp_frame_end_submission(current_frame);
+	current_frame = nullptr;
 }
 
 RID VisionOSXRInterface::RenderThread::get_color_texture() {
