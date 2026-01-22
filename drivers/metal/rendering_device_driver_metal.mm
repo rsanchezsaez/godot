@@ -2585,6 +2585,14 @@ bool RenderingDeviceDriverMetal::has_feature(Features p_feature) {
 			return true;
 		case SUPPORTS_POINT_SIZE:
 			return true;
+		case SUPPORTS_RASTERIZATION_RATE_MAP: {
+			bool is_supported = [device supportsRasterizationRateMapWithLayerCount:1];
+#if defined(VISIONOS_ENABLED)
+			// We need to support 2 layers on visionOS. Using more than 2 layers shouldn't be needed.
+			is_supported &= [device supportsRasterizationRateMapWithLayerCount:2];
+#endif
+			return is_supported;
+		}
 		default:
 			return false;
 	}
@@ -2617,16 +2625,6 @@ const RDD::Capabilities &RenderingDeviceDriverMetal::get_capabilities() const {
 bool RenderingDeviceDriverMetal::is_composite_alpha_supported(CommandQueueID p_queue) const {
 	// The CAMetalLayer.opaque property is configured according to this global setting.
 	return OS::get_singleton()->is_layered_allowed();
-}
-
-bool RenderingDeviceDriverMetal::is_rasterization_rate_map_supported() const {
-	// This feature supports foveated rendering when using the visionOS XR module, but it can also be used on other Apple platforms.
-	bool is_rasterization_rate_map_supported = [device supportsRasterizationRateMapWithLayerCount:1];
-#if defined(VISIONOS_ENABLED)
-	// We need to support 2 layers on visionOS. Using more than 2 layers shouldn't be needed.
-	is_rasterization_rate_map_supported &= [device supportsRasterizationRateMapWithLayerCount:2];
-#endif
-	return is_rasterization_rate_map_supported;
 }
 
 size_t RenderingDeviceDriverMetal::get_texel_buffer_alignment_for_format(RDD::DataFormat p_format) const {

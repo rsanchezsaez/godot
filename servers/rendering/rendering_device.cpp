@@ -2825,7 +2825,7 @@ void RenderingDevice::_vrs_detect_method() {
 		vrs_method = VRS_METHOD_FRAGMENT_SHADING_RATE;
 	} else if (fdm_capabilities.attachment_supported) {
 		vrs_method = VRS_METHOD_FRAGMENT_DENSITY_MAP;
-	} else if (driver->is_rasterization_rate_map_supported()) {
+	} else if (driver->has_feature(SUPPORTS_RASTERIZATION_RATE_MAP)) {
 		vrs_method = VRS_METHOD_RASTERIZATION_RATE_MAP;
 	}
 
