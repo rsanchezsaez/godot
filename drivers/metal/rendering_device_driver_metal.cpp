@@ -2746,6 +2746,8 @@ bool RenderingDeviceDriverMetal::has_feature(Features p_feature) {
 #endif
 			return is_supported;
 		}
+		case SUPPORTS_FRAMEBUFFER_DEPTH_RESOLVE:
+			return device_properties->features.supports_msaa_depth_resolve;
 		default:
 			return false;
 	}
