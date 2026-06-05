@@ -293,8 +293,8 @@ PackedStringArray XRHandModifier3D::get_configuration_warnings() const {
 	PackedStringArray warnings = SkeletonModifier3D::get_configuration_warnings();
 
 	// Detect OpenXR without the Hand Tracking extension.
-	if (GLOBAL_GET("xr/openxr/enabled") && !GLOBAL_GET("xr/openxr/extensions/hand_tracking")) {
-		warnings.push_back("XRHandModifier3D requires the OpenXR Hand Tracking extension to be enabled.");
+	if (GLOBAL_GET("xr/openxr/enabled") && !GLOBAL_GET("xr/openxr/extensions/hand_tracking") && !GLOBAL_GET("xr/visionos/enable_hand_tracking")) {
+		warnings.push_back("XRHandModifier3D requires the OpenXR Hand Tracking extension or the visionOS hand tracker interface to be enabled.");
 	}
 
 	return warnings;

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisionOSXRHandTracker" inherits="XRInterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		visionOS hand tracker interface.
+	</brief_description>
+	<description>
+		This is the visionOS hand tracker interface.
+
+		Uses ARKit's [code]HandTrackingProvider[/code] to get hand tracking, and populates the [code]"/user/hand_tracker/left"[/code] and [code]"/user/hand_tracker/right"[/code] reserved XRHandTrackers.
+
+		You can enable it using the [member ProjectSettings.xr/visionos/enable_hand_tracking] project setting.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>

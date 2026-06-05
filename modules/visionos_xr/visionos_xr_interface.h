@@ -50,13 +50,17 @@
 #else
 // When compiling as C++, use forward declarations for ARKit and CompositorServices types (opaque pointers)
 typedef struct ar_world_tracking_provider *ar_world_tracking_provider_t;
+typedef struct ar_data_provider *ar_data_provider_t;
 typedef struct cp_layer_renderer *cp_layer_renderer_t;
 typedef struct cp_layer_renderer_capabilities *cp_layer_renderer_capabilities_t;
 typedef struct ar_session *ar_session_t;
 typedef struct ar_device_anchor *ar_device_anchor_t;
 typedef struct cp_frame *cp_frame_t;
 typedef struct cp_drawable *cp_drawable_t;
+typedef struct cp_frame_timing *cp_frame_timing_t;
 #endif
+
+#include <os/lock.h>
 
 class VisionOSXRInterface : public XRInterface {
 	GDCLASS(VisionOSXRInterface, XRInterface);
@@ -80,10 +84,17 @@ private:
 
 	cp_layer_renderer_t layer_renderer = nullptr;
 	cp_layer_renderer_capabilities_t layer_renderer_capabilities = nullptr;
+
+	// Shared ARKit session (created lazily via ensure_session() from initialize(), used by trackers)
 	ar_session_t ar_session = nullptr;
+	// Stored as void* to avoid ARC issues with ObjC pointers in Godot's Vector<> template
+	Vector<void *> registered_data_providers;
+	os_unfair_lock session_lock = OS_UNFAIR_LOCK_INIT;
+	void rerun_session();
 
 	ar_device_anchor_t current_device_anchor = nullptr;
 	cp_frame_t current_frame = nullptr;
+	cp_frame_timing_t current_timing = nullptr;
 
 	// Data and functions only accessible from the rendering thread
 	class RenderThread : public Object {
@@ -164,6 +175,15 @@ public:
 
 	VisionOSXRInterface();
 	~VisionOSXRInterface();
+
+	// Shared ARKit session management
+	void ensure_session();
+	void destroy_session();
+	ar_session_t get_ar_session() const;
+	void add_data_provider(ar_data_provider_t p_provider);
+	void remove_data_provider(ar_data_provider_t p_provider);
+
+	cp_frame_timing_t get_current_timing();
 
 	void emit_signal_enum(SignalEnum p_signal);
 

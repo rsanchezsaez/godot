@@ -32,6 +32,7 @@
 
 #include "visionos_xr_interface.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
@@ -44,6 +45,8 @@
 #include "servers/rendering/rendering_server_types.h"
 
 #include "modules/visionos_xr/visionos_simd_helpers.h"
+#include "modules/visionos_xr/visionos_xr_controller_tracker.h"
+#include "modules/visionos_xr/visionos_xr_hand_tracker.h"
 #include "platform/visionos/godot_app_delegate_service_visionos.h"
 
 #import <ARKit/ARKit.h>
@@ -96,6 +99,58 @@ VisionOSXRInterface::~VisionOSXRInterface() {
 	}
 }
 
+// Shared ARKit session management
+
+void VisionOSXRInterface::ensure_session() {
+	os_unfair_lock_lock(&session_lock);
+	if (ar_session == nullptr) {
+		ar_session = ar_session_create();
+	}
+	os_unfair_lock_unlock(&session_lock);
+}
+
+void VisionOSXRInterface::destroy_session() {
+	os_unfair_lock_lock(&session_lock);
+	registered_data_providers.clear();
+	ar_session = nullptr;
+	os_unfair_lock_unlock(&session_lock);
+}
+
+ar_session_t VisionOSXRInterface::get_ar_session() const {
+	return ar_session;
+}
+
+void VisionOSXRInterface::add_data_provider(ar_data_provider_t p_provider) {
+	os_unfair_lock_lock(&session_lock);
+	registered_data_providers.push_back((__bridge void *)p_provider);
+	rerun_session();
+	os_unfair_lock_unlock(&session_lock);
+}
+
+void VisionOSXRInterface::remove_data_provider(ar_data_provider_t p_provider) {
+	os_unfair_lock_lock(&session_lock);
+	int64_t index = registered_data_providers.find((__bridge void *)p_provider);
+	if (index >= 0) {
+		registered_data_providers.remove_at(index);
+		rerun_session();
+	}
+	os_unfair_lock_unlock(&session_lock);
+}
+
+void VisionOSXRInterface::rerun_session() {
+	// Must be called with session_lock held.
+	ERR_FAIL_NULL(ar_session);
+	ar_data_providers_t data_providers = ar_data_providers_create();
+	for (int i = 0; i < registered_data_providers.size(); i++) {
+		ar_data_providers_add_data_provider(data_providers, (__bridge ar_data_provider_t)registered_data_providers[i]);
+	}
+	ar_session_run(ar_session, data_providers);
+}
+
+cp_frame_timing_t VisionOSXRInterface::get_current_timing() {
+	return current_timing;
+}
+
 StringName VisionOSXRInterface::get_name() const {
 	return VisionOSXRInterface::name;
 }
@@ -109,7 +164,7 @@ XRInterface::TrackingStatus VisionOSXRInterface::get_tracking_status() const {
 }
 
 bool VisionOSXRInterface::is_initialized() const {
-	return (initialized);
+	return initialized;
 }
 
 bool VisionOSXRInterface::initialize() {
@@ -130,14 +185,13 @@ bool VisionOSXRInterface::initialize() {
 	ERR_FAIL_NULL_V_MSG(layer_renderer, false, "GDTAppDelegateServiceVisionOS.layerRenderer not set");
 	ERR_FAIL_NULL_V_MSG(layer_renderer_capabilities, false, "GDTAppDelegateServiceVisionOS.layerRendererCapabilities not set");
 
-	// ARKit session initialization
-	ar_session = ar_session_create();
+	// ARKit session initialization (idempotent; lets this interface be initialized
+	// independently from GDScript without relying on the module registration order)
+	ensure_session();
 	ar_world_tracking_configuration_t world_tracking_configuration = ar_world_tracking_configuration_create();
 	world_tracking_provider = ar_world_tracking_provider_create(world_tracking_configuration);
 	current_device_anchor = ar_device_anchor_create();
-	ar_data_providers_t data_providers = ar_data_providers_create();
-	ar_data_providers_add_data_provider(data_providers, world_tracking_provider);
-	ar_session_run(ar_session, data_providers);
+	add_data_provider(world_tracking_provider);
 
 	// Head tracker initialization
 	head_tracker.instantiate();
@@ -158,12 +212,45 @@ bool VisionOSXRInterface::initialize() {
 	xr_server->set_primary_interface(this);
 
 	initialized = true;
+
+	// Initialize the trackers that are enabled via project settings. They can also be
+	// initialized independently from GDScript; initialize() guards against double-init.
+	if (GLOBAL_GET("xr/visionos/enable_hand_tracking")) {
+		Ref<VisionOSXRHandTracker> hand_tracker = VisionOSXRHandTracker::find_interface();
+		if (hand_tracker.is_valid()) {
+			hand_tracker->initialize();
+		}
+	}
+	if (GLOBAL_GET("xr/visionos/enable_controller_tracking")) {
+		Ref<VisionOSXRControllerTracker> controller_tracker = VisionOSXRControllerTracker::find_interface();
+		if (controller_tracker.is_valid()) {
+			controller_tracker->initialize();
+		}
+	}
+
 	return initialized;
 }
 
 void VisionOSXRInterface::uninitialize() {
 	if (!initialized) {
 		return;
+	}
+
+	// Tear down the trackers (reverse of initialize order). Each tracker's uninitialize()
+	// is a no-op if it was never initialized.
+	Ref<VisionOSXRControllerTracker> controller_tracker = VisionOSXRControllerTracker::find_interface();
+	if (controller_tracker.is_valid()) {
+		controller_tracker->uninitialize();
+	}
+	Ref<VisionOSXRHandTracker> hand_tracker = VisionOSXRHandTracker::find_interface();
+	if (hand_tracker.is_valid()) {
+		hand_tracker->uninitialize();
+	}
+
+	// Remove our world tracking provider from the shared session
+	if (world_tracking_provider != nullptr) {
+		remove_data_provider(world_tracking_provider);
+		world_tracking_provider = nullptr;
 	}
 
 	rendering_server->call_on_render_thread(callable_mp(&rt, &RenderThread::uninitialize));
@@ -245,9 +332,9 @@ bool VisionOSXRInterface::set_play_area_mode(XRInterface::PlayAreaMode p_mode) {
 void VisionOSXRInterface::set_head_pose_from_arkit() {
 	ERR_FAIL_NULL_MSG(current_frame, "Current frame is nil, process() has probably not been called, using identity transform.");
 
-	cp_frame_timing_t frame_timing = cp_frame_predict_timing(current_frame);
+	current_timing = cp_frame_predict_timing(current_frame);
 
-	CFTimeInterval presentation_time = cp_time_to_cf_time_interval(cp_frame_timing_get_presentation_time(frame_timing));
+	CFTimeInterval presentation_time = cp_time_to_cf_time_interval(cp_frame_timing_get_presentation_time(current_timing));
 	ar_device_anchor_query_status_t query_anchor_result = ar_world_tracking_provider_query_device_anchor_at_timestamp(world_tracking_provider, presentation_time, current_device_anchor);
 
 	if (query_anchor_result != ar_device_anchor_query_status_success) {

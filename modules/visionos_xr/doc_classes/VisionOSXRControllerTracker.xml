@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="VisionOSXRControllerTracker" inherits="XRInterface" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../doc/class.xsd">
+	<brief_description>
+		visionOS controller tracker interface.
+	</brief_description>
+	<description>
+		This is the visionOS controller tracker interface.
+
+		Uses ARKit's [code]AccessoryTrackingProvider[/code] to get controller tracking, and populates the [code]"/user/controller_tracker/left"[/code] and [code]"/user/controller_tracker/right"[/code] reserved XRController trackers.
+
+		You can enable it using the [member ProjectSettings.xr/visionos/enable_controller_tracking] project setting.
+	</description>
+	<tutorials>
+	</tutorials>
+</class>
