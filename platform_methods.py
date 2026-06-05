@@ -304,23 +304,47 @@ def generate_bundle_apple_embedded(platform, framework_dir, framework_dir_sim, u
     shutil.rmtree(app_dir)
 
 
-def setup_swift_builder(env, apple_platform, sdk_path, current_path, bridging_header_filename, all_swift_files):
+def setup_swift_builder(
+    env,
+    apple_platform,
+    sdk_path,
+    current_path,
+    bridging_header_filename,
+    all_swift_files,
+):
+    """Compile Swift sources and emit a Swift->ObjC interop header.
+
+    Two passes:
+    - Per-file `-primary-file` compile of every entry in `all_swift_files` to `.o`.
+    - Whole-module `-emit-module` pass over the same files, emitting a single combined
+      `<module>-Swift.gen.h` with every `@objc` declaration. ObjC++ `#import`s it to
+      call into Swift directly.
+
+    The bridging header must transitively declare every ObjC type referenced by any
+    listed Swift source: whole-module mode type-checks them all together, unlike
+    per-file mode.
+    """
     from SCons.Script import Action, Builder
 
     if apple_platform == "macos":
         target_suffix = "macosx10.9"
+        platform_folder = "macos"
 
     elif apple_platform == "ios":
         target_suffix = "ios14.0"  # iOS 14.0 needed for SwiftUI lifecycle
+        platform_folder = "ios"
 
     elif apple_platform == "iossimulator":
         target_suffix = "ios14.0-simulator"  # iOS 14.0 needed for SwiftUI lifecycle
+        platform_folder = "ios"
 
     elif apple_platform == "visionos":
         target_suffix = "xros26.0"
+        platform_folder = "visionos"
 
     elif apple_platform == "visionossimulator":
         target_suffix = "xros26.0-simulator"
+        platform_folder = "visionos"
 
     else:
         raise Exception("Invalid platform argument passed to detect_darwin_sdk_path")
@@ -340,11 +364,17 @@ def setup_swift_builder(env, apple_platform, sdk_path, current_path, bridging_he
         raise Exception("Swift frontend path is not set. Please set SWIFT_FRONTEND.")
 
     bridging_header_path = current_path + "/" + bridging_header_filename
+    swift_module_name = "godot_swift_module"
+    # Standard `<module>-Swift.h` name plus `.gen.h` so it's covered by `*.gen.*` in `.gitignore`.
+    swift_objc_header_filename = swift_module_name + "-Swift.gen.h"
+    swift_objc_header_path = current_path + "/" + swift_objc_header_filename
     env["SWIFTC"] = frontend_path + " -frontend -c"  # Swift compiler
-    env["SWIFTCFLAGS"] = [
+    # Toolchain macro plugins (e.g. `ObservationMacros`); not auto-discovered by `swift-frontend`.
+    swift_plugin_path = "$APPLE_TOOLCHAIN_PATH/usr/lib/swift/host/plugins"
+    # Flags shared between the per-file compile pass and the whole-module header pass.
+    common_swift_flags = [
         "-warnings-as-errors",
         "-cxx-interoperability-mode=default",
-        "-emit-object",
         "-target",
         swiftc_target,
         "-sdk",
@@ -355,13 +385,31 @@ def setup_swift_builder(env, apple_platform, sdk_path, current_path, bridging_he
         "6",
         "-parse-as-library",
         "-module-name",
-        "godot_swift_module",
+        swift_module_name,
+        "-plugin-path",
+        swift_plugin_path,
         "-I./",  # Pass the current directory as the header root so bridging headers can include files from any point of the hierarchy
+        "-I./platform/"
+        + platform_folder
+        + "/",  # Pass the current platform directory, so the bridging header can include files that include platform_config.h
     ]
+    env["SWIFTCFLAGS"] = ["-emit-object"] + common_swift_flags
+    env["SWIFT_OBJC_HEADER_FLAGS"] = common_swift_flags
+    env["SWIFT_OBJC_HEADER_PATH"] = swift_objc_header_path
+    env["SWIFT_OBJC_HEADER_FILENAME"] = swift_objc_header_filename
+    # `swift-frontend -frontend` is `$SWIFTC` minus the `-c` action.
+    env["SWIFT_FRONTEND_BIN"] = frontend_path + " -frontend"
 
     if "osxcross" in env:
         env.Append(
             SWIFTCFLAGS=[
+                "-resource-dir",
+                "/root/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
+                "-enable-cross-import-overlays",
+            ]
+        )
+        env.Append(
+            SWIFT_OBJC_HEADER_FLAGS=[
                 "-resource-dir",
                 "/root/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift",
                 "-enable-cross-import-overlays",
@@ -404,3 +452,33 @@ def setup_swift_builder(env, apple_platform, sdk_path, current_path, bridging_he
     env["BUILDERS"]["Library"].add_src_builder("Swift")
     env["BUILDERS"]["Object"].add_action(".swift", Action(generate_swift_action, generator=1))
     env["BUILDERS"]["Object"].emitter[".swift"] = methods.redirect_emitter
+
+    # Whole-module pass that emits the combined `<module>-Swift.h` for ObjC++ to
+    # `#import`. Runs in whole-module mode because `-primary-file` silently drops
+    # `-emit-objc-header-path`. The resulting `.swiftmodule` is discarded.
+    fullpath_swift_files = [current_path + "/" + f for f in all_swift_files]
+    swiftmodule_path = swift_objc_header_path + ".swiftmodule"
+
+    def generate_swift_objc_header_action(target, source, env, for_signature):
+        fullpath_swift_files_string = '"' + '" "'.join([s.abspath for s in source]) + '"'
+        compile_command = (
+            "$SWIFT_FRONTEND_BIN -emit-module "
+            + fullpath_swift_files_string
+            + ' -emit-objc-header-path "$SWIFT_OBJC_HEADER_PATH"'
+            + ' -emit-module-path "$SWIFT_OBJC_HEADER_MODULE_PATH"'
+            + " $SWIFT_OBJC_HEADER_FLAGS"
+        )
+
+        comdstr = env.get("SWIFTOBJCHEADERCOMSTR")
+        if comdstr is not None:
+            return Action(compile_command, cmdstr=comdstr)
+        return Action(compile_command)
+
+    env["SWIFT_OBJC_HEADER_MODULE_PATH"] = swiftmodule_path
+    swift_objc_header_target = env.Command(
+        swift_objc_header_path,
+        fullpath_swift_files,
+        Action(generate_swift_objc_header_action, generator=1),
+    )
+    env["SWIFT_OBJC_HEADER_TARGET"] = swift_objc_header_target
+    env.Clean(swift_objc_header_target, [swift_objc_header_path, swiftmodule_path])

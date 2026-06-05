@@ -3670,6 +3670,12 @@
 		<member name="xr/visionos/enable_hand_tracking" type="bool" setter="" getter="" default="false">
 			Enables and initializes visionOS hand tracking.
 		</member>
+		<member name="xr/visionos/dynamic_render_quality/enable" type="bool" setter="" getter="" default="false">
+			If [code]true[/code], enables Dynamic Render Quality for the visionOS XR module. If enabled, you can dynamically set the render quality according to the complexity of your rendered scene. Higher render qualities increase the resolution of the textures provided by the visionOS XR module.
+		</member>
+		<member name="xr/visionos/dynamic_render_quality/maximum_quality" type="float" setter="" getter="" default="false">
+			Set this value to the minimum value that makes sense for your app. The supported range is (0.0, 1.0]. Setting a maximum render quality that you never use at runtime will use more memory than necessary.
+		</member>
 	</members>
 	<signals>
 		<signal name="settings_changed">

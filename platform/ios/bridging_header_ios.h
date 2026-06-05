@@ -31,3 +31,5 @@
 #pragma once
 
 #import "godot_app_delegate_ios.h"
+
+#import "drivers/apple_embedded/bridging_header_apple_embedded.h"

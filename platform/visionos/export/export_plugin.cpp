@@ -58,7 +58,7 @@ void EditorExportPlatformVisionOS::get_export_options(List<ExportOption> *r_opti
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "application/min_visionos_version"), get_minimum_deployment_target()));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/app_role", PROPERTY_HINT_ENUM, "Window,Immersive"), 0));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/immersion_style", PROPERTY_HINT_ENUM, "Full,Mixed"), 1));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "application/immersion_style", PROPERTY_HINT_ENUM, "Full,Mixed,Progressive"), 1));
 
 	// Front layer falls back to the project icon; middle/back use a black placeholder when unset.
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "icons/icon_front_layer_1024x1024", PROPERTY_HINT_FILE_PATH, "*.svg,*.png,*.webp,*.jpg,*.jpeg"), ""));
@@ -259,6 +259,9 @@ String EditorExportPlatformVisionOS::_process_config_file_line(const Ref<EditorE
 				break;
 			case 1: // Mixed
 				initial_immersion_style = "UIImmersionStyleMixed";
+				break;
+			case 2: // Progressive
+				initial_immersion_style = "UIImmersionStyleProgressive";
 				break;
 		}
 

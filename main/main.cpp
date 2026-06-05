@@ -2909,6 +2909,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	// visionOS settings
 	GLOBAL_DEF_BASIC("xr/visionos/enable_hand_tracking", false);
 	GLOBAL_DEF_BASIC("xr/visionos/enable_controller_tracking", false);
+	// Dynamic render quality, to be used at runtime depending on the complexity of your scene, see https://developer.apple.com/documentation/compositorservices/defining-layer-renderer-quality
+	GLOBAL_DEF_BASIC("xr/visionos/dynamic_render_quality/enable", false);
+	// The default value of 0.38 is equivalent to https://developer.apple.com/documentation/compositorservices/layerrenderer/capabilities/defaultrenderquality
+	// Do not set this value higher than the maximum value you're planning to use at runtime, or your app will use more memory than necessary
+	GLOBAL_DEF_BASIC(PropertyInfo(Variant::FLOAT, "xr/visionos/dynamic_render_quality/maximum_quality", PROPERTY_HINT_RANGE, "0,1,0.01"), 0.38);
 
 #ifdef TOOLS_ENABLED
 	// Disabled for now, using XR inside of the editor we'll be working on during the coming months.
