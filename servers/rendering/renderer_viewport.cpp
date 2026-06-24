@@ -1139,6 +1139,12 @@ void RendererViewport::viewport_set_active(RID p_viewport, bool p_active) {
 	sorted_active_viewports_dirty = true;
 }
 
+bool RendererViewport::viewport_get_active(RID p_viewport) const {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL_V(viewport, false);
+	return active_viewports.has(viewport);
+}
+
 void RendererViewport::viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport) {
 	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
 	ERR_FAIL_NULL(viewport);
@@ -1224,6 +1230,22 @@ RID RendererViewport::viewport_get_render_target(RID p_viewport) const {
 	return viewport->render_target;
 }
 
+RID RendererViewport::viewport_get_for_render_target(RID p_render_target) const {
+	if (p_render_target.is_null()) {
+		return RID();
+	}
+
+	const LocalVector<RID> viewports = viewport_owner.get_owned_list();
+	for (const RID &viewport_rid : viewports) {
+		const Viewport *viewport = viewport_owner.get_or_null(viewport_rid);
+		if (viewport && viewport->render_target == p_render_target) {
+			return viewport_rid;
+		}
+	}
+
+	return RID();
+}
+
 RID RendererViewport::viewport_get_texture(RID p_viewport) const {
 	const Viewport *viewport = viewport_owner.get_or_null(p_viewport);
 	ERR_FAIL_NULL_V(viewport, RID());
@@ -1307,6 +1329,13 @@ void RendererViewport::viewport_set_scenario(RID p_viewport, RID p_scenario) {
 	if (viewport->use_occlusion_culling) {
 		RendererSceneOcclusionCull::get_singleton()->buffer_set_scenario(p_viewport, p_scenario);
 	}
+}
+
+RID RendererViewport::viewport_get_scenario(RID p_viewport) const {
+	Viewport *viewport = viewport_owner.get_or_null(p_viewport);
+	ERR_FAIL_NULL_V(viewport, RID());
+
+	return viewport->scenario;
 }
 
 void RendererViewport::viewport_attach_canvas(RID p_viewport, RID p_canvas) {

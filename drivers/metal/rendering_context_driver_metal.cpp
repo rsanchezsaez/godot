@@ -442,7 +442,7 @@ public:
 
 	void present(MTL3::MDCommandBuffer *p_cmd_buffer) override final {
 		Ref<VisionOSXRInterface> visionos_xr_interface = VisionOSXRInterface::find_interface();
-		ERR_FAIL_COND_MSG(!visionos_xr_interface.is_valid(), "visionOS VR interface not found or invalid");
+		ERR_FAIL_COND_MSG(!visionos_xr_interface.is_valid(), "visionOS XR interface not found or invalid");
 		visionos_xr_interface->encode_present(p_cmd_buffer);
 	}
 

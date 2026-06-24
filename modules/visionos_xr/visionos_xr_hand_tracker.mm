@@ -59,7 +59,7 @@ uint32_t VisionOSXRHandTracker::get_capabilities() const {
 	return XRInterface::XR_NONE;
 }
 
-uint32_t VisionOSXRHandTracker::get_view_count() {
+uint32_t VisionOSXRHandTracker::get_view_count(RID p_render_target) {
 	return 0;
 }
 
@@ -149,15 +149,15 @@ Transform3D VisionOSXRHandTracker::get_camera_transform() {
 	return Transform3D();
 }
 
-Transform3D VisionOSXRHandTracker::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) {
+Transform3D VisionOSXRHandTracker::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target) {
 	return Transform3D();
 }
 
-Projection VisionOSXRHandTracker::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) {
+Projection VisionOSXRHandTracker::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target) {
 	return Projection();
 }
 
-Size2 VisionOSXRHandTracker::get_render_target_size() {
+Size2 VisionOSXRHandTracker::get_render_target_size(RID p_render_target) {
 	return Size2();
 }
 

@@ -99,10 +99,14 @@ public:
 	/** rendering and internal **/
 
 	virtual Size2 get_render_target_size() override;
+	virtual Size2 get_render_target_size(RID p_render_target) override;
 	virtual uint32_t get_view_count() override;
+	virtual uint32_t get_view_count(RID p_render_target) override;
 	virtual Transform3D get_camera_transform() override;
 	virtual Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) override;
+	virtual Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target) override;
 	virtual Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) override;
+	virtual Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target) override;
 	virtual RID get_vrs_texture() override;
 	virtual VRSTextureFormat get_vrs_texture_format() override;
 	virtual RID get_color_texture() override;
@@ -110,10 +114,14 @@ public:
 	virtual RID get_velocity_texture() override;
 
 	GDVIRTUAL0R(Size2, _get_render_target_size);
+	GDVIRTUAL1R(Size2, _get_render_target_size_for_target, RID);
 	GDVIRTUAL0R(uint32_t, _get_view_count);
+	GDVIRTUAL1R(uint32_t, _get_view_count_for_target, RID);
 	GDVIRTUAL0R(Transform3D, _get_camera_transform);
 	GDVIRTUAL2R(Transform3D, _get_transform_for_view, uint32_t, const Transform3D &);
+	GDVIRTUAL3R(Transform3D, _get_transform_for_view_for_target, uint32_t, const Transform3D &, RID);
 	GDVIRTUAL4R(PackedFloat64Array, _get_projection_for_view, uint32_t, double, double, double);
+	GDVIRTUAL5R(PackedFloat64Array, _get_projection_for_view_for_target, uint32_t, double, double, double, RID);
 	GDVIRTUAL0R(RID, _get_vrs_texture);
 	GDVIRTUAL0R(VRSTextureFormat, _get_vrs_texture_format);
 	GDVIRTUAL0R(RID, _get_color_texture);

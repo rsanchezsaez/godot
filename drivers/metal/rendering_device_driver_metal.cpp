@@ -2724,6 +2724,8 @@ bool RenderingDeviceDriverMetal::has_feature(Features p_feature) {
 			return true;
 		case SUPPORTS_POINT_SIZE:
 			return true;
+		case SUPPORTS_FRAMEBUFFER_DEPTH_RESOLVE:
+			return device_properties->features.supports_msaa_depth_resolve;
 		case SUPPORTS_RASTERIZATION_RATE_MAP: {
 			bool is_supported = device->supportsRasterizationRateMap(1);
 #if defined(VISIONOS_ENABLED)
@@ -2732,8 +2734,6 @@ bool RenderingDeviceDriverMetal::has_feature(Features p_feature) {
 #endif
 			return is_supported;
 		}
-		case SUPPORTS_FRAMEBUFFER_DEPTH_RESOLVE:
-			return device_properties->features.supports_msaa_depth_resolve;
 		default:
 			return false;
 	}

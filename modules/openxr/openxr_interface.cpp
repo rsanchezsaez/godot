@@ -1046,7 +1046,7 @@ void OpenXRInterface::set_foveation_with_subsampled_images(bool p_enabled) {
 	}
 }
 
-Size2 OpenXRInterface::get_render_target_size() {
+Size2 OpenXRInterface::get_render_target_size(RID p_render_target) {
 	if (openxr_api == nullptr) {
 		return Size2();
 	} else {
@@ -1054,7 +1054,7 @@ Size2 OpenXRInterface::get_render_target_size() {
 	}
 }
 
-uint32_t OpenXRInterface::get_view_count() {
+uint32_t OpenXRInterface::get_view_count(RID p_render_target) {
 	// TODO set this based on our configuration
 	return 2;
 }
@@ -1088,7 +1088,7 @@ Transform3D OpenXRInterface::get_camera_transform() {
 	return hmd_transform;
 }
 
-Transform3D OpenXRInterface::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) {
+Transform3D OpenXRInterface::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target) {
 	XRServer *xr_server = XRServer::get_singleton();
 	ERR_FAIL_NULL_V(xr_server, Transform3D());
 	ERR_FAIL_UNSIGNED_INDEX_V_MSG(p_view, get_view_count(), Transform3D(), "View index outside bounds.");
@@ -1109,7 +1109,7 @@ Transform3D OpenXRInterface::get_transform_for_view(uint32_t p_view, const Trans
 	return p_cam_transform * xr_server->get_reference_frame() * t;
 }
 
-Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) {
+Projection OpenXRInterface::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target) {
 	Projection cm;
 	ERR_FAIL_UNSIGNED_INDEX_V_MSG(p_view, get_view_count(), cm, "View index outside bounds.");
 

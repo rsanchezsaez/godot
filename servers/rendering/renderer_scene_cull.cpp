@@ -2741,7 +2741,8 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 		Transform3D transforms[RendererSceneRender::MAX_RENDER_VIEWS];
 		Projection projections[RendererSceneRender::MAX_RENDER_VIEWS];
 
-		uint32_t view_count = p_xr_interface->get_view_count();
+		RID xr_render_target = RSG::viewport->viewport_get_render_target(p_viewport);
+		uint32_t view_count = p_xr_interface->get_view_count(xr_render_target);
 		ERR_FAIL_COND_MSG(view_count == 0 || view_count > RendererSceneRender::MAX_RENDER_VIEWS, "Requested view count is not supported");
 
 		float aspect = p_viewport_size.width / (float)p_viewport_size.height;
@@ -2751,8 +2752,8 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 		// We ignore our camera position, it will have been positioned with a slightly old tracking position.
 		// Instead we take our origin point and have our XR interface add fresh tracking data! Whoohoo!
 		for (uint32_t v = 0; v < view_count; v++) {
-			transforms[v] = p_xr_interface->get_transform_for_view(v, world_origin);
-			projections[v] = p_xr_interface->get_projection_for_view(v, aspect, camera->znear, camera->zfar);
+			transforms[v] = p_xr_interface->get_transform_for_view(v, world_origin, xr_render_target);
+			projections[v] = p_xr_interface->get_projection_for_view(v, aspect, camera->znear, camera->zfar, xr_render_target);
 		}
 
 		// If requested, we move the views to be rendered as if the HMD is at the XROrigin.
