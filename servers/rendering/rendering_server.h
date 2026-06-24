@@ -541,6 +541,7 @@ public:
 
 	virtual void viewport_set_size(RID p_viewport, int p_width, int p_height, int p_view_count = 1) = 0;
 	virtual void viewport_set_active(RID p_viewport, bool p_active) = 0;
+	virtual bool viewport_get_active(RID p_viewport) const = 0;
 	virtual void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport) = 0;
 	virtual void viewport_set_canvas_cull_mask(RID p_viewport, uint32_t p_canvas_cull_mask) = 0;
 
@@ -559,6 +560,7 @@ public:
 	virtual void viewport_set_clear_mode(RID p_viewport, RSE::ViewportClearMode p_clear_mode) = 0;
 
 	virtual RID viewport_get_render_target(RID p_viewport) const = 0;
+	virtual RID viewport_get_for_render_target(RID p_render_target) const = 0;
 	virtual RID viewport_get_texture(RID p_viewport) const = 0;
 
 	virtual void viewport_set_environment_mode(RID p_viewport, RSE::ViewportEnvironmentMode p_mode) = 0;
@@ -567,6 +569,7 @@ public:
 
 	virtual void viewport_attach_camera(RID p_viewport, RID p_camera) = 0;
 	virtual void viewport_set_scenario(RID p_viewport, RID p_scenario) = 0;
+	virtual RID viewport_get_scenario(RID p_viewport) const = 0;
 	virtual void viewport_attach_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_remove_canvas(RID p_viewport, RID p_canvas) = 0;
 	virtual void viewport_set_canvas_transform(RID p_viewport, RID p_canvas, const Transform2D &p_offset) = 0;

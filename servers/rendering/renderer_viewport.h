@@ -230,6 +230,7 @@ public:
 	void viewport_set_render_direct_to_screen(RID p_viewport, bool p_enable);
 
 	void viewport_set_active(RID p_viewport, bool p_active);
+	bool viewport_get_active(RID p_viewport) const;
 	void viewport_set_parent_viewport(RID p_viewport, RID p_parent_viewport);
 
 	void viewport_set_scaling_3d_mode(RID p_viewport, RSE::ViewportScaling3DMode p_mode);
@@ -245,6 +246,7 @@ public:
 	void viewport_set_clear_mode(RID p_viewport, RSE::ViewportClearMode p_clear_mode);
 
 	RID viewport_get_render_target(RID p_viewport) const;
+	RID viewport_get_for_render_target(RID p_render_target) const;
 	RID viewport_get_texture(RID p_viewport) const;
 	RID viewport_get_occluder_debug_texture(RID p_viewport) const;
 
@@ -259,6 +261,7 @@ public:
 
 	void viewport_attach_camera(RID p_viewport, RID p_camera);
 	void viewport_set_scenario(RID p_viewport, RID p_scenario);
+	RID viewport_get_scenario(RID p_viewport) const;
 	void viewport_attach_canvas(RID p_viewport, RID p_canvas);
 	void viewport_remove_canvas(RID p_viewport, RID p_canvas);
 	void viewport_set_canvas_transform(RID p_viewport, RID p_canvas, const Transform2D &p_offset);

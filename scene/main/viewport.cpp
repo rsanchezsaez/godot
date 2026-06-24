@@ -797,7 +797,7 @@ void Viewport::_process_picking() {
 	if (use_xr) {
 		if (XRServer::get_singleton() != nullptr) {
 			Ref<XRInterface> xr_interface = XRServer::get_singleton()->get_primary_interface();
-			if (xr_interface.is_valid() && xr_interface->is_initialized() && xr_interface->get_view_count() > 1) {
+			if (xr_interface.is_valid() && xr_interface->is_initialized() && xr_interface->get_view_count(RS::get_singleton()->viewport_get_render_target(viewport)) > 1) {
 				WARN_PRINT_ONCE("Object picking can't be used when stereo rendering, this will be turned off!");
 				physics_object_picking = false; // don't try again.
 				return;
@@ -1206,8 +1206,9 @@ void Viewport::_check_xr_size() {
 	if (use_xr && XRServer::get_singleton() != nullptr) {
 		Ref<XRInterface> xr_interface = XRServer::get_singleton()->get_primary_interface();
 		if (xr_interface.is_valid() && xr_interface->is_initialized()) {
-			Size2 xr_size = xr_interface->get_render_target_size();
-			int xr_view_count = xr_interface->get_view_count();
+			RID rt = RS::get_singleton()->viewport_get_render_target(viewport);
+			Size2 xr_size = xr_interface->get_render_target_size(rt);
+			int xr_view_count = xr_interface->get_view_count(rt);
 
 			_set_size((Size2i)xr_size, xr_view_count, Size2i(0, 0), true);
 		} else {

@@ -48,10 +48,14 @@ void XRInterfaceExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_get_play_area);
 
 	GDVIRTUAL_BIND(_get_render_target_size);
+	GDVIRTUAL_BIND(_get_render_target_size_for_target, "render_target");
 	GDVIRTUAL_BIND(_get_view_count);
+	GDVIRTUAL_BIND(_get_view_count_for_target, "render_target");
 	GDVIRTUAL_BIND(_get_camera_transform);
 	GDVIRTUAL_BIND(_get_transform_for_view, "view", "cam_transform");
+	GDVIRTUAL_BIND(_get_transform_for_view_for_target, "view", "cam_transform", "render_target");
 	GDVIRTUAL_BIND(_get_projection_for_view, "view", "aspect", "z_near", "z_far");
+	GDVIRTUAL_BIND(_get_projection_for_view_for_target, "view", "aspect", "z_near", "z_far", "render_target");
 	GDVIRTUAL_BIND(_get_vrs_texture);
 	GDVIRTUAL_BIND(_get_vrs_texture_format);
 
@@ -202,10 +206,28 @@ Size2 XRInterfaceExtension::get_render_target_size() {
 	return size;
 }
 
+Size2 XRInterfaceExtension::get_render_target_size(RID p_render_target) {
+	Size2 size;
+	if (GDVIRTUAL_CALL(_get_render_target_size_for_target, p_render_target, size)) {
+		return size;
+	}
+	// Fallback to no-arg version.
+	return get_render_target_size();
+}
+
 uint32_t XRInterfaceExtension::get_view_count() {
 	uint32_t view_count = 1;
 	GDVIRTUAL_CALL(_get_view_count, view_count);
 	return view_count;
+}
+
+uint32_t XRInterfaceExtension::get_view_count(RID p_render_target) {
+	uint32_t view_count = 1;
+	if (GDVIRTUAL_CALL(_get_view_count_for_target, p_render_target, view_count)) {
+		return view_count;
+	}
+	// Fallback to no-arg version.
+	return get_view_count();
 }
 
 Transform3D XRInterfaceExtension::get_camera_transform() {
@@ -218,6 +240,15 @@ Transform3D XRInterfaceExtension::get_transform_for_view(uint32_t p_view, const 
 	Transform3D transform;
 	GDVIRTUAL_CALL(_get_transform_for_view, p_view, p_cam_transform, transform);
 	return transform;
+}
+
+Transform3D XRInterfaceExtension::get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target) {
+	Transform3D transform;
+	if (GDVIRTUAL_CALL(_get_transform_for_view_for_target, p_view, p_cam_transform, p_render_target, transform)) {
+		return transform;
+	}
+	// Fallback to no-arg version.
+	return get_transform_for_view(p_view, p_cam_transform);
 }
 
 Projection XRInterfaceExtension::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) {
@@ -234,6 +265,23 @@ Projection XRInterfaceExtension::get_projection_for_view(uint32_t p_view, double
 	}
 
 	return Projection();
+}
+
+Projection XRInterfaceExtension::get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target) {
+	Projection cm;
+	PackedFloat64Array arr;
+
+	if (GDVIRTUAL_CALL(_get_projection_for_view_for_target, p_view, p_aspect, p_z_near, p_z_far, p_render_target, arr)) {
+		ERR_FAIL_COND_V_MSG(arr.size() != 16, Projection(), "Projection matrix must contain 16 floats");
+		real_t *m = (real_t *)cm.columns;
+		for (int i = 0; i < 16; i++) {
+			m[i] = arr[i];
+		}
+		return cm;
+	}
+
+	// Fallback to no-arg version.
+	return get_projection_for_view(p_view, p_aspect, p_z_near, p_z_far);
 }
 
 RID XRInterfaceExtension::get_vrs_texture() {

@@ -3659,7 +3659,7 @@ RID RenderingDevice::framebuffer_create(const Vector<RID> &p_texture_attachments
 	for (int i = 0; i < p_texture_attachments.size(); i++) {
 		Texture *texture = texture_owner.get_or_null(p_texture_attachments[i]);
 
-		ERR_FAIL_COND_V_MSG(texture && texture->layers != p_view_count, RID(), "Layers of our texture doesn't match view count for this framebuffer");
+		ERR_FAIL_COND_V_MSG(texture && texture->layers != p_view_count, RID(), vformat("Layers of our texture (%d) doesn't match view count for this framebuffer (%d)", texture->layers, p_view_count));
 
 		if (texture != nullptr) {
 			_check_transfer_worker_texture(texture);
@@ -3704,7 +3704,7 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 			af.usage_flags = AttachmentFormat::UNUSED_ATTACHMENT;
 			trackers.push_back(nullptr);
 		} else {
-			ERR_FAIL_COND_V_MSG(texture->layers != p_view_count, RID(), "Layers of our texture doesn't match view count for this framebuffer");
+			ERR_FAIL_COND_V_MSG(texture->layers != p_view_count, RID(), vformat("Layers of our texture (%d) doesn't match view count for this framebuffer (%d)", texture->layers, p_view_count));
 
 			_check_transfer_worker_texture(texture);
 
@@ -3729,7 +3729,7 @@ RID RenderingDevice::framebuffer_create_multipass(const Vector<RID> &p_texture_a
 				// So we skip the size check.
 			} else {
 				ERR_FAIL_COND_V_MSG((uint32_t)size.width != texture->width || (uint32_t)size.height != texture->height, RID(),
-						"All textures in a framebuffer should be the same size.");
+						vformat("All textures in a framebuffer should be the same size. (%d, %d) != (%d, %d)", (uint32_t)size.width, (uint32_t)size.height, texture->width, texture->height));
 			}
 
 			af.format = texture->format;

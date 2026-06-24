@@ -41,7 +41,6 @@
 #include "servers/rendering/rendering_server.h"
 #include "servers/xr/xr_interface.h"
 #include "servers/xr/xr_positional_tracker.h"
-#include "servers/xr/xr_vrs.h"
 
 #ifdef __OBJC__
 // When compiling as Objective-C++, include the actual headers
@@ -61,6 +60,9 @@ typedef struct cp_frame_timing *cp_frame_timing_t;
 #endif
 
 #include <os/lock.h>
+
+class RenderingDeviceDriverMetal;
+class PixelFormats;
 
 class VisionOSXRInterface : public XRInterface {
 	GDCLASS(VisionOSXRInterface, XRInterface);
@@ -106,16 +108,14 @@ private:
 
 	ar_device_anchor_t current_device_anchor = nullptr;
 	cp_frame_t current_frame = nullptr;
+
 	cp_frame_timing_t current_timing = nullptr;
 
 	// Data and functions only accessible from the rendering thread
 	class RenderThread : public Object {
-		// Inherit from Object to use callable_mp(), so we declare it as GDCLASS,
-		// but this class should not be exposed to GDScript with GDREGISTER_CLASS.
-		GDCLASS(RenderThread, Object);
-
 	private:
 		bool initialized = false;
+
 		RenderingDevice *rendering_device = nullptr;
 		PixelFormats *pixel_formats = nullptr;
 
@@ -127,7 +127,14 @@ private:
 		Transform3D origin_from_head;
 
 		cp_frame_t current_frame = nullptr;
-		cp_drawable_t current_drawable = nullptr;
+		cp_drawable_t builtin_drawable = nullptr;
+		cp_drawable_t capture_drawable = nullptr;
+		cp_drawable_t current_drawable = nullptr; // Convenience pointer set in pre_draw_viewport(), points to builtin_drawable or capture_drawable
+		bool encode_present_called = false;
+
+		RID hqr_camera;
+		RID capture_viewport;
+		RID builtin_viewport;
 
 		RD::Texture current_color_texture;
 		RID current_color_texture_id;
@@ -136,16 +143,20 @@ private:
 		RD::Texture current_rasterization_rate_map;
 		RID current_rasterization_rate_map_id;
 
-		// Cached render target size, set in pre_render() on the render thread
-		// and read from the game thread via get_render_target_size().
-		SafeNumeric<uint32_t> cached_render_target_width{ 0 };
-		SafeNumeric<uint32_t> cached_render_target_height{ 0 };
+		// Cached render target size and view count per drawable, set in set_current_frame()
+		// on the render thread and read from the game thread via get_render_target_size()/get_view_count().
+		SafeNumeric<uint32_t> cached_builtin_render_target_width{ 0 };
+		SafeNumeric<uint32_t> cached_builtin_render_target_height{ 0 };
+		SafeNumeric<uint32_t> cached_builtin_view_count{ 0 };
 
-		// Wraps cp_drawable_encode_present in a drawable render context with a no-op pass,
-		// required by Compositor Services when the layer supports progressive immersion.
-		// p_command_buffer is an id<MTLCommandBuffer> bridge-cast to void *, since this header
-		// is included from non-Objective-C++ translation units.
-		static void encode_drawable_no_op_and_present(cp_drawable_t p_drawable, cp_frame_t p_frame, void *p_command_buffer);
+		SafeNumeric<uint32_t> cached_capture_render_target_width{ 0 };
+		SafeNumeric<uint32_t> cached_capture_render_target_height{ 0 };
+		SafeNumeric<uint32_t> cached_capture_view_count{ 0 };
+
+		bool is_capture_render_target(RID p_render_target);
+		void populate_drawables();
+		void cache_drawable_size(cp_drawable_t p_drawable, cp_frame_t p_frame);
+		void present_drawable_empty(cp_drawable_t p_drawable, cp_frame_t p_frame);
 
 	public:
 		void initialize();
@@ -153,22 +164,26 @@ private:
 		void bootstrap_swap_chain();
 
 		void set_minimum_supported_near_plane(float p_minimum_supported_near_plane);
-		// p_current_frame should be an cp_frame_t pointer casted to uint64_t
+
+		// p_current_frame is a cp_frame_t pointer casted to uint64_t
+		// This is to support calling this method through rendering_server->call_on_render_thread()
+		// which only supports variant parameters
 		void set_current_frame(uint64_t p_current_frame);
 
 		// Safe to be called from the game thread
 		void start_frame_update();
 		void end_frame_update();
-		Size2 get_render_target_size();
+		Size2 get_render_target_size(RID p_render_target);
 
 		// Only safe to be called from the render thread
-		uint32_t get_view_count();
+		uint32_t get_view_count(RID p_render_target);
 		Transform3D get_camera_transform();
-		Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform);
-		Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far);
+		Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target);
+		Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target);
 		Rect2i get_render_region();
 
 		void pre_render();
+		bool pre_draw_viewport(RID p_render_target);
 		Vector<RenderingServerTypes::BlitToScreen> post_draw_viewport(RID p_render_target, const Rect2 &p_screen_rect);
 		void encode_present(MTL3::MDCommandBuffer *p_cmd_buffer);
 		void end_frame();
@@ -202,8 +217,6 @@ public:
 	void add_data_provider(ar_data_provider_t p_provider);
 	void remove_data_provider(ar_data_provider_t p_provider);
 
-	cp_frame_timing_t get_current_timing();
-
 	void emit_signal_enum(SignalEnum p_signal);
 
 	virtual StringName get_name() const override;
@@ -226,6 +239,8 @@ public:
 	virtual XRInterface::PlayAreaMode get_play_area_mode() const override;
 	virtual bool set_play_area_mode(XRInterface::PlayAreaMode p_mode) override;
 
+	cp_frame_timing_t get_current_timing();
+
 	float get_current_render_quality();
 	void set_current_render_quality(float p_render_quality);
 
@@ -237,26 +252,35 @@ public:
 
 	// Methods called from the game thread
 	virtual void process() override;
-	virtual Size2 get_render_target_size() override;
+	virtual Size2 get_render_target_size(RID p_render_target) override;
 
 	// Methods only called from the render thread
-	virtual uint32_t get_view_count() override {
-		return rt.get_view_count();
+	virtual uint32_t get_view_count(RID p_render_target) override {
+		return rt.get_view_count(p_render_target);
 	}
 	virtual Transform3D get_camera_transform() override {
 		return rt.get_camera_transform();
 	}
-	virtual Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform) override {
-		return rt.get_transform_for_view(p_view, p_cam_transform);
+	virtual Transform3D get_transform_for_view(uint32_t p_view, const Transform3D &p_cam_transform, RID p_render_target) override {
+		if (p_render_target == RID()) {
+			WARN_PRINT_ONCE("VisionOSXRInterface::get_transform_for_view called with empty RID");
+		}
+		return rt.get_transform_for_view(p_view, p_cam_transform, p_render_target);
 	}
-	virtual Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far) override {
-		return rt.get_projection_for_view(p_view, p_aspect, p_z_near, p_z_far);
+	virtual Projection get_projection_for_view(uint32_t p_view, double p_aspect, double p_z_near, double p_z_far, RID p_render_target) override {
+		if (p_render_target == RID()) {
+			WARN_PRINT_ONCE("VisionOSXRInterface::get_projection_for_view called with empty RID");
+		}
+		return rt.get_projection_for_view(p_view, p_aspect, p_z_near, p_z_far, p_render_target);
 	}
 	virtual Rect2i get_render_region() override {
 		return rt.get_render_region();
 	}
 	virtual void pre_render() override {
 		rt.pre_render();
+	}
+	virtual bool pre_draw_viewport(RID p_render_target) override {
+		return rt.pre_draw_viewport(p_render_target);
 	}
 	virtual Vector<RenderingServerTypes::BlitToScreen> post_draw_viewport(RID p_render_target, const Rect2 &p_screen_rect) override {
 		return rt.post_draw_viewport(p_render_target, p_screen_rect);
