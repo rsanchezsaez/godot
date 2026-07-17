@@ -152,6 +152,35 @@ String EditorExportPlatformVisionOS::_process_config_file_line(const Ref<EditorE
 
 		strnew += p_line.replace("$application_scene_manifest_immersive_configuration", value) + "\n";
 
+		// Info.plist NSHandsTrackingUsageDescription
+	} else if (p_line.contains("$hand_tracking_usage_description")) {
+		if (GLOBAL_GET("xr/visionos/enable_hand_tracking")) {
+			String value =
+					"<key>NSHandsTrackingUsageDescription</key>\n"
+					"<string>Used by the VisionOSXRInterface to populate Godot's hand trackers.</string>";
+			strnew += p_line.replace("$hand_tracking_usage_description", value) + "\n";
+		} else {
+			strnew += p_line.replace("$hand_tracking_usage_description", "") + "\n";
+		}
+
+		// Info.plist NSAccessoryTrackingUsageDescription
+	} else if (p_line.contains("$accessory_tracking_usage_description")) {
+		if (GLOBAL_GET("xr/visionos/enable_controller_tracking")) {
+			String value =
+					"<key>NSAccessoryTrackingUsageDescription</key>\n"
+					"<string>Used by the VisionOSXRInterface to populate Godot's controller trackers.</string>\n"
+					"<key>GCSupportedGameControllers</key>\n"
+					"<array>\n"
+					"    <dict>\n"
+					"        <key>ProfileName</key>\n"
+					"        <string>SpatialGamepad</string>\n"
+					"    </dict>\n"
+					"</array>";
+			strnew += p_line.replace("$accessory_tracking_usage_description", value) + "\n";
+		} else {
+			strnew += p_line.replace("$accessory_tracking_usage_description", "") + "\n";
+		}
+
 		// Apple Embedded common
 	} else {
 		strnew += EditorExportPlatformAppleEmbedded::_process_config_file_line(p_preset, p_line, p_config, p_debug, p_code_signing);
